@@ -6,11 +6,21 @@
     <title>BREAK THE CODE - Game Room</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <style>
+        .game-header a:hover {
+            opacity: 0.8;
+            cursor: pointer;
+            transform: scale(1.02);
+            transition: all 0.2s ease;
+        }
+    </style>
 </head>
 <body>
     <div class="game-container">
         <header class="game-header">
-            <h1>🔍 BREAK <span class="the-small">THE</span> CODE</h1>
+            <a href="/" style="text-decoration: none; color: inherit; display: inline-block;">
+                <h1>🔍 BREAK <span class="the-small">THE</span> CODE</h1>
+            </a>
             <div class="room-info">
                 <span class="room-id">Room: {{ room_id }}</span>
                 <button id="copyRoomId" class="btn btn-small">Copy Room ID</button>
