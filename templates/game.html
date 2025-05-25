@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BREAK THE CODE - Game Room</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>🔍 BREAK <span class="the-small">THE</span> CODE</h1>
+            <div class="room-info">
+                <span class="room-id">Room: {{ room_id }}</span>
+                <button id="copyRoomId" class="btn btn-small">Copy Room ID</button>
+            </div>
+        </header>
+
+        <!-- Waiting Room -->
+        <div id="waitingRoom" class="waiting-room">
+            <h2>Waiting for Players...</h2>
+            <div id="playersList" class="players-list"></div>
+            <div class="waiting-actions">
+                <button id="startGameBtn" class="btn btn-primary" disabled style="display: none;">Start Game</button>
+                <button id="readyBtn" class="btn btn-success" style="display: none;">Ready</button>
+                <button id="notReadyBtn" class="btn btn-warning" style="display: none;">Not Ready</button>
+                <button id="backToLobby" class="btn btn-secondary">Back to Lobby</button>
+            </div>
+        </div>
+
+        <!-- Game Interface -->
+        <div id="gameInterface" class="game-interface" style="display: none;">
+            <!-- Turn Indicator -->
+            <div id="turnIndicator" class="turn-indicator">
+                <span id="currentTurnText">Waiting for game to start...</span>
+            </div>
+
+            <!-- Scoreboard -->
+            <div class="scoreboard-section">
+                <h3>Scoreboard</h3>
+                <div id="gameScoreboard" class="scoreboard"></div>
+            </div>
+
+            <!-- Your Tiles -->
+            <div class="your-tiles-section">
+                <h3>Your Tiles</h3>
+                <div id="yourTiles" class="tiles-container"></div>
+            </div>
+
+            <!-- Center Tiles (for 3-4 players) -->
+            <div id="centerTilesSection" class="center-tiles-section" style="display: none;">
+                <h3>Center Tiles (Hidden)</h3>
+                <div id="centerTiles" class="tiles-container"></div>
+            </div>
+
+            <!-- Other Players -->
+            <div id="otherPlayersSection" class="other-players-section">
+                <h3>Other Players</h3>
+                <div id="otherPlayers" class="other-players"></div>
+            </div>
+
+            <!-- Available Questions -->
+            <div class="questions-section">
+                <h3>Available Questions</h3>
+                <div id="availableQuestions" class="questions-container"></div>
+            </div>
+
+            <!-- Ask Question Interface -->
+            <div id="askQuestionInterface" class="ask-question-interface" style="display: none;">
+                <h3>Ask a Question</h3>
+                <div class="question-form">
+                    <div id="selectedQuestion" class="selected-question"></div>
+                    <p style="color: #666; font-style: italic; margin: 15px 0;">
+                        This question will be asked to all other players
+                    </p>
+                    
+                    <!-- Number Selection Interface (only shown for questions that require it) -->
+                    <div id="numberSelectionSection" style="display: none; margin: 20px 0;">
+                        <h4 style="color: #4a5568; margin-bottom: 10px;">Choose a number for this question:</h4>
+                        <div id="numberButtons" class="number-buttons-container" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                            <!-- Number buttons will be dynamically added here -->
+                        </div>
+                        <p id="selectedNumberDisplay" style="margin-top: 10px; font-weight: bold; color: #38a169;"></p>
+                    </div>
+                    
+                    <div class="question-actions">
+                        <button id="confirmQuestion" class="btn btn-primary">Ask Question</button>
+                        <button id="cancelQuestion" class="btn btn-secondary">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Game Log -->
+            <div class="game-log-section">
+                <h3>Game Log</h3>
+                <div id="gameLog" class="game-log"></div>
+            </div>
+
+            <!-- Make Guess Interface -->
+            <div class="guess-section">
+                <h3>Make Your Final Guess</h3>
+                <div id="guessInterface" class="guess-interface">
+                    <div class="guess-instructions">
+                        <p>Click the tiles below to build your guess (left to right order):</p>
+                    </div>
+                    
+                    <!-- Available tiles to choose from -->
+                    <div class="available-tiles-section">
+                        <h4>Available Tiles:</h4>
+                        <div id="availableTiles" class="available-tiles-grid"></div>
+                    </div>
+                    
+                    <!-- Current guess display -->
+                    <div class="current-guess-section">
+                        <h4>Your Guess:</h4>
+                        <div id="guessBuilder" class="guess-builder"></div>
+                    </div>
+                    
+                    <div class="guess-actions">
+                        <button id="submitGuess" class="btn btn-success">Submit Guess</button>
+                        <button id="clearGuess" class="btn btn-secondary">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="status" class="status-message"></div>
+    </div>
+
+    <script>
+        const socket = io();
+        const roomId = '{{ room_id }}';
+        let gameState = {
+            playerData: null,
+            availableQuestions: [],
+            otherPlayers: [],
+            currentTurn: null,
+            playerCount: 0,
+            selectedQuestionIndex: null,
+            yourPlayerId: null,
+            allPlayers: [],
+            isHost: false,
+            isReady: false,
+            finalRound: false,
+            finalRoundPlayer: null
+        };
+
+        // Socket event handlers
+        socket.on('player_joined', function(data) {
+            console.log('Player joined event received:', data);
+            updatePlayersList(data.players, data.player_count);
+            updateScoreboard(data.players);
+            gameState.playerCount = data.player_count;
+            
+            // Enable start button if enough players
+            const startBtn = document.getElementById('startGameBtn');
+            console.log('Start button current state:', startBtn.disabled, 'Player count:', data.player_count);
+            if (data.player_count >= 2) {
+                startBtn.disabled = false;
+                console.log('Start button enabled - enough players:', data.player_count);
+            } else {
+                console.log('Start button remains disabled - not enough players:', data.player_count);
+            }
+        });
+
+        socket.on('room_state', function(data) {
+            // Handle room state for creators/reconnecting players
+            updatePlayersList(data.players, data.player_count);
+            gameState.playerCount = data.player_count;
+            
+            // Enable start button if enough players
+            const startBtn = document.getElementById('startGameBtn');
+            if (data.player_count >= 2) {
+                startBtn.disabled = false;
+                console.log('Start button enabled from room_state - enough players:', data.player_count);
+            }
+        });
+
+        socket.on('room_joined', function(data) {
+            console.log('Successfully joined room:', data);
+            showStatus(data.message, 'success');
+            
+            // Update waiting room buttons for all players
+            updateWaitingRoomButtons();
+        });
+
+        socket.on('game_started', function(data) {
+            console.log('Game started event received:', data);
+            showStatus('Game has started!', 'success');
+            
+            // Update basic game state
+            gameState.availableQuestions = data.available_questions;
+            gameState.currentTurn = data.current_turn;
+            gameState.playerCount = data.player_count;
+            
+            console.log('Waiting for personalized game data...');
+        });
+
+        socket.on('player_game_data', function(data) {
+            console.log('Player game data received:', data);
+            
+            // Check if this data is for the current player
+            const urlParams = new URLSearchParams(window.location.search);
+            const myPlayerId = urlParams.get('player_id');
+            
+            if (data.your_player_id === myPlayerId) {
+                console.log('This game data is for me, setting up game interface');
+                
+                gameState.playerData = data;
+                gameState.availableQuestions = data.available_questions;
+                gameState.currentTurn = data.current_turn;
+                gameState.playerCount = data.player_count;
+                gameState.yourPlayerId = data.your_player_id;
+                gameState.allPlayers = data.all_players;
+                
+                console.log('Hiding waiting room, showing game interface');
+                
+                // Hide waiting room, show game interface
+                document.getElementById('waitingRoom').style.display = 'none';
+                document.getElementById('gameInterface').style.display = 'block';
+                
+                // Re-enable guess buttons for new game
+                const submitBtn = document.getElementById('submitGuess');
+                const clearBtn = document.getElementById('clearGuess');
+                if (submitBtn) submitBtn.disabled = false;
+                if (clearBtn) clearBtn.disabled = false;
+                
+                // Re-enable tile buttons
+                document.querySelectorAll('.tile-button').forEach(btn => {
+                    btn.disabled = false;
+                });
+                
+                // Clear any previous guess
+                currentGuess = [];
+                
+                // Setup game interface
+                displayYourTiles(data.tiles);
+                displayAvailableQuestions(data.available_questions);
+                updateTurnIndicator(data.current_turn);
+                
+                if (data.center_tiles_count) {
+                    setupCenterTiles(data.center_tiles_count);
+                }
+                
+                setupOtherPlayers();
+                
+                // Update guess display to show empty state
+                updateGuessDisplay();
+                
+                console.log('Game interface setup complete');
+            } else {
+                console.log('This game data is for another player, ignoring');
+            }
+        });
+
+        socket.on('question_asked', function(data) {
+            addToGameLog(`${data.asking_player} asked: "${data.question}"`);
+            
+            // Display all answers
+            for (const playerId in data.answers) {
+                const playerInfo = data.answers[playerId];
+                addToGameLog(`  ${playerInfo.name}: ${playerInfo.answer}`);
+            }
+        });
+
+        socket.on('questions_updated', function(data) {
+            console.log('Questions updated:', data.available_questions);
+            gameState.availableQuestions = data.available_questions;
+            displayAvailableQuestions(data.available_questions);
+            
+            // Show appropriate status message
+            if (data.new_question_added) {
+                showStatus('Question cards refreshed! New card added.', 'info');
+            } else {
+                if (data.total_questions_remaining === 0) {
+                    showStatus('No more questions available! Only guessing allowed now.', 'warning');
+                } else {
+                    showStatus(`Questions updated - ${data.total_questions_remaining} question(s) remaining.`, 'info');
+                }
+            }
+            
+            // Hide question interface if it's open
+            hideQuestionInterface();
+        });
+
+        socket.on('turn_changed', function(data) {
+            gameState.currentTurn = data.current_turn;
+            if (data.final_round) {
+                gameState.finalRound = true;
+                if (data.final_round_player) {
+                    gameState.finalRoundPlayer = data.final_round_player;
+                }
+            }
+            updateTurnIndicator(data.current_turn);
+        });
+
+        socket.on('error', function(data) {
+            showStatus(data.message, 'error');
+        });
+
+        socket.on('connect', function() {
+            console.log('Connected to server');
+            
+            // Check if we have a player_id in the URL (for room creators)
+            const urlParams = new URLSearchParams(window.location.search);
+            const playerId = urlParams.get('player_id');
+            const playerName = urlParams.get('player_name');
+            const isHost = urlParams.get('is_host') === 'true';
+            
+            console.log('URL parameters:', { playerId, playerName, isHost, url: window.location.href });
+            
+            if (isHost) {
+                gameState.isHost = true;
+                gameState.isReady = true; // Host is automatically ready
+                updateWaitingRoomButtons();
+                
+                // If this is a reconnection, emit ready status
+                socket.emit('player_ready', { ready: true });
+            }
+            
+            if (playerId) {
+                // Player is already in the room (room creator), get current state
+                console.log('Player already in room, getting room state');
+                socket.emit('get_room_state', {
+                    room_id: roomId,
+                    player_id: playerId
+                });
+            } else {
+                // New player joining, prompt for name
+                console.log('New player, prompting for name');
+                const playerName = prompt('Enter your name:') || 'Anonymous';
+                socket.emit('join_room', {
+                    room_id: roomId,
+                    player_name: playerName
+                });
+                
+                // Show ready button for non-host players
+                updateWaitingRoomButtons();
+            }
+        });
+
+        socket.on('guess_made', function(data) {
+            let message = `${data.player} guessed ${data.target}`;
+            if (data.correct) {
+                message += ` - CORRECT! ✅`;
+                if (data.actual_tiles) {
+                    const tilesDisplay = data.actual_tiles.map(tile => `${tile.number}(${tile.color})`).join(', ');
+                    message += ` [${tilesDisplay}]`;
+                }
+                
+                // Trigger celebration effects for correct guesses
+                showCelebration();
+            } else {
+                message += ` - Wrong ❌`;
+            }
+            addToGameLog(message);
+        });
+
+        socket.on('final_round_started', function(data) {
+            console.log('Final round started:', data);
+            gameState.finalRound = true;
+            gameState.finalRoundPlayer = data.final_player;
+            addToGameLog(data.message);
+            showStatus(data.message, 'info');
+            updateTurnIndicator(gameState.currentTurn);
+            
+            // Disable question asking for everyone in final round
+            const questionCards = document.querySelectorAll('.question-card');
+            questionCards.forEach(card => {
+                card.style.opacity = '0.5';
+                card.style.pointerEvents = 'none';
+            });
+        });
+
+        socket.on('game_ended', function(data) {
+            addToGameLog(`Game Over! Winners: ${data.winners.join(', ')}`);
+            if (data.is_draw) {
+                showStatus(`${data.message} (No points awarded for draws)`, 'info');
+            } else {
+                showStatus(`${data.message} (Winners get +1 point!)`, 'success');
+            }
+            
+            // Disable further interactions
+            const submitBtn = document.getElementById('submitGuess');
+            const clearBtn = document.getElementById('clearGuess');
+            if (submitBtn) submitBtn.disabled = true;
+            if (clearBtn) clearBtn.disabled = true;
+            
+            // Disable tile buttons
+            document.querySelectorAll('.tile-button').forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            // Redirect to waiting room if specified
+            if (data.redirect_to_waiting) {
+                setTimeout(() => {
+                    // Hide game interface, show waiting room
+                    document.getElementById('gameInterface').style.display = 'none';
+                    document.getElementById('waitingRoom').style.display = 'block';
+                    
+                    // Reset game state
+                    gameState.finalRound = false;
+                    gameState.finalRoundPlayer = null;
+                    gameState.currentTurn = null;
+                    gameState.isReady = gameState.isHost; // Host auto-ready
+                    
+                    // Update waiting room buttons
+                    updateWaitingRoomButtons();
+                    
+                    // Emit ready status if host
+                    if (gameState.isHost) {
+                        socket.emit('player_ready', { ready: true });
+                    }
+                    
+                    showStatus('Game finished! Ready for next game?', 'info');
+                }, 3000);
+            }
+        });
+
+        socket.on('room_created', function(data) {
+            console.log('Room created event received:', data);
+            gameState.isHost = data.is_host;
+            gameState.isReady = true; // Host is automatically ready
+            updateWaitingRoomButtons();
+            
+            // Emit ready status to update other players
+            socket.emit('player_ready', { ready: true });
+        });
+
+        socket.on('player_ready_update', function(data) {
+            console.log('Player ready update:', data);
+            updatePlayersList(data.players, data.players.length, data.all_ready);
+            updateScoreboard(data.players);
+        });
+
+        // Event listeners
+        document.getElementById('startGameBtn').addEventListener('click', function() {
+            console.log('Start game button clicked!');
+            console.log('Button disabled state:', this.disabled);
+            console.log('Player count:', gameState.playerCount);
+            
+            if (this.disabled) {
+                console.log('Button is disabled, cannot start game');
+                return;
+            }
+            
+            console.log('Emitting start_game event...');
+            socket.emit('start_game');
+        });
+
+        document.getElementById('backToLobby').addEventListener('click', function() {
+            window.location.href = '/';
+        });
+
+        document.getElementById('copyRoomId').addEventListener('click', function() {
+            navigator.clipboard.writeText(roomId);
+            showStatus('Room ID copied to clipboard!', 'success');
+        });
+
+        document.getElementById('confirmQuestion').addEventListener('click', function() {
+            const data = {
+                question_index: gameState.selectedQuestionIndex
+            };
+            
+            // Include chosen number if one was selected
+            if (gameState.chosenNumber !== null) {
+                data.chosen_number = gameState.chosenNumber;
+            }
+            
+            socket.emit('ask_question', data);
+            
+            hideQuestionInterface();
+        });
+
+        document.getElementById('cancelQuestion').addEventListener('click', function() {
+            hideQuestionInterface();
+        });
+
+        document.getElementById('readyBtn').addEventListener('click', function() {
+            gameState.isReady = true;
+            socket.emit('player_ready', { ready: true });
+            updateWaitingRoomButtons();
+        });
+
+        document.getElementById('notReadyBtn').addEventListener('click', function() {
+            gameState.isReady = false;
+            socket.emit('player_ready', { ready: false });
+            updateWaitingRoomButtons();
+        });
+
+        // Helper functions
+        function updateWaitingRoomButtons() {
+            const startBtn = document.getElementById('startGameBtn');
+            const readyBtn = document.getElementById('readyBtn');
+            const notReadyBtn = document.getElementById('notReadyBtn');
+            
+            if (gameState.isHost) {
+                // Host sees start button
+                startBtn.style.display = 'inline-block';
+                readyBtn.style.display = 'none';
+                notReadyBtn.style.display = 'none';
+            } else {
+                // Regular players see ready/not ready buttons
+                startBtn.style.display = 'none';
+                if (gameState.isReady) {
+                    readyBtn.style.display = 'none';
+                    notReadyBtn.style.display = 'inline-block';
+                } else {
+                    readyBtn.style.display = 'inline-block';
+                    notReadyBtn.style.display = 'none';
+                }
+            }
+        }
+
+        function updatePlayersList(players, count, allReady = false) {
+            const listElement = document.getElementById('playersList');
+            listElement.innerHTML = '';
+            
+            if (Array.isArray(players)) {
+                // Handle array format (with ready status and scores)
+                players.forEach(player => {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'player-item';
+                    const readyStatus = player.ready ? ' ✅' : ' ⏳';
+                    const score = player.score !== undefined ? ` (${player.score} pts)` : '';
+                    playerDiv.textContent = player.name + score + readyStatus;
+                    if (player.ready) {
+                        playerDiv.style.backgroundColor = '#c6f6d5';
+                    }
+                    listElement.appendChild(playerDiv);
+                });
+            } else {
+                // Handle old format (just player objects)
+                players.forEach(player => {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'player-item';
+                    const score = player.score !== undefined ? ` (${player.score} pts)` : '';
+                    playerDiv.textContent = player.name + score;
+                    listElement.appendChild(playerDiv);
+                });
+            }
+            
+            const countDiv = document.createElement('div');
+            countDiv.className = 'player-count';
+            countDiv.textContent = `${count} player(s) joined`;
+            listElement.appendChild(countDiv);
+            
+            // Update start button for host
+            if (gameState.isHost) {
+                const startBtn = document.getElementById('startGameBtn');
+                if (allReady && count >= 2) {
+                    startBtn.disabled = false;
+                } else {
+                    startBtn.disabled = true;
+                }
+            }
+        }
+
+        function updateScoreboard(players) {
+            const scoreboard = document.getElementById('gameScoreboard');
+            if (!scoreboard) return;
+            
+            scoreboard.innerHTML = '';
+            
+            // Convert players object to array if needed and sort by score
+            let playerList = [];
+            if (Array.isArray(players)) {
+                playerList = players;
+            } else if (typeof players === 'object') {
+                playerList = Object.values(players);
+            }
+            
+            // Sort by score (highest first)
+            playerList.sort((a, b) => (b.score || 0) - (a.score || 0));
+            
+            playerList.forEach((player, index) => {
+                const scoreItem = document.createElement('div');
+                scoreItem.className = 'score-item';
+                const position = index + 1;
+                const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : '';
+                scoreItem.textContent = `${medal} ${player.name}: ${player.score || 0} pts`;
+                scoreboard.appendChild(scoreItem);
+            });
+        }
+
+        function displayYourTiles(tiles) {
+            const container = document.getElementById('yourTiles');
+            container.innerHTML = '';
+            
+            tiles.forEach(tile => {
+                const tileElement = document.createElement('div');
+                tileElement.className = `tile tile-${tile.color}`;
+                tileElement.textContent = tile.number;
+                container.appendChild(tileElement);
+            });
+        }
+
+        function displayAvailableQuestions(questions) {
+            const container = document.getElementById('availableQuestions');
+            container.innerHTML = '';
+            
+            questions.forEach((question, index) => {
+                const questionElement = document.createElement('div');
+                questionElement.className = 'question-card';
+                
+                // Format text between ** ** as bold and green
+                const formattedText = question.replace(/\*\*(.*?)\*\*/g, '<span class="question-highlight">$1</span>');
+                questionElement.innerHTML = formattedText;
+                
+                questionElement.addEventListener('click', () => selectQuestion(index, question));
+                container.appendChild(questionElement);
+            });
+        }
+
+        function selectQuestion(index, question) {
+            // Check if it's player's turn
+            if (gameState.currentTurn !== gameState.yourPlayerId) {
+                showStatus("It's not your turn!", 'error');
+                return;
+            }
+            
+            // Check if in final round
+            if (gameState.finalRound) {
+                if (gameState.finalRoundPlayer === gameState.yourPlayerId) {
+                    showStatus("Final round - you must make a guess, not ask questions!", 'error');
+                } else {
+                    showStatus("Final round in progress - you cannot ask questions!", 'error');
+                }
+                return;
+            }
+            
+            gameState.selectedQuestionIndex = index;
+            gameState.selectedQuestion = question;
+            gameState.chosenNumber = null; // Reset chosen number
+            
+            // Format the selected question with the same highlighting
+            const formattedText = question.replace(/\*\*(.*?)\*\*/g, '<span class="question-highlight">$1</span>');
+            document.getElementById('selectedQuestion').innerHTML = formattedText;
+            
+            // Check if this question requires number selection
+            if (question.includes("You must choose one number before asking that question")) {
+                setupNumberSelection(question);
+            } else {
+                hideNumberSelection();
+            }
+            
+            showQuestionInterface();
+        }
+
+        function setupNumberSelection(question) {
+            const numberSection = document.getElementById('numberSelectionSection');
+            const numberButtons = document.getElementById('numberButtons');
+            const selectedDisplay = document.getElementById('selectedNumberDisplay');
+            
+            // Clear previous buttons
+            numberButtons.innerHTML = '';
+            selectedDisplay.textContent = '';
+            
+            // Determine which numbers are valid for this question
+            let validNumbers = [];
+            if (question.includes('#8** or **#9')) {
+                validNumbers = [8, 9];
+            } else if (question.includes('#1** or **#2')) {
+                validNumbers = [1, 2];
+            } else if (question.includes('#3** or **#4')) {
+                validNumbers = [3, 4];
+            } else if (question.includes('#6** or **#7')) {
+                validNumbers = [6, 7];
+            }
+            
+            // Create number buttons
+            validNumbers.forEach(number => {
+                const button = document.createElement('button');
+                button.className = 'number-button';
+                button.textContent = number;
+                button.dataset.number = number;
+                button.addEventListener('click', () => selectNumber(number));
+                numberButtons.appendChild(button);
+            });
+            
+            // Show the number selection section
+            numberSection.style.display = 'block';
+            
+            // Update confirm button state
+            updateConfirmButtonState();
+        }
+
+        function hideNumberSelection() {
+            const numberSection = document.getElementById('numberSelectionSection');
+            numberSection.style.display = 'none';
+            gameState.chosenNumber = null;
+            updateConfirmButtonState();
+        }
+
+        function selectNumber(number) {
+            gameState.chosenNumber = number;
+            
+            // Update button states
+            document.querySelectorAll('.number-button').forEach(btn => {
+                btn.classList.remove('selected');
+                if (parseInt(btn.dataset.number) === number) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            // Update display
+            const selectedDisplay = document.getElementById('selectedNumberDisplay');
+            selectedDisplay.textContent = `Selected number: ${number}`;
+            
+            // Update confirm button state
+            updateConfirmButtonState();
+        }
+
+        function updateConfirmButtonState() {
+            const confirmBtn = document.getElementById('confirmQuestion');
+            const requiresNumber = gameState.selectedQuestion && 
+                                 gameState.selectedQuestion.includes("You must choose one number before asking that question");
+            
+            if (requiresNumber && gameState.chosenNumber === null) {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Choose a number first';
+            } else {
+                confirmBtn.disabled = false;
+                confirmBtn.textContent = 'Ask Question';
+            }
+        }
+
+        function showQuestionInterface() {
+            document.getElementById('askQuestionInterface').style.display = 'block';
+        }
+
+        function hideQuestionInterface() {
+            document.getElementById('askQuestionInterface').style.display = 'none';
+            hideNumberSelection();
+            gameState.selectedQuestionIndex = null;
+            gameState.selectedQuestion = null;
+        }
+
+        function updateTurnIndicator(currentTurn) {
+            const indicator = document.getElementById('currentTurnText');
+            const submitBtn = document.getElementById('submitGuess');
+            const clearBtn = document.getElementById('clearGuess');
+            const tileButtons = document.querySelectorAll('.tile-button');
+            
+            if (currentTurn === gameState.yourPlayerId) {
+                if (gameState.finalRound && gameState.finalRoundPlayer === gameState.yourPlayerId) {
+                    // In final round and you are the final player - can only guess
+                    indicator.textContent = "Your Turn - Make your final guess!";
+                    indicator.style.color = '#e53e3e';
+                    indicator.style.fontWeight = 'bold';
+                    
+                    // Enable guess interface
+                    if (submitBtn) submitBtn.disabled = false;
+                    if (clearBtn) clearBtn.disabled = false;
+                    
+                    // Enable all tile buttons for selection
+                    tileButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.pointerEvents = 'auto';
+                        btn.style.opacity = '1';
+                    });
+                } else if (gameState.finalRound) {
+                    // In final round but not the final player - cannot act
+                    indicator.textContent = "Final round in progress - Waiting...";
+                    indicator.style.color = '#718096';
+                    indicator.style.fontWeight = 'normal';
+                    
+                    // Disable guess interface
+                    if (submitBtn) submitBtn.disabled = true;
+                    if (clearBtn) clearBtn.disabled = true;
+                    tileButtons.forEach(btn => {
+                        btn.disabled = true;
+                        btn.style.pointerEvents = 'none';
+                        btn.style.opacity = '0.5';
+                    });
+                } else {
+                    // Normal turn - can ask questions or guess
+                    indicator.textContent = "Your Turn - Ask a question or make a guess!";
+                    indicator.style.color = '#48bb78';
+                    indicator.style.fontWeight = 'bold';
+                    
+                    // Enable guess interface
+                    if (submitBtn) submitBtn.disabled = false;
+                    if (clearBtn) clearBtn.disabled = false;
+                    
+                    // Enable all tile buttons for selection
+                    tileButtons.forEach(btn => {
+                        btn.disabled = false;
+                        btn.style.pointerEvents = 'auto';
+                        btn.style.opacity = '1';
+                    });
+                }
+            } else {
+                // Not your turn
+                if (currentTurn && gameState.allPlayers && gameState.allPlayers[currentTurn]) {
+                    indicator.textContent = `${gameState.allPlayers[currentTurn].name}'s Turn`;
+                } else {
+                    indicator.textContent = 'Waiting for turn...';
+                }
+                indicator.style.color = '#4a5568';
+                indicator.style.fontWeight = 'normal';
+                
+                // Disable guess interface when not your turn
+                if (submitBtn) submitBtn.disabled = true;
+                if (clearBtn) clearBtn.disabled = true;
+                tileButtons.forEach(btn => {
+                    btn.disabled = true;
+                    btn.style.pointerEvents = 'none';
+                    btn.style.opacity = '0.5';
+                });
+            }
+        }
+
+        function setupCenterTiles(count) {
+            const section = document.getElementById('centerTilesSection');
+            section.style.display = 'block';
+            
+            const container = document.getElementById('centerTiles');
+            container.innerHTML = '';
+            
+            for (let i = 0; i < count; i++) {
+                const tileElement = document.createElement('div');
+                tileElement.className = 'tile tile-hidden';
+                tileElement.textContent = '?';
+                container.appendChild(tileElement);
+            }
+        }
+
+        function setupOtherPlayers() {
+            // Setup other players display based on game mode
+            const container = document.getElementById('otherPlayers');
+            
+            if (gameState.playerCount === 2) {
+                // 2-player mode: show other player for targeting
+                container.innerHTML = '';
+                const heading = document.createElement('h4');
+                heading.textContent = 'Other Player:';
+                heading.style.textAlign = 'center';
+                heading.style.marginBottom = '10px';
+                container.appendChild(heading);
+                
+                for (const playerId in gameState.allPlayers) {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'other-player-item';
+                    playerDiv.style.background = '#f7fafc';
+                    playerDiv.style.padding = '10px';
+                    playerDiv.style.margin = '5px 0';
+                    playerDiv.style.borderRadius = '8px';
+                    playerDiv.style.textAlign = 'center';
+                    playerDiv.textContent = `${gameState.allPlayers[playerId].name} (${5} tiles)`;
+                    container.appendChild(playerDiv);
+                }
+            } else {
+                // 3-4 player mode: standard message
+                container.innerHTML = '<p>Other players\' tiles are hidden behind their screens</p>';
+            }
+            
+            // Setup guess interface when game starts
+            setupGuessInterface();
+        }
+
+        function setupGuessInterface() {
+            // Update guess interface title based on game mode
+            const guessSection = document.querySelector('.guess-section h3');
+            if (gameState.playerCount === 2) {
+                guessSection.textContent = 'Guess Another Player\'s Tiles';
+            } else {
+                guessSection.textContent = 'Guess the Center Tiles';
+            }
+            
+            // Update instructions
+            const instructions = document.querySelector('.guess-instructions p');
+            if (gameState.playerCount === 2) {
+                instructions.textContent = 'Click tiles to select/deselect them for your guess:';
+            } else {
+                instructions.textContent = 'Click tiles to select/deselect them for your guess:';
+            }
+            
+            const availableTilesContainer = document.getElementById('availableTiles');
+            availableTilesContainer.innerHTML = '';
+
+            // Add tiles 0-9 in sequential order with spacing
+            for (let number = 0; number <= 9; number++) {
+                if (number === 5) {
+                    // For number 5, add green tiles instead of black/white
+                    const greenTile1 = {number: 5, color: 'green'};
+                    const greenTile2 = {number: 5, color: 'green'};
+                    
+                    // Calculate index for green tiles
+                    const index1 = number * 2;
+                    const index2 = number * 2 + 1;
+                    
+                    const button1 = document.createElement('button');
+                    button1.className = `tile-button ${greenTile1.color}`;
+                    button1.textContent = greenTile1.number;
+                    button1.dataset.tileIndex = index1;
+                    button1.dataset.number = greenTile1.number;
+                    button1.dataset.color = greenTile1.color;
+                    button1.dataset.selected = 'false';
+                    button1.addEventListener('click', () => toggleTileSelection(button1, greenTile1, index1));
+                    availableTilesContainer.appendChild(button1);
+
+                    const button2 = document.createElement('button');
+                    button2.className = `tile-button ${greenTile2.color}`;
+                    button2.textContent = greenTile2.number;
+                    button2.dataset.tileIndex = index2;
+                    button2.dataset.number = greenTile2.number;
+                    button2.dataset.color = greenTile2.color;
+                    button2.dataset.selected = 'false';
+                    button2.addEventListener('click', () => toggleTileSelection(button2, greenTile2, index2));
+                    availableTilesContainer.appendChild(button2);
+                } else {
+                    // For all other numbers, add black first, then white
+                    const blackTile = {number: number, color: 'black'};
+                    const whiteTile = {number: number, color: 'white'};
+                    
+                    // Calculate index
+                    const blackIndex = number * 2;
+                    const whiteIndex = number * 2 + 1;
+                    
+                    const blackButton = document.createElement('button');
+                    blackButton.className = `tile-button ${blackTile.color}`;
+                    blackButton.textContent = blackTile.number;
+                    blackButton.dataset.tileIndex = blackIndex;
+                    blackButton.dataset.number = blackTile.number;
+                    blackButton.dataset.color = blackTile.color;
+                    blackButton.dataset.selected = 'false';
+                    blackButton.addEventListener('click', () => toggleTileSelection(blackButton, blackTile, blackIndex));
+                    availableTilesContainer.appendChild(blackButton);
+
+                    const whiteButton = document.createElement('button');
+                    whiteButton.className = `tile-button ${whiteTile.color}`;
+                    whiteButton.textContent = whiteTile.number;
+                    whiteButton.dataset.tileIndex = whiteIndex;
+                    whiteButton.dataset.number = whiteTile.number;
+                    whiteButton.dataset.color = whiteTile.color;
+                    whiteButton.dataset.selected = 'false';
+                    whiteButton.addEventListener('click', () => toggleTileSelection(whiteButton, whiteTile, whiteIndex));
+                    availableTilesContainer.appendChild(whiteButton);
+                }
+                
+                // Add spacing element after each number (except the last one)
+                if (number < 9) {
+                    const spacer = document.createElement('div');
+                    spacer.className = 'tile-spacer';
+                    availableTilesContainer.appendChild(spacer);
+                }
+            }
+
+            // Setup clear and submit buttons
+            const clearButton = document.getElementById('clearGuess');
+            const submitButton = document.getElementById('submitGuess');
+            
+            // Remove existing event listeners to prevent duplicates
+            clearButton.removeEventListener('click', clearGuess);
+            submitButton.removeEventListener('click', submitGuess);
+            
+            // Add fresh event listeners
+            clearButton.addEventListener('click', clearGuess);
+            submitButton.addEventListener('click', submitGuess);
+            
+            // Initialize empty selection
+            currentGuess = [];
+            updateGuessDisplay();
+        }
+
+        let currentGuess = [];
+
+        function toggleTileSelection(button, tile, index) {
+            const isSelected = button.dataset.selected === 'true';
+            const maxTiles = gameState.playerCount === 2 ? 5 : 
+                           gameState.playerCount === 3 ? 5 :
+                           gameState.playerCount === 4 ? 4 : 5;
+
+            if (!isSelected) {
+                // Trying to select a tile
+                if (currentGuess.length >= maxTiles) {
+                    showStatus(`You can only select ${maxTiles} tiles for your guess`, 'error');
+                    return;
+                }
+                // Select the tile
+                button.dataset.selected = 'true';
+                button.style.backgroundColor = '#4299e1'; // Blue background for selected
+                button.style.color = 'white';
+                currentGuess.push({...tile, buttonIndex: index});
+            } else {
+                // Deselecting a tile
+                button.dataset.selected = 'false';
+                button.style.backgroundColor = ''; // Reset to original color
+                button.style.color = '';
+                // Remove from currentGuess
+                currentGuess = currentGuess.filter(guessedTile => 
+                    !(guessedTile.buttonIndex === index && 
+                      guessedTile.number === tile.number && 
+                      guessedTile.color === tile.color)
+                );
+            }
+
+            updateGuessDisplay();
+        }
+
+        function updateGuessDisplay() {
+            const guessBuilder = document.getElementById('guessBuilder');
+            guessBuilder.innerHTML = '';
+
+            if (currentGuess.length === 0) {
+                guessBuilder.innerHTML = '<p style="color: #718096;">Select tiles above to build your guess...</p>';
+                return;
+            }
+
+            // Sort the guess by the button index to maintain grid order
+            const sortedGuess = [...currentGuess].sort((a, b) => a.buttonIndex - b.buttonIndex);
+
+            sortedGuess.forEach((tile, index) => {
+                const tileElement = document.createElement('div');
+                tileElement.className = `guess-tile tile-${tile.color}`;
+                tileElement.textContent = tile.number;
+                guessBuilder.appendChild(tileElement);
+            });
+
+            // Show count
+            const maxTiles = gameState.playerCount === 2 ? 5 : 
+                           gameState.playerCount === 3 ? 5 :
+                           gameState.playerCount === 4 ? 4 : 5;
+            const countElement = document.createElement('p');
+            countElement.style.color = '#718096';
+            countElement.style.marginTop = '10px';
+            countElement.textContent = `Selected: ${currentGuess.length}/${maxTiles} tiles`;
+            guessBuilder.appendChild(countElement);
+        }
+
+        function removeTileFromGuess(guessIndex) {
+            // This function is no longer needed with toggle system
+            // Keep for compatibility but it won't be called
+        }
+
+        function clearGuess() {
+            // Reset all button states
+            document.querySelectorAll('.tile-button').forEach(button => {
+                button.dataset.selected = 'false';
+                button.style.backgroundColor = '';
+                button.style.color = '';
+            });
+
+            currentGuess = [];
+            updateGuessDisplay();
+        }
+
+        function submitGuess() {
+            // Check if it's your turn
+            if (gameState.currentTurn !== gameState.yourPlayerId) {
+                showStatus("It's not your turn!", 'error');
+                return;
+            }
+            
+            // Check final round restrictions
+            if (gameState.finalRound && gameState.finalRoundPlayer !== gameState.yourPlayerId) {
+                showStatus("Only the final round player can make guesses now!", 'error');
+                return;
+            }
+            
+            // Updated tile counts for new game modes
+            const maxTiles = gameState.playerCount === 2 ? 5 : 
+                           gameState.playerCount === 3 ? 5 :
+                           gameState.playerCount === 4 ? 4 : 5;
+
+            if (currentGuess.length !== maxTiles) {
+                showStatus(`Please select exactly ${maxTiles} tiles for your guess`, 'error');
+                return;
+            }
+
+            const guessData = currentGuess.map(tile => ({
+                number: tile.number,
+                color: tile.color
+            }));
+
+            let guessType = 'center';
+
+            // For 2-player games, automatically target the other player
+            if (gameState.playerCount === 2) {
+                // Find the other player (not yourself)
+                for (const playerId in gameState.allPlayers) {
+                    if (playerId !== gameState.yourPlayerId) {
+                        guessType = playerId;
+                        break;
+                    }
+                }
+                
+                if (guessType === 'center') {
+                    showStatus('Unable to find target player for guess', 'error');
+                    return;
+                }
+            }
+            // For 3-4 player games, guessType remains 'center'
+
+            console.log('Submitting guess:', guessData, 'Type:', guessType);
+            
+            socket.emit('make_guess', {
+                guess: guessData,
+                guess_type: guessType
+            });
+
+            showStatus('Guess submitted!', 'success');
+            
+            // Clear the guess after submission
+            clearGuess();
+        }
+
+        function addToGameLog(message) {
+            const logContainer = document.getElementById('gameLog');
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${type}`;
+            
+            setTimeout(() => {
+                statusDiv.textContent = '';
+                statusDiv.className = 'status-message';
+            }, 5000);
+        }
+
+        // Celebration functions
+        function showCelebration() {
+            // Create celebration overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'celebration-overlay';
+            document.body.appendChild(overlay);
+            
+            // Show celebration message
+            const message = document.createElement('div');
+            message.className = 'celebration-message';
+            message.textContent = '🎉 CORRECT! 🎉';
+            document.body.appendChild(message);
+            
+            // Create fireworks
+            createFireworks(overlay);
+            
+            // Create falling flowers
+            createFlowers(overlay);
+            
+            // Create stars
+            createStars(overlay);
+            
+            // Remove elements after animation
+            setTimeout(() => {
+                if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+                if (message.parentNode) message.parentNode.removeChild(message);
+            }, 3000);
+        }
+
+        function createFireworks(container) {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500'];
+            
+            for (let i = 0; i < 20; i++) {
+                setTimeout(() => {
+                    const firework = document.createElement('div');
+                    firework.className = 'firework';
+                    firework.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                    firework.style.left = Math.random() * 100 + '%';
+                    firework.style.top = Math.random() * 100 + '%';
+                    container.appendChild(firework);
+                    
+                    setTimeout(() => {
+                        if (firework.parentNode) firework.parentNode.removeChild(firework);
+                    }, 1500);
+                }, i * 100);
+            }
+        }
+
+        function createFlowers(container) {
+            const flowers = ['🌸', '🌺', '🌻', '🌹', '🌼', '🌷', '🌿', '🍀'];
+            
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const flower = document.createElement('div');
+                    flower.className = 'flower';
+                    flower.textContent = flowers[Math.floor(Math.random() * flowers.length)];
+                    flower.style.left = Math.random() * 100 + '%';
+                    flower.style.animationDelay = Math.random() * 0.5 + 's';
+                    container.appendChild(flower);
+                    
+                    setTimeout(() => {
+                        if (flower.parentNode) flower.parentNode.removeChild(flower);
+                    }, 2000);
+                }, i * 150);
+            }
+        }
+
+        function createStars(container) {
+            const stars = ['⭐', '✨', '🌟', '💫'];
+            
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.textContent = stars[Math.floor(Math.random() * stars.length)];
+                    star.style.left = Math.random() * 100 + '%';
+                    star.style.top = Math.random() * 100 + '%';
+                    star.style.animationDelay = Math.random() * 0.3 + 's';
+                    container.appendChild(star);
+                    
+                    setTimeout(() => {
+                        if (star.parentNode) star.parentNode.removeChild(star);
+                    }, 2000);
+                }, i * 200);
+            }
+        }
+    </script>
+</body>
+</html> 

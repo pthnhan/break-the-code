@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BREAK THE CODE - by pthnhan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="game-header">
+            <h1>🔍 BREAK <span class="the-small">THE</span> CODE</h1>
+            <p class="author">By pthnhan</p>
+            <p class="tagline">Put on your thinking cap and deduce the hidden tiles!</p>
+        </header>
+
+        <div class="game-actions">
+            <div class="action-card">
+                <h3>Create New Game</h3>
+                <form id="createGameForm">
+                    <div class="form-group">
+                        <label for="playerName">Your Name:</label>
+                        <input type="text" id="playerName" name="playerName" required placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxPlayers">Max Players:</label>
+                        <select id="maxPlayers" name="maxPlayers">
+                            <option value="2">2 Players</option>
+                            <option value="3">3 Players</option>
+                            <option value="4" selected>4 Players</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Create Game Room</button>
+                </form>
+            </div>
+
+            <div class="action-card">
+                <h3>Join Existing Game</h3>
+                <form id="joinGameForm">
+                    <div class="form-group">
+                        <label for="joinPlayerName">Your Name:</label>
+                        <input type="text" id="joinPlayerName" name="joinPlayerName" required placeholder="Enter your name">
+                    </div>
+                    <div class="form-group">
+                        <label for="roomId">Room ID:</label>
+                        <input type="text" id="roomId" name="roomId" required placeholder="Enter room ID">
+                    </div>
+                    <button type="submit" class="btn btn-secondary">Join Game</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="game-description">
+            <h2>How to Play</h2>
+            <div class="rules">
+                <div class="rule-section">
+                    <h3>🎯 Objective</h3>
+                    <p><strong>2 Players:</strong> Guess all of your opponent's tiles</p>
+                    <p><strong>3-4 Players:</strong> Guess the face-down tiles in the center</p>
+                </div>
+                
+                <div class="rule-section">
+                    <h3>🎲 Setup</h3>
+                    <ul>
+                        <li>Each player gets 4-5 tiles placed behind their screen</li>
+                        <li>Tiles are arranged in numerical order (black tiles before white for same numbers)</li>
+                        <li>4 question cards are available in the center for strategic questioning</li>
+                        <li>Players take turns asking questions to gather information about other players' tiles</li>
+                    </ul>
+                </div>
+                
+                <div class="rule-section">
+                    <h3>🧩 Tiles</h3>
+                    <p>Numbers 0, 1, 2, 3, 4, 6, 7, 8, 9 (both white and black) + Two green 5s</p>
+                    <p>Total: 20 tiles (18 regular + 2 special green 5s)</p>
+                </div>
+                
+                <div class="rule-section">
+                    <h3>🎯 Gameplay</h3>
+                    <ul>
+                        <li><strong>Ask Questions:</strong> Use strategic questions to gather information about opponents' tiles</li>
+                        <li><strong>Deduce Patterns:</strong> Analyze answers to determine tile positions and numbers</li>
+                        <li><strong>Make Your Guess:</strong> When confident, arrange tiles in the order you think they are</li>
+                        <li><strong>Win Conditions:</strong> First to correctly guess wins, or everyone gets final chance in some scenarios</li>
+                    </ul>
+                </div>
+                
+                <div class="rule-section">
+                    <h3>🔍 Question Types</h3>
+                    <ul>
+                        <li><strong>Counting Questions:</strong> "How many white tiles do you have?"</li>
+                        <li><strong>Position Questions:</strong> "Where are your #5 tiles?"</li>
+                        <li><strong>Mathematical:</strong> "What is the sum of your tiles?"</li>
+                        <li><strong>Conditional:</strong> "Is your C tile greater than 4?"</li>
+                        <li><strong>Pattern-based:</strong> "Which neighboring tiles have consecutive numbers?"</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="game-resources">
+            <h2>Game Resources</h2>
+            <div class="resources">
+                <div class="resource-section">
+                    <h3>📚 Original Game</h3>
+                    <p><strong>Game Designer:</strong> Ryohei Kurahashi</p>
+                    <p><strong>Web Implementation:</strong> pthnhan</p>
+                </div>
+                
+                <div class="resource-section">
+                    <h3>📖 Official Rules</h3>
+                    <p>For complete and detailed rules, refer to the official rulebook:</p>
+                    <a href="https://boardgame.bg/break%20the%20code%20rules.pdf" target="_blank" class="btn btn-secondary">
+                        📄 Download Official Rules PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="status" class="status-message"></div>
+    </div>
+
+    <script>
+        const socket = io();
+
+        document.getElementById('createGameForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const playerName = document.getElementById('playerName').value;
+            const maxPlayers = parseInt(document.getElementById('maxPlayers').value);
+            
+            socket.emit('create_room', {
+                player_name: playerName,
+                max_players: maxPlayers
+            });
+        });
+
+        document.getElementById('joinGameForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const playerName = document.getElementById('joinPlayerName').value;
+            const roomId = document.getElementById('roomId').value;
+            
+            socket.emit('join_room', {
+                player_name: playerName,
+                room_id: roomId
+            });
+        });
+
+        socket.on('room_created', function(data) {
+            console.log('Room created:', data);
+            // Redirect to game page with room ID, player name, player ID, and host status
+            const hostParam = data.is_host ? '&is_host=true' : '';
+            window.location.href = `/game/${data.room_id}?player_name=${encodeURIComponent(data.player_name)}&player_id=${data.player_id}${hostParam}`;
+        });
+
+        socket.on('room_joined', function(data) {
+            showStatus(`Joined room successfully!`, 'success');
+            setTimeout(() => {
+                window.location.href = `/game/${data.room_id}?player_name=${encodeURIComponent(data.player_name || 'Player')}&player_id=${data.player_id}`;
+            }, 1500);
+        });
+
+        socket.on('error', function(data) {
+            showStatus(data.message, 'error');
+        });
+
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${type}`;
+            
+            setTimeout(() => {
+                statusDiv.textContent = '';
+                statusDiv.className = 'status-message';
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 
