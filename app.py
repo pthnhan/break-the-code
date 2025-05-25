@@ -853,6 +853,7 @@ def check_guess_correctness(guess, target_tiles):
     # Convert both to comparable format and sort
     guess_tiles = [{'number': tile['number'], 'color': tile['color']} for tile in guess]
     target_tiles_copy = [{'number': tile['number'], 'color': tile['color']} for tile in target_tiles]
+    print(target_tiles_copy)
     
     # Sort both lists the same way for comparison
     guess_tiles.sort(key=lambda x: (x['number'], x['color']))
@@ -885,6 +886,8 @@ def reset_game_for_next_round(room_id):
     room['center_tiles'] = []
     room['center_tiles_count'] = 0
     room['used_question_cards'] = []
+    room['correct_guessers'] = []  # Clear the correct guessers list
+    room['first_correct_guesser'] = None  # Clear the first correct guesser
     
     # Reset player game data but keep scores and names
     for player_id in room['players']:
@@ -895,6 +898,7 @@ def reset_game_for_next_round(room_id):
         player.pop('correct_guess', None)
         player.pop('guess_timestamp', None)
         player.pop('center_guess_correct', None)
+        player.pop('has_guessed', None)  # Clear has_guessed flag
     
     # Reset ready players
     room['ready_players'] = set()
@@ -1000,55 +1004,196 @@ def check_two_player_win_condition_new(room_id, guessing_player_id, is_correct):
 def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct):
     """Check win condition for 3-4 player game with center guessing"""
     room = game_manager.rooms[room_id]
+    players = list(room['players'].keys())
+    
+    # Get player's position (1, 2, 3, or 4)
+    player_position = players.index(guessing_player_id) + 1
     
     if is_correct:
-        # Someone guessed center correctly, mark them as having a correct guess
-        room['players'][guessing_player_id]['center_guess_correct'] = True
+        # Initialize correct guessers list if not exists
+        if 'correct_guessers' not in room:
+            room['correct_guessers'] = []
+        room['correct_guessers'].append(guessing_player_id)
         
-        # Check if this is the first correct center guess
-        first_correct = True
-        for player_id in room['players']:
-            if player_id != guessing_player_id and room['players'][player_id].get('center_guess_correct'):
-                first_correct = False
-                break
-        
-        if first_correct:
-            # First correct guess - give others a chance to guess
-            room['final_round'] = True
-            emit('final_round_started', {
-                'message': f"{room['players'][guessing_player_id]['name']} guessed the center correctly! Other players can still make their final guess.",
-                'first_winner': room['players'][guessing_player_id]['name']
-            }, room=room_id)
-            return
-    
-    # Check if we're in final round and all players have guessed
-    if room.get('final_round'):
-        all_guessed = True
-        for player_id in room['players']:
-            player_data = room['players'][player_id]
-            if not player_data.get('center_guess_correct') and not any(g.get('target') == 'center' for g in player_data['guesses']):
-                all_guessed = False
-                break
-        
-        if all_guessed:
-            # Final round complete - determine winners
-            winners = [pid for pid in room['players'] if room['players'][pid].get('center_guess_correct')]
-            
+        # If Player 3 guesses correctly at any point, game ends immediately
+        if player_position == 3:
             room['game_state'] = 'finished'
-            room['winners'] = winners
+            # Give points to all correct guessers
+            update_player_scores(room_id, room['correct_guessers'], is_draw=False)
             
-            # Update scores
-            is_draw = len(winners) > 1
-            update_player_scores(room_id, winners, is_draw)
+            # Create winners message
+            winner_names = [room['players'][pid]['name'] for pid in room['correct_guessers']]
+            winners_msg = ', '.join(winner_names)
             
             emit('game_ended', {
-                'winners': [room['players'][pid]['name'] for pid in winners],
-                'message': f"Game ended! Winners: {', '.join([room['players'][pid]['name'] for pid in winners])}",
-                'is_draw': is_draw,
+                'winners': winner_names,
+                'message': f"Game Over! All correct guessers get a point! Winners: {winners_msg}",
+                'is_draw': False,
                 'redirect_to_waiting': True
             }, room=room_id)
-            # Reset game for next round
             reset_game_for_next_round(room_id)
+            return
+        
+        # For Player 1 or 2 correct guess - enter final round
+        if not room.get('final_round'):
+            room['final_round'] = True
+            room['first_correct_guesser'] = guessing_player_id
+            
+            # Reset has_guessed flags for all players
+            for pid in players:
+                room['players'][pid]['has_guessed'] = False
+            
+            # Mark the correct guesser as having guessed
+            room['players'][guessing_player_id]['has_guessed'] = True
+            
+            # Find next eligible player
+            next_player = None
+            if player_position == 1:
+                # Player 1 guessed correctly, player 2 gets next turn
+                if len(players) > 1:
+                    next_player = players[1]  # Player 2
+            elif player_position == 2:
+                # Player 2 guessed correctly, player 3 gets next turn
+                if len(players) > 2:
+                    next_player = players[2]  # Player 3
+            
+            if next_player:
+                room['current_turn'] = next_player
+                room['final_round_player'] = next_player
+                
+                emit('final_round_started', {
+                    'message': f"{room['players'][guessing_player_id]['name']} guessed correctly! {room['players'][next_player]['name']} has the next chance to guess.",
+                    'first_winner': room['players'][guessing_player_id]['name'],
+                    'final_player': next_player,
+                    'final_player_name': room['players'][next_player]['name']
+                }, room=room_id)
+                
+                emit('turn_changed', {
+                    'current_turn': next_player,
+                    'current_player_name': room['players'][next_player]['name'],
+                    'final_round': True,
+                    'final_round_player': next_player
+                }, room=room_id)
+            else:
+                # No other players to guess (shouldn't happen in normal gameplay)
+                room['game_state'] = 'finished'
+                update_player_scores(room_id, [guessing_player_id], is_draw=False)
+                emit('game_ended', {
+                    'winners': [room['players'][guessing_player_id]['name']],
+                    'message': f"{room['players'][guessing_player_id]['name']} wins!",
+                    'is_draw': False,
+                    'redirect_to_waiting': True
+                }, room=room_id)
+                reset_game_for_next_round(room_id)
+        else:
+            # In final round, handle subsequent correct guesses
+            next_player = None
+            first_guesser_pos = players.index(room['first_correct_guesser']) + 1
+            
+            # If first guesser was player 1, check if both 2 and 3 have guessed
+            if first_guesser_pos == 1:
+                # Look for player 2 or 3 who hasn't guessed
+                for pos in [2, 3]:
+                    if pos - 1 < len(players):  # Make sure player exists
+                        potential_next = players[pos - 1]
+                        if not room['players'][potential_next].get('has_guessed', False):
+                            next_player = potential_next
+                            break
+            
+            # If first guesser was player 2, check if player 3 has guessed
+            elif first_guesser_pos == 2:
+                if 2 < len(players) and not room['players'][players[2]].get('has_guessed', False):
+                    next_player = players[2]  # Player 3
+            
+            if next_player:
+                room['current_turn'] = next_player
+                room['final_round_player'] = next_player
+                emit('turn_changed', {
+                    'current_turn': next_player,
+                    'current_player_name': room['players'][next_player]['name'],
+                    'final_round': True,
+                    'final_round_player': next_player
+                }, room=room_id)
+            else:
+                # All eligible players have guessed - game ends
+                room['game_state'] = 'finished'
+                # Give points to all correct guessers
+                update_player_scores(room_id, room['correct_guessers'], is_draw=False)
+                
+                # Create winners message
+                winner_names = [room['players'][pid]['name'] for pid in room['correct_guessers']]
+                winners_msg = ', '.join(winner_names)
+                
+                emit('game_ended', {
+                    'winners': winner_names,
+                    'message': f"Game Over! All correct guessers get a point! Winners: {winners_msg}",
+                    'is_draw': False,
+                    'redirect_to_waiting': True
+                }, room=room_id)
+                reset_game_for_next_round(room_id)
+    else:
+        # Incorrect guess
+        if room.get('final_round'):
+            # Mark this player as having guessed in final round
+            room['players'][guessing_player_id]['has_guessed'] = True
+            
+            # Find next eligible player based on first guesser's position
+            first_guesser_pos = players.index(room['first_correct_guesser']) + 1
+            next_player = None
+            
+            # If first guesser was player 1, both 2 and 3 get a chance
+            if first_guesser_pos == 1:
+                # Look for player 2 or 3 who hasn't guessed
+                for pos in [2, 3]:
+                    if pos - 1 < len(players):  # Make sure player exists
+                        potential_next = players[pos - 1]
+                        if not room['players'][potential_next].get('has_guessed', False):
+                            next_player = potential_next
+                            break
+            
+            # If first guesser was player 2, only player 3 gets a chance
+            elif first_guesser_pos == 2:
+                if 2 < len(players) and not room['players'][players[2]].get('has_guessed', False):
+                    next_player = players[2]  # Player 3
+            
+            if next_player:
+                room['current_turn'] = next_player
+                room['final_round_player'] = next_player
+                emit('turn_changed', {
+                    'current_turn': next_player,
+                    'current_player_name': room['players'][next_player]['name'],
+                    'final_round': True,
+                    'final_round_player': next_player
+                }, room=room_id)
+            else:
+                # No more players to guess - game ends with current correct guessers
+                room['game_state'] = 'finished'
+                # Give points to all correct guessers
+                update_player_scores(room_id, room['correct_guessers'], is_draw=False)
+                
+                # Create winners message
+                winner_names = [room['players'][pid]['name'] for pid in room['correct_guessers']]
+                winners_msg = ', '.join(winner_names)
+                
+                emit('game_ended', {
+                    'winners': winner_names,
+                    'message': f"Game Over! All correct guessers get a point! Winners: {winners_msg}",
+                    'is_draw': False,
+                    'redirect_to_waiting': True
+                }, room=room_id)
+                reset_game_for_next_round(room_id)
+        else:
+            # Regular incorrect guess, move to next player
+            current_index = players.index(guessing_player_id)
+            next_index = (current_index + 1) % len(players)
+            next_player_id = players[next_index]
+            
+            room['current_turn'] = next_player_id
+            emit('turn_changed', {
+                'current_turn': next_player_id,
+                'current_player_name': room['players'][next_player_id]['name'],
+                'final_round': False
+            }, room=room_id)
 
 @socketio.on('get_room_state')
 def handle_get_room_state(data):

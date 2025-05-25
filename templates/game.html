@@ -351,10 +351,10 @@
             let message = `${data.player} guessed ${data.target}`;
             if (data.correct) {
                 message += ` - CORRECT! ✅`;
-                if (data.actual_tiles) {
-                    const tilesDisplay = data.actual_tiles.map(tile => `${tile.number}(${tile.color})`).join(', ');
-                    message += ` [${tilesDisplay}]`;
-                }
+                // if (data.actual_tiles) {
+                //     const tilesDisplay = data.actual_tiles.map(tile => `${tile.number}(${tile.color})`).join(', ');
+                //     message += ` [${tilesDisplay}]`;
+                // }
                 
                 // Trigger celebration effects for correct guesses
                 showCelebration();
