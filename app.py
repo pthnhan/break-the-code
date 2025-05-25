@@ -4,22 +4,22 @@ import random
 import uuid
 import json
 import time
-import os
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'break_the_code_secret_key_2024')
+app.config['SECRET_KEY'] = 'break_the_code_secret_key_2024'
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 class BreakTheCodeGame:
     def __init__(self):
         self.rooms = {}
         
-    def create_game_room(self, room_id, max_players=4):
+    def create_game_room(self, room_id, max_players=4, num_question_cards=4):
         """Create a new game room"""
         self.rooms[room_id] = {
             'players': {},
             'game_state': 'waiting',  # waiting, playing, finished
             'max_players': max_players,
+            'num_question_cards': num_question_cards, # Store the number of question cards
             'current_turn': None,
             'tiles': self.create_tiles(),
             'question_cards': self.create_question_cards(),
@@ -63,8 +63,6 @@ class BreakTheCodeGame:
             "What is the **sum of your tiles**?",
             "Where are your **#5** tiles?",
             "Which **neighboring tiles have the same color**?",
-            "How many **white tiles** do you have?",
-            "How many **black tiles** do you have?",
             "How many **even** tiles you have?",
             "Where are your **#0** tiles?",
             "What is the **difference between your highest and lowest numbers**?"
@@ -111,10 +109,11 @@ class BreakTheCodeGame:
             center_tiles.sort(key=lambda x: (x['number'], x['color'] == 'white'))
             room['center_tiles'] = center_tiles
             
-        # Draw 4 question cards for the center
+        # Draw question cards for the center based on host's selection
         question_cards = room['question_cards'].copy()
         random.shuffle(question_cards)
-        room['available_questions'] = question_cards[:4]
+        num_to_draw = room.get('num_question_cards', 4)  # Use stored value or default to 4
+        room['available_questions'] = question_cards[:num_to_draw]
         room['used_question_cards'] = []  # Track used cards
         
         return True
@@ -196,8 +195,9 @@ def handle_create_room(data):
     room_id = str(uuid.uuid4())[:8]
     player_name = data.get('player_name', 'Anonymous')
     max_players = data.get('max_players', 4)
+    num_question_cards = data.get('num_question_cards', 4)  # Get from client
     
-    game_manager.create_game_room(room_id, max_players)
+    game_manager.create_game_room(room_id, max_players, num_question_cards) # Pass to game creation
     
     player_id = str(uuid.uuid4())
     success, message = game_manager.join_room(room_id, player_id, player_name)
@@ -549,10 +549,6 @@ def calculate_answer(question, tiles, chosen_number=None):
     # Handle simple counting questions
     if "How many **odd** tiles you have" in question:
         return len([t for t in tiles if t['number'] % 2 == 1])
-    elif "How many **white tiles**" in question:
-        return len([t for t in tiles if t['color'] == 'white'])
-    elif "How many **black tiles**" in question:
-        return len([t for t in tiles if t['color'] == 'black'])
     elif "How many **even** tiles you have" in question:
         return len([t for t in tiles if t['number'] % 2 == 0])
     elif "How many of **your tiles have the same number**" in question:
@@ -973,5 +969,4 @@ def handle_get_room_state(data):
         return
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, host='0.0.0.0', port=port, debug=False) 
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True) 

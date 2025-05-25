@@ -31,6 +31,10 @@
                             <option value="4" selected>4 Players</option>
                         </select>
                     </div>
+                    <div class="form-group">
+                        <label for="numQuestionCards">Number of Question Cards (2-8):</label>
+                        <input type="number" id="numQuestionCards" name="numQuestionCards" min="2" max="8" value="4" required>
+                    </div>
                     <button type="submit" class="btn btn-primary">Create Game Room</button>
                 </form>
             </div>
@@ -128,10 +132,12 @@
             e.preventDefault();
             const playerName = document.getElementById('playerName').value;
             const maxPlayers = parseInt(document.getElementById('maxPlayers').value);
+            const numQuestionCards = parseInt(document.getElementById('numQuestionCards').value);
             
             socket.emit('create_room', {
                 player_name: playerName,
-                max_players: maxPlayers
+                max_players: maxPlayers,
+                num_question_cards: numQuestionCards
             });
         });
 
