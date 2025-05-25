@@ -179,6 +179,115 @@ class BreakTheCodeGame:
             return True, "Game started"
         return False, "Failed to start game"
 
+    def handle_guess(self, player_id, guess, guess_type):
+        # Check if guess is valid
+        if not self.is_valid_guess(guess):
+            return False, "Invalid guess format"
+
+        # Get the target tiles based on guess type
+        if guess_type == 'center':
+            target_tiles = self.rooms[player_id]['center_tiles']
+        else:
+            # For 2-player mode, targeting other player
+            target_tiles = self.rooms[player_id]['players'][guess_type]['tiles']
+
+        # Sort both lists to compare
+        guess_sorted = sorted(guess, key=lambda x: (x['number'], x['color']))
+        target_sorted = sorted(target_tiles, key=lambda x: (x['number'], x['color']))
+
+        # Check if guess is correct
+        is_correct = guess_sorted == target_sorted
+
+        # Record the guess
+        if player_id not in self.rooms[player_id]['players']:
+            return False, "Player not found"
+
+        self.rooms[player_id]['players'][player_id]['guesses'].append({
+            'guess': guess,
+            'target': guess_type,
+            'correct': is_correct
+        })
+
+        if is_correct:
+            # Mark that this player has guessed correctly in final round
+            if self.rooms[player_id]['final_round']:
+                self.rooms[player_id]['players'][player_id]['center_guess_correct'] = True
+
+                # Get player order from player_id (assuming format 'player_1', 'player_2', etc.)
+                player_order = int(player_id.split('_')[1])
+
+                # If this is the first correct guess in final round
+                if not self.rooms[player_id]['final_round_player']:
+                    self.rooms[player_id]['final_round_player'] = player_id
+
+                    # If player 3 guesses correctly first, end game immediately
+                    if player_order == 3:
+                        # Award point to player 3 only
+                        self.rooms[player_id]['players'][player_id]['score'] += 1
+                        winners = [self.rooms[player_id]['players'][player_id]['name']]
+                        return True, "Game Over", winners, False  # False for not a draw
+
+                    # For other players, continue game for remaining guesses
+                    return True, "Correct guess! Other players can make their final guesses."
+
+                # Handle subsequent correct guesses
+                if self.rooms[player_id]['final_round_player']:
+                    first_correct_order = int(self.rooms[player_id]['final_round_player'].split('_')[1])
+                    
+                    # Award points based on the rules
+                    if first_correct_order == 1:
+                        # All correct guessers get points
+                        self.rooms[player_id]['players'][player_id]['score'] += 1
+                    elif first_correct_order == 2 and player_order == 3:
+                        # Both player 2 and 3 get points
+                        self.rooms[player_id]['players'][self.rooms[player_id]['final_round_player']]['score'] += 1
+                        self.rooms[player_id]['players'][player_id]['score'] += 1
+
+                    # Check if all eligible players have guessed
+                    if self.should_end_game(player_id):
+                        winners = [p['name'] for p in self.rooms[player_id]['players'].values() if p.get('center_guess_correct')]
+                        return True, "Game Over", winners, False
+
+            else:
+                # Regular turn correct guess
+                self.rooms[player_id]['final_round'] = True
+                self.rooms[player_id]['final_round_player'] = player_id
+                return True, "Correct guess! Final round begins."
+
+        return True, "Incorrect guess. Try again!" if not self.rooms[player_id]['final_round'] else "Incorrect guess in final round."
+
+    def should_end_game(self, room_id):
+        if not self.rooms[room_id]['final_round'] or not self.rooms[room_id]['final_round_player']:
+            return False
+
+        first_correct_order = int(self.rooms[room_id]['final_round_player'].split('_')[1])
+        
+        # If player 3 was first, game should have ended immediately
+        if first_correct_order == 3:
+            return True
+            
+        # If player 2 was first, only wait for player 3
+        if first_correct_order == 2:
+            player_3 = 'player_3'
+            return player_3 in self.rooms[room_id]['players'] and (
+                self.rooms[room_id]['players'][player_3].get('center_guess_correct') or 
+                any(g['target'] == 'center' for g in self.rooms[room_id]['players'][player_3]['guesses'])
+            )
+            
+        # If player 1 was first, wait for both player 2 and 3
+        if first_correct_order == 1:
+            player_2 = 'player_2'
+            player_3 = 'player_3'
+            return all(
+                pid in self.rooms[room_id]['players'] and (
+                    self.rooms[room_id]['players'][pid].get('center_guess_correct') or 
+                    any(g['target'] == 'center' for g in self.rooms[room_id]['players'][pid]['guesses'])
+                )
+                for pid in [player_2, player_3]
+            )
+            
+        return False
+
 # Global game instance
 game_manager = BreakTheCodeGame()
 
@@ -876,6 +985,17 @@ def check_two_player_win_condition_new(room_id, guessing_player_id, is_correct):
                 'final_round_player': player_2
             }, room=room_id)
             return
+    else:  # Guess is INCORRECT, and not in final round
+        # The guessing_player_id is the current player. Pass turn to the other player.
+        next_player_id = player_1 if guessing_player_id == player_2 else player_2
+        
+        room['current_turn'] = next_player_id
+        emit('turn_changed', {
+            'current_turn': room['current_turn'],
+            'current_player_name': room['players'][room['current_turn']]['name'],
+            'final_round': False  # Explicitly not a final round
+        }, room=room_id)
+        return
 
 def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct):
     """Check win condition for 3-4 player game with center guessing"""

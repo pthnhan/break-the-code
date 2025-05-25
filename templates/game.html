@@ -128,6 +128,10 @@
         <div id="status" class="status-message"></div>
     </div>
 
+    <audio id="turnChangeSound" src="/static/sounds/turn_change.mp3" preload="auto"></audio>
+    <audio id="wrongAnswerSound" src="/static/sounds/wrong_answer.wav" preload="auto"></audio>
+    <audio id="correctAnswerSound" src="/static/sounds/correct_answer.mp3" preload="auto"></audio>
+
     <script>
         const socket = io();
         const roomId = '{{ room_id }}';
@@ -293,6 +297,9 @@
                 }
             }
             updateTurnIndicator(data.current_turn);
+            if (data.current_turn === gameState.yourPlayerId) {
+                playSound('turnChangeSound');
+            }
         });
 
         socket.on('error', function(data) {
@@ -351,8 +358,10 @@
                 
                 // Trigger celebration effects for correct guesses
                 showCelebration();
+                playSound('correctAnswerSound');
             } else {
                 message += ` - Wrong ❌`;
+                playSound('wrongAnswerSound');
             }
             addToGameLog(message);
         });
@@ -1211,6 +1220,14 @@
                         if (star.parentNode) star.parentNode.removeChild(star);
                     }, 2000);
                 }, i * 200);
+            }
+        }
+
+        function playSound(soundId) {
+            const sound = document.getElementById(soundId);
+            if (sound && typeof sound.play === 'function') {
+                sound.currentTime = 0;
+                sound.play().catch(e => {});
             }
         }
     </script>
