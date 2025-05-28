@@ -662,6 +662,162 @@
                 max-width: 300px;
             }
         }
+        
+        /* Reorder controls styling */
+        .reorder-controls {
+            background: #e6fffa;
+            border: 2px dashed #38b2ac;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .reorder-instructions {
+            color: #2c7a7b;
+            font-weight: 500;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .reorder-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .host-controls {
+            text-align: center;
+            margin-top: 15px;
+        }
+        
+        /* Arrow button reorder styling */
+        .player-item {
+            transition: all 0.3s ease;
+            position: relative;
+            margin: 8px 0;
+            user-select: none;
+        }
+        
+        .players-list.reorder-mode .player-item {
+            border-left: 4px solid #cbd5e0;
+            padding: 15px 80px 15px 20px;
+            margin: 12px 0;
+            border-radius: 12px;
+            background: #ffffff;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .players-list.reorder-mode .player-item:hover {
+            border-left-color: #38b2ac;
+            background: #f0fff4;
+            transform: translateX(5px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .player-order-number {
+            position: absolute;
+            left: -20px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #38b2ac 0%, #319795 100%);
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(56, 178, 172, 0.3);
+            border: 2px solid white;
+        }
+        
+        .players-list.reorder-mode {
+            padding: 10px 0 10px 30px;
+            background: #f8fafc;
+            border-radius: 15px;
+            border: 2px dashed #cbd5e0;
+        }
+        
+        .reorder-arrows {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .arrow-btn {
+            background: #4299e1;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 24px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .arrow-btn:hover {
+            background: #3182ce;
+            transform: scale(1.1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .arrow-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .arrow-btn:disabled {
+            background: #a0aec0;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .arrow-btn.up {
+            border-radius: 4px 4px 2px 2px;
+        }
+        
+        .arrow-btn.down {
+            border-radius: 2px 2px 4px 4px;
+        }
+        
+        /* Reorder instructions */
+        .reorder-instructions {
+            color: #2c7a7b;
+            font-weight: 500;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .reorder-instructions::before {
+            content: '↕️';
+            font-size: 1.2rem;
+            animation: pointUp 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes pointUp {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
     </style>
 </head>
 <body>
@@ -685,7 +841,19 @@
             
             <div class="players-section">
                 <h3 class="section-title">👥 Players in Room</h3>
+                <div id="reorderControls" class="reorder-controls" style="display: none;">
+                    <p class="reorder-instructions">Use the arrow buttons to move players up or down. The first player will go first in the game.</p>
+                    <div class="reorder-actions">
+                        <button id="saveOrderBtn" class="btn btn-success btn-small">Save Order</button>
+                        <button id="cancelOrderBtn" class="btn btn-secondary btn-small">Cancel</button>
+                    </div>
+                </div>
                 <div id="playersList" class="players-list"></div>
+                <div id="hostControls" class="host-controls" style="display: none;">
+                    <button id="reorderPlayersBtn" class="btn btn-primary btn-small">
+                        <span class="btn-icon">🔄</span> Reorder Players
+                    </button>
+                </div>
             </div>
             
             <div class="game-info">
@@ -835,6 +1003,11 @@
             finalRound: false,
             finalRoundPlayer: null
         };
+        
+        // Reorder functionality variables
+        let reorderMode = false;
+        let originalPlayerOrder = [];
+        let currentPlayerOrder = [];
 
         // Socket event handlers
         socket.on('player_joined', function(data) {
@@ -1150,6 +1323,29 @@
                 player_name: playerName
             });
         });
+        
+        // Socket event for player reordering
+        socket.on('players_reordered', function(data) {
+            console.log('Players reordered:', data);
+            updatePlayersList(data.players, data.players.length);
+            exitReorderMode();
+            showStatus(data.message, 'success');
+        });
+
+        // Event listeners for reorder functionality  
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('reorderPlayersBtn').addEventListener('click', function() {
+                enterReorderMode();
+            });
+
+            document.getElementById('saveOrderBtn').addEventListener('click', function() {
+                savePlayerOrder();
+            });
+
+            document.getElementById('cancelOrderBtn').addEventListener('click', function() {
+                exitReorderMode();
+            });
+        });
 
         socket.on('guess_made', function(data) {
             let message = `<span class="guess-icon">🎯</span> <strong>${data.player}</strong> guessed <em>${data.target}</em>`;
@@ -1339,6 +1535,7 @@
                 players.forEach(player => {
                     const playerDiv = document.createElement('div');
                     playerDiv.className = 'player-item';
+                    playerDiv.dataset.playerId = player.id; // Add player ID as data attribute
                     
                     const readyStatus = player.ready ? ' ✅' : ' ⏳';
                     const connectionStatus = player.connected === false ? ' 🔴 (Disconnected)' : '';
@@ -1358,9 +1555,10 @@
                 });
             } else {
                 // Handle old format (just player objects)
-                players.forEach(player => {
+                players.forEach((player, index) => {
                     const playerDiv = document.createElement('div');
                     playerDiv.className = 'player-item';
+                    playerDiv.dataset.playerId = player.id || `player_${index}`; // Fallback ID
                     const score = player.score !== undefined ? ` (${player.score} pts)` : '';
                     playerDiv.textContent = player.name + score;
                     listElement.appendChild(playerDiv);
@@ -1371,6 +1569,14 @@
             countDiv.className = 'player-count';
             countDiv.textContent = `${count} player(s) joined`;
             listElement.appendChild(countDiv);
+            
+            // Show host controls if user is host and not in reorder mode
+            const hostControls = document.getElementById('hostControls');
+            if (gameState.isHost && !reorderMode) {
+                hostControls.style.display = 'block';
+            } else {
+                hostControls.style.display = 'none';
+            }
             
             // Update start button for host
             if (gameState.isHost) {
@@ -2075,6 +2281,281 @@
                 sound.currentTime = 0;
                 sound.play().catch(e => {});
             }
+        }
+
+        socket.on('disconnect', function() {
+            console.log('Connected to server');
+            
+            // Check if we have stored player data for this room
+            const storedData = localStorage.getItem(`playerData_${roomId}`);
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlPlayerId = urlParams.get('player_id');
+            
+            if (storedData && urlPlayerId) {
+                try {
+                    const playerData = JSON.parse(storedData);
+                    
+                    // Verify URL player_id matches stored data
+                    if (playerData.player_id === urlPlayerId) {
+                        console.log('Attempting to reconnect with stored credentials');
+                        
+                        // Try to reconnect with session key
+                        socket.emit('join_room', {
+                            room_id: roomId,
+                            reconnect: {
+                                player_id: playerData.player_id,
+                                session_key: playerData.session_key
+                            }
+                        });
+                        
+                        // Set local state
+                        gameState.isHost = playerData.is_host || false;
+                        gameState.isReady = playerData.is_host || false; // Host is auto-ready
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Error parsing stored player data:', e);
+                    localStorage.removeItem(`playerData_${roomId}`);
+                }
+            }
+            
+            // New player - prompt for name
+            console.log('New player joining');
+            const playerName = prompt('Enter your name:') || 'Anonymous';
+            
+            socket.emit('join_room', {
+                room_id: roomId,
+                player_name: playerName
+            });
+        });
+        
+        // Socket event for player reordering
+        socket.on('players_reordered', function(data) {
+            console.log('Players reordered:', data);
+            updatePlayersList(data.players, data.players.length);
+            exitReorderMode();
+            showStatus(data.message, 'success');
+        });
+        
+        // Reorder functionality
+        function enterReorderMode() {
+            if (!gameState.isHost) {
+                showStatus('Only the host can reorder players', 'error');
+                return;
+            }
+            
+            reorderMode = true;
+            
+            // Store original order and current player data
+            const playersList = document.getElementById('playersList');
+            const playerItems = Array.from(playersList.querySelectorAll('.player-item:not(.player-count)'));
+            originalPlayerOrder = playerItems.map(item => item.dataset.playerId);
+            currentPlayerOrder = [...originalPlayerOrder];
+            
+            // Store current player data for rebuilding
+            gameState.currentPlayerData = playerItems.map(item => ({
+                id: item.dataset.playerId,
+                name: item.textContent.split(' (')[0].split(' ✅')[0].split(' ⏳')[0].split(' 🔴')[0],
+                ready: item.textContent.includes('✅'),
+                connected: !item.textContent.includes('🔴'),
+                score: (() => {
+                    const scoreMatch = item.textContent.match(/\((\d+) pts\)/);
+                    return scoreMatch ? parseInt(scoreMatch[1]) : 0;
+                })(),
+                element: item
+            }));
+            
+            // Show reorder controls
+            document.getElementById('reorderControls').style.display = 'block';
+            document.getElementById('hostControls').style.display = 'none';
+            
+            // Add reorder mode class and setup arrow buttons
+            playersList.classList.add('reorder-mode');
+            setupArrowButtons();
+            
+            // Add order numbers
+            updateOrderNumbers();
+        }
+        
+        function exitReorderMode() {
+            reorderMode = false;
+            
+            // Hide reorder controls
+            document.getElementById('reorderControls').style.display = 'none';
+            if (gameState.isHost) {
+                document.getElementById('hostControls').style.display = 'block';
+            }
+            
+            // Remove reorder mode class
+            document.getElementById('playersList').classList.remove('reorder-mode');
+            
+            // Remove drag and drop
+            removeDragAndDrop();
+            
+            // Remove order numbers
+            document.querySelectorAll('.player-order-number').forEach(el => el.remove());
+        }
+        
+        function setupArrowButtons() {
+            const playerItems = document.querySelectorAll('.player-item:not(.player-count)');
+            
+            playerItems.forEach((item, index) => {
+                // Store the player ID
+                item.dataset.playerId = currentPlayerOrder[index];
+                
+                // Create arrow buttons container
+                const arrowsContainer = document.createElement('div');
+                arrowsContainer.className = 'reorder-arrows';
+                
+                // Create up arrow button
+                const upBtn = document.createElement('button');
+                upBtn.className = 'arrow-btn up';
+                upBtn.innerHTML = '▲';
+                upBtn.disabled = index === 0; // Disable if first item
+                upBtn.addEventListener('click', () => movePlayerUp(index));
+                
+                // Create down arrow button
+                const downBtn = document.createElement('button');
+                downBtn.className = 'arrow-btn down';
+                downBtn.innerHTML = '▼';
+                downBtn.disabled = index === playerItems.length - 1; // Disable if last item
+                downBtn.addEventListener('click', () => movePlayerDown(index));
+                
+                arrowsContainer.appendChild(upBtn);
+                arrowsContainer.appendChild(downBtn);
+                item.appendChild(arrowsContainer);
+            });
+        }
+        
+        function removeArrowButtons() {
+            document.querySelectorAll('.reorder-arrows').forEach(container => {
+                container.remove();
+            });
+        }
+        
+        function movePlayerUp(currentIndex) {
+            if (currentIndex === 0) return; // Already at top
+            
+            // Swap in the order array
+            [currentPlayerOrder[currentIndex], currentPlayerOrder[currentIndex - 1]] = 
+            [currentPlayerOrder[currentIndex - 1], currentPlayerOrder[currentIndex]];
+            
+            // Update the UI
+            updatePlayerListOrder();
+        }
+        
+        function movePlayerDown(currentIndex) {
+            if (currentIndex === currentPlayerOrder.length - 1) return; // Already at bottom
+            
+            // Swap in the order array
+            [currentPlayerOrder[currentIndex], currentPlayerOrder[currentIndex + 1]] = 
+            [currentPlayerOrder[currentIndex + 1], currentPlayerOrder[currentIndex]];
+            
+            // Update the UI
+            updatePlayerListOrder();
+        }
+        
+        function updatePlayerListOrder() {
+            const playersList = document.getElementById('playersList');
+            const playerCountElement = playersList.querySelector('.player-count');
+            
+            // Remove all existing player items (but keep player-count)
+            const existingPlayers = playersList.querySelectorAll('.player-item:not(.player-count)');
+            existingPlayers.forEach(item => item.remove());
+            
+            // Rebuild the player list in the new order using stored data
+            currentPlayerOrder.forEach((playerId, index) => {
+                // Find player data from stored data
+                const playerData = gameState.currentPlayerData.find(p => p.id === playerId);
+                
+                if (playerData) {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'player-item';
+                    playerDiv.dataset.playerId = playerData.id;
+                    
+                    const readyStatus = playerData.ready ? ' ✅' : ' ⏳';
+                    const connectionStatus = !playerData.connected ? ' 🔴 (Disconnected)' : '';
+                    const score = playerData.score ? ` (${playerData.score} pts)` : '';
+                    
+                    playerDiv.textContent = playerData.name + score + readyStatus + connectionStatus;
+                    
+                    if (playerData.ready) {
+                        playerDiv.style.backgroundColor = '#c6f6d5';
+                    }
+                    if (!playerData.connected) {
+                        playerDiv.style.backgroundColor = '#fed7d7';
+                        playerDiv.style.opacity = '0.7';
+                    }
+                    
+                    // Insert before player-count element
+                    if (playerCountElement) {
+                        playersList.insertBefore(playerDiv, playerCountElement);
+                    } else {
+                        playersList.appendChild(playerDiv);
+                    }
+                }
+            });
+            
+            // Re-setup arrow buttons and order numbers
+            setupArrowButtons();
+            updateOrderNumbers();
+        }
+        
+        // Replace the old drag and drop functions
+        function setupDragAndDrop() {
+            // This function is replaced by setupArrowButtons
+            setupArrowButtons();
+        }
+        
+        function removeDragAndDrop() {
+            // This function is replaced by removeArrowButtons
+            removeArrowButtons();
+        }
+        
+        // Remove all the old drag and drop event handlers (keep as empty functions for compatibility)
+        function handleDragStart(e) { }
+        function handleDragEnd(e) { }
+        function handleDropZoneDragOver(e) { }
+        function handleDropZoneDragLeave(e) { }
+        function handleDropZoneDrop(e) { }
+        function handleDragOver(e) { }
+        function handleDrop(e) { }
+        function getDragAfterElement(container, y) { }
+        
+        function updateOrderNumbers() {
+            const playerItems = document.querySelectorAll('.player-item:not(.player-count)');
+            
+            // Remove existing order numbers
+            document.querySelectorAll('.player-order-number').forEach(el => el.remove());
+            
+            // Add new order numbers
+            playerItems.forEach((item, index) => {
+                const orderNumber = document.createElement('div');
+                orderNumber.className = 'player-order-number';
+                orderNumber.textContent = index + 1;
+                item.appendChild(orderNumber);
+                
+                // Update the dataset for consistency
+                item.dataset.originalIndex = index;
+            });
+        }
+        
+        function savePlayerOrder() {
+            if (!gameState.isHost) {
+                showStatus('Only the host can reorder players', 'error');
+                return;
+            }
+            
+            if (JSON.stringify(currentPlayerOrder) === JSON.stringify(originalPlayerOrder)) {
+                showStatus('No changes to save', 'info');
+                exitReorderMode();
+                return;
+            }
+            
+            // Send new order to server
+            socket.emit('reorder_players', {
+                new_order: currentPlayerOrder
+            });
         }
     </script>
 </body>

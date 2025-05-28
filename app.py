@@ -17,6 +17,7 @@ class BreakTheCodeGame:
         """Create a new game room"""
         self.rooms[room_id] = {
             'players': {},
+            'player_order': [],  # Track custom player order
             'game_state': 'waiting',  # waiting, playing, finished
             'max_players': max_players,
             'num_question_cards': num_question_cards, # Store the number of question cards
@@ -145,6 +146,9 @@ class BreakTheCodeGame:
             'session_key': str(uuid.uuid4())  # Unique session key for security
         }
         
+        # Add player to the order list
+        room['player_order'].append(player_id)
+        
         return True, "Joined successfully"
     
     def reconnect_player(self, room_id, player_id, session_key):
@@ -193,6 +197,32 @@ class BreakTheCodeGame:
             return True
         return False
     
+    def reorder_players(self, room_id, new_order, requesting_player_id):
+        """Reorder players in the room (only host can do this)"""
+        if room_id not in self.rooms:
+            return False, "Room not found"
+            
+        room = self.rooms[room_id]
+        
+        # Check if requesting player is the host
+        if room['host'] != requesting_player_id:
+            return False, "Only the host can reorder players"
+            
+        # Check if game is not already started
+        if room['game_state'] != 'waiting':
+            return False, "Cannot reorder players after game has started"
+            
+        # Validate that new_order contains all current players
+        current_players = set(room['player_order'])
+        new_order_set = set(new_order)
+        
+        if current_players != new_order_set:
+            return False, "Invalid player order - must include all current players"
+            
+        # Update the player order
+        room['player_order'] = new_order
+        return True, "Player order updated successfully"
+    
     def set_player_ready(self, room_id, player_id, ready_status):
         """Set a player's ready status"""
         if room_id not in self.rooms:
@@ -227,8 +257,8 @@ class BreakTheCodeGame:
             
         if self.distribute_tiles(room_id):
             room['game_state'] = 'playing'
-            # Set first player's turn
-            room['current_turn'] = list(room['players'].keys())[0]
+            # Set first player's turn using the custom order
+            room['current_turn'] = room['player_order'][0]
             return True, "Game started"
         return False, "Failed to start game"
 
@@ -460,7 +490,7 @@ def handle_join_room(data):
                         'ready': room['players'][pid]['ready'],
                         'score': room['players'][pid]['score'],
                         'connected': room['players'][pid]['connected']
-                    } for pid in room['players']],
+                    } for pid in room['player_order']],
                     'player_count': len(room['players'])
                 }, room=room_id)
             
@@ -538,7 +568,7 @@ def handle_join_room(data):
                         'ready': room['players'][pid]['ready'],
                         'score': room['players'][pid]['score'],
                         'connected': room['players'][pid]['connected']
-                    } for pid in room['players']],
+                    } for pid in room['player_order']],
                     'player_count': len(room['players'])
                 }, room=room_id)
             
@@ -579,7 +609,7 @@ def handle_join_room(data):
                 'ready': room['players'][pid]['ready'],
                 'score': room['players'][pid]['score'],
                 'connected': room['players'][pid]['connected']
-            } for pid in room['players']],
+            } for pid in room['player_order']],
             'player_count': len(game_manager.rooms[room_id]['players'])
         }, room=room_id)
     else:
@@ -601,18 +631,55 @@ def handle_player_ready(data):
     if success:
         room = game_manager.rooms[room_id]
         
-        # Broadcast updated player states
+        # Send updated player list with ready status
+        players_with_status = [{
+            'id': pid,
+            'name': room['players'][pid]['name'],
+            'ready': room['players'][pid]['ready'],
+            'score': room['players'][pid]['score'],
+            'connected': room['players'][pid]['connected']
+        } for pid in room['player_order']]
+        
+        all_ready = game_manager.all_players_ready(room_id)
+        
         emit('player_ready_update', {
-            'player_id': player_id,
-            'player_name': room['players'][player_id]['name'],
-            'ready': ready_status,
-            'all_ready': game_manager.all_players_ready(room_id),
-            'players': [{
-                'id': pid,
-                'name': room['players'][pid]['name'],
-                'ready': room['players'][pid]['ready'],
-                'score': room['players'][pid]['score']
-            } for pid in room['players']]
+            'players': players_with_status,
+            'all_ready': all_ready
+        }, room=room_id)
+    else:
+        emit('error', {'message': message})
+
+@socketio.on('reorder_players')
+def handle_reorder_players(data):
+    room_id = session.get('room_id')
+    player_id = session.get('player_id')
+    new_order = data.get('new_order', [])
+    
+    if not room_id or room_id not in game_manager.rooms:
+        emit('error', {'message': 'Invalid room'})
+        return
+    
+    if not player_id:
+        emit('error', {'message': 'Player not identified'})
+        return
+    
+    success, message = game_manager.reorder_players(room_id, new_order, player_id)
+    
+    if success:
+        room = game_manager.rooms[room_id]
+        
+        # Send updated player list with new order
+        players_with_status = [{
+            'id': pid,
+            'name': room['players'][pid]['name'],
+            'ready': room['players'][pid]['ready'],
+            'score': room['players'][pid]['score'],
+            'connected': room['players'][pid]['connected']
+        } for pid in room['player_order']]  # Use the new order
+        
+        emit('players_reordered', {
+            'players': players_with_status,
+            'message': f'Player order updated by {room["players"][player_id]["name"]}'
         }, room=room_id)
     else:
         emit('error', {'message': message})
@@ -783,7 +850,7 @@ def handle_ask_question(data):
     }, room=room_id)
     
     # Move to next player's turn
-    players = list(room['players'].keys())
+    players = room['player_order']
     current_index = players.index(player_id)
     next_index = (current_index + 1) % len(players)
     room['current_turn'] = players[next_index]
@@ -1094,9 +1161,9 @@ def reset_game_for_next_round(room_id):
 def check_two_player_win_condition_new(room_id, guessing_player_id, is_correct):
     """Check win condition for 2-player game with new logic"""
     room = game_manager.rooms[room_id]
-    players = list(room['players'].keys())
+    players = room['player_order']
     
-    # Determine player order: first joined is player 1, second is player 2
+    # Determine player order: first in order is player 1, second is player 2
     player_1 = players[0]
     player_2 = players[1]
     
@@ -1187,7 +1254,7 @@ def check_two_player_win_condition_new(room_id, guessing_player_id, is_correct):
 def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct):
     """Check win condition for 3-4 player game with center guessing"""
     room = game_manager.rooms[room_id]
-    players = list(room['players'].keys())
+    players = room['player_order']
     
     # Get player's position (1, 2, 3, or 4)
     player_position = players.index(guessing_player_id) + 1
@@ -1407,7 +1474,13 @@ def handle_get_room_state(data):
         })
         
         emit('player_joined', {
-            'players': list(room['players'].values()),
+            'players': [{
+                'id': pid,
+                'name': room['players'][pid]['name'],
+                'ready': room['players'][pid]['ready'],
+                'score': room['players'][pid]['score'],
+                'connected': room['players'][pid]['connected']
+            } for pid in room['player_order']],
             'player_count': len(room['players'])
         }, room=room_id)
     else:
@@ -1447,7 +1520,7 @@ def handle_disconnect():
                     'ready': room['players'][pid]['ready'],
                     'score': room['players'][pid]['score'],
                     'connected': room['players'][pid]['connected']
-                } for pid in room['players']],
+                } for pid in room['player_order']],
                 'player_count': len(room['players'])
             }, room=room_id)
 
