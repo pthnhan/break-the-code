@@ -154,15 +154,34 @@
 
         socket.on('room_created', function(data) {
             console.log('Room created:', data);
-            // Redirect to game page with room ID, player name, player ID, and host status
-            const hostParam = data.is_host ? '&is_host=true' : '';
-            window.location.href = `/game/${data.room_id}?player_name=${encodeURIComponent(data.player_name)}&player_id=${data.player_id}${hostParam}`;
+            
+            // Store the player data in localStorage before redirecting
+            localStorage.setItem(`playerData_${data.room_id}`, JSON.stringify({
+                player_id: data.player_id,
+                player_name: data.player_name,
+                session_key: data.session_key,
+                is_host: data.is_host
+            }));
+            
+            // Redirect to game page with player ID for URL recognition
+            window.location.href = `/game/${data.room_id}?player_id=${data.player_id}`;
         });
 
         socket.on('room_joined', function(data) {
+            console.log('Room joined:', data);
+            
+            // Store the player data in localStorage before redirecting
+            localStorage.setItem(`playerData_${data.room_id}`, JSON.stringify({
+                player_id: data.player_id,
+                player_name: data.player_name,
+                session_key: data.session_key,
+                is_host: data.is_host || false
+            }));
+            
             showStatus(`Joined room successfully!`, 'success');
             setTimeout(() => {
-                window.location.href = `/game/${data.room_id}?player_name=${encodeURIComponent(data.player_name || 'Player')}&player_id=${data.player_id}`;
+                // Redirect to game page with player ID for URL recognition
+                window.location.href = `/game/${data.room_id}?player_id=${data.player_id}`;
             }, 1500);
         });
 

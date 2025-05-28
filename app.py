@@ -130,15 +130,68 @@ class BreakTheCodeGame:
         if room['game_state'] != 'waiting':
             return False, "Game already started"
             
+        # Check for duplicate names
+        existing_names = [player['name'].lower().strip() for player in room['players'].values()]
+        if player_name.lower().strip() in existing_names:
+            return False, "A player with this name already exists in the room"
+            
         room['players'][player_id] = {
             'name': player_name,
             'tiles': [],
             'guesses': [],
             'score': 0,  # Add scoring system
-            'ready': False
+            'ready': False,
+            'connected': True,  # Track connection status
+            'session_key': str(uuid.uuid4())  # Unique session key for security
         }
         
         return True, "Joined successfully"
+    
+    def reconnect_player(self, room_id, player_id, session_key):
+        """Reconnect a player using their session key"""
+        if room_id not in self.rooms:
+            return False, "Room not found"
+            
+        room = self.rooms[room_id]
+        if player_id not in room['players']:
+            return False, "Player not found in room"
+            
+        player = room['players'][player_id]
+        if player.get('session_key') != session_key:
+            return False, "Invalid session key"
+            
+        # Mark player as connected
+        player['connected'] = True
+        return True, "Reconnected successfully"
+    
+    def find_disconnected_player_by_name(self, room_id, player_name):
+        """Find a disconnected player by name in a room"""
+        if room_id not in self.rooms:
+            return None
+            
+        room = self.rooms[room_id]
+        player_name_lower = player_name.lower().strip()
+        
+        for player_id, player_data in room['players'].items():
+            if (player_data['name'].lower().strip() == player_name_lower and 
+                not player_data.get('connected', True)):
+                return {
+                    'player_id': player_id,
+                    'session_key': player_data['session_key'],
+                    'player_name': player_data['name']
+                }
+        return None
+    
+    def disconnect_player(self, room_id, player_id):
+        """Mark a player as disconnected"""
+        if room_id not in self.rooms:
+            return False
+            
+        room = self.rooms[room_id]
+        if player_id in room['players']:
+            room['players'][player_id]['connected'] = False
+            return True
+        return False
     
     def set_player_ready(self, room_id, player_id, ready_status):
         """Set a player's ready status"""
@@ -322,20 +375,17 @@ def handle_create_room(data):
         session['player_id'] = player_id
         session['room_id'] = room_id
         
+        # Get the session key for the response
+        session_key = game_manager.rooms[room_id]['players'][player_id]['session_key']
+        
         emit('room_created', {
             'room_id': room_id,
             'player_id': player_id,
             'player_name': player_name,
+            'session_key': session_key,
             'is_host': True,
             'message': 'Room created successfully'
         })
-        
-        # Send initial player state to the room
-        emit('player_joined', {
-            'players': list(game_manager.rooms[room_id]['players'].values()),
-            'player_count': len(game_manager.rooms[room_id]['players']),
-            'host_id': player_id
-        }, room=room_id)
     else:
         emit('error', {'message': message})
 
@@ -343,39 +393,160 @@ def handle_create_room(data):
 def handle_join_room(data):
     room_id = data.get('room_id')
     player_name = data.get('player_name', 'Anonymous')
+    reconnect_data = data.get('reconnect')  # {player_id, session_key}
     
-    print(f"Join room request: room_id={room_id}, player_name={player_name}")
+    print(f"Join room request: room_id={room_id}, player_name={player_name}, reconnect={reconnect_data}")
     
     if room_id not in game_manager.rooms:
         emit('error', {'message': 'Room not found'})
         return
     
-    # Check if this player is already in the room (by session)
-    existing_player_id = session.get('player_id')
     room = game_manager.rooms[room_id]
     
-    print(f"Room {room_id} current players: {len(room['players'])}, max: {room['max_players']}")
-    print(f"Existing player_id in session: {existing_player_id}")
+    # Handle reconnection attempts
+    if reconnect_data and reconnect_data.get('player_id') and reconnect_data.get('session_key'):
+        player_id = reconnect_data['player_id']
+        session_key = reconnect_data['session_key']
+        
+        print(f"Attempting reconnection for player {player_id}")
+        success, message = game_manager.reconnect_player(room_id, player_id, session_key)
+        
+        if success:
+            print(f"Player {player_id} successfully reconnected")
+            join_room(room_id)
+            session['player_id'] = player_id
+            session['room_id'] = room_id
+            
+            player_data = room['players'][player_id]
+            
+            emit('room_joined', {
+                'room_id': room_id,
+                'player_id': player_id,
+                'player_name': player_data['name'],
+                'session_key': player_data['session_key'],
+                'is_host': room.get('host') == player_id,
+                'message': 'Reconnected successfully'
+            })
+            
+            # Notify others about reconnection
+            emit('player_reconnected', {
+                'player_name': player_data['name'],
+                'player_id': player_id
+            }, room=room_id)
+            
+            # Send current game state if game is active
+            if room['game_state'] == 'playing':
+                # Send game data for reconnected player
+                player_game_data = {
+                    'tiles': player_data['tiles'],
+                    'available_questions': room['available_questions'],
+                    'player_count': len(room['players']),
+                    'current_turn': room['current_turn'],
+                    'game_state': 'playing',
+                    'your_player_id': player_id,
+                    'all_players': {pid: {'name': room['players'][pid]['name']} for pid in room['players'] if pid != player_id}
+                }
+                
+                if len(room['players']) >= 3 and 'center_tiles_count' in room:
+                    player_game_data['center_tiles_count'] = room['center_tiles_count']
+                
+                emit('game_reconnected', player_game_data)
+            else:
+                # Send updated player list for waiting room
+                emit('player_joined', {
+                    'players': [{
+                        'id': pid,
+                        'name': room['players'][pid]['name'],
+                        'ready': room['players'][pid]['ready'],
+                        'score': room['players'][pid]['score'],
+                        'connected': room['players'][pid]['connected']
+                    } for pid in room['players']],
+                    'player_count': len(room['players'])
+                }, room=room_id)
+            
+            return
+        else:
+            print(f"Reconnection failed: {message}")
+            emit('error', {'message': f'Reconnection failed: {message}'})
+            return
     
+    # Check if this player is already in the room by session (existing connection)
+    existing_player_id = session.get('player_id')
     if existing_player_id and existing_player_id in room['players']:
-        # Player already in room, just rejoin socket room
-        print(f"Player {existing_player_id} rejoining room")
-        join_room(room_id)
-        session['room_id'] = room_id
-        
-        emit('room_joined', {
-            'room_id': room_id,
-            'player_id': existing_player_id,
-            'player_name': room['players'][existing_player_id]['name'],
-            'message': 'Rejoined successfully'
-        })
-        
-        emit('player_joined', {
-            'players': list(room['players'].values()),
-            'player_count': len(room['players'])
-        }, room=room_id)
+        print(f"Player {existing_player_id} already connected via session")
+        emit('error', {'message': 'You are already connected to this room'})
         return
-    
+
+    # Check if there's a disconnected player with the same name
+    disconnected_player = game_manager.find_disconnected_player_by_name(room_id, player_name)
+    if disconnected_player:
+        print(f"Found disconnected player with name {player_name}, offering reconnection")
+        
+        # Try to reconnect the disconnected player
+        success, message = game_manager.reconnect_player(
+            room_id, 
+            disconnected_player['player_id'], 
+            disconnected_player['session_key']
+        )
+        
+        if success:
+            print(f"Auto-reconnected disconnected player {disconnected_player['player_id']}")
+            join_room(room_id)
+            session['player_id'] = disconnected_player['player_id']
+            session['room_id'] = room_id
+            
+            player_data = room['players'][disconnected_player['player_id']]
+            
+            emit('room_joined', {
+                'room_id': room_id,
+                'player_id': disconnected_player['player_id'],
+                'player_name': player_data['name'],
+                'session_key': player_data['session_key'],
+                'is_host': room.get('host') == disconnected_player['player_id'],
+                'message': 'Reconnected to your previous session'
+            })
+            
+            # Notify others about reconnection
+            emit('player_reconnected', {
+                'player_name': player_data['name'],
+                'player_id': disconnected_player['player_id']
+            }, room=room_id)
+            
+            # Send current game state if game is active
+            if room['game_state'] == 'playing':
+                # Send game data for reconnected player
+                player_game_data = {
+                    'tiles': player_data['tiles'],
+                    'available_questions': room['available_questions'],
+                    'player_count': len(room['players']),
+                    'current_turn': room['current_turn'],
+                    'game_state': 'playing',
+                    'your_player_id': disconnected_player['player_id'],
+                    'all_players': {pid: {'name': room['players'][pid]['name']} for pid in room['players'] if pid != disconnected_player['player_id']}
+                }
+                
+                if len(room['players']) >= 3 and 'center_tiles_count' in room:
+                    player_game_data['center_tiles_count'] = room['center_tiles_count']
+                
+                emit('game_reconnected', player_game_data)
+            else:
+                # Send updated player list for waiting room
+                emit('player_joined', {
+                    'players': [{
+                        'id': pid,
+                        'name': room['players'][pid]['name'],
+                        'ready': room['players'][pid]['ready'],
+                        'score': room['players'][pid]['score'],
+                        'connected': room['players'][pid]['connected']
+                    } for pid in room['players']],
+                    'player_count': len(room['players'])
+                }, room=room_id)
+            
+            return
+        else:
+            print(f"Failed to reconnect disconnected player: {message}")
+            # Continue to new player creation below
+
     # New player joining
     player_id = str(uuid.uuid4())
     print(f"Creating new player {player_id} with name {player_name}")
@@ -388,17 +559,27 @@ def handle_join_room(data):
         session['player_id'] = player_id
         session['room_id'] = room_id
         
-        print(f"Player {player_id} successfully joined. Room now has {len(game_manager.rooms[room_id]['players'])} players")
+        player_data = room['players'][player_id]
+        
+        print(f"Player {player_id} successfully joined. Room now has {len(room['players'])} players")
         
         emit('room_joined', {
             'room_id': room_id,
             'player_id': player_id,
             'player_name': player_name,
+            'session_key': player_data['session_key'],
+            'is_host': room.get('host') == player_id,
             'message': message
         })
         
         emit('player_joined', {
-            'players': list(game_manager.rooms[room_id]['players'].values()),
+            'players': [{
+                'id': pid,
+                'name': room['players'][pid]['name'],
+                'ready': room['players'][pid]['ready'],
+                'score': room['players'][pid]['score'],
+                'connected': room['players'][pid]['connected']
+            } for pid in room['players']],
             'player_count': len(game_manager.rooms[room_id]['players'])
         }, room=room_id)
     else:
@@ -1232,6 +1413,41 @@ def handle_get_room_state(data):
         print(f"Player {player_id} not found in room {room_id}")
         emit('error', {'message': 'Player not found in room'})
         return
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    """Handle player disconnection"""
+    room_id = session.get('room_id')
+    player_id = session.get('player_id')
+    
+    if room_id and player_id:
+        print(f"Player {player_id} disconnected from room {room_id}")
+        
+        # Mark player as disconnected
+        success = game_manager.disconnect_player(room_id, player_id)
+        
+        if success and room_id in game_manager.rooms:
+            room = game_manager.rooms[room_id]
+            player_name = room['players'][player_id]['name']
+            
+            # Notify other players about disconnection
+            emit('player_disconnected', {
+                'player_name': player_name,
+                'player_id': player_id,
+                'message': f'{player_name} has disconnected'
+            }, room=room_id)
+            
+            # Update player list with connection status
+            emit('player_joined', {
+                'players': [{
+                    'id': pid,
+                    'name': room['players'][pid]['name'],
+                    'ready': room['players'][pid]['ready'],
+                    'score': room['players'][pid]['score'],
+                    'connected': room['players'][pid]['connected']
+                } for pid in room['players']],
+                'player_count': len(room['players'])
+            }, room=room_id)
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True) 

@@ -235,3 +235,36 @@ This project is for educational and entertainment purposes.
 ---
 
 **Enjoy breaking the code! 🔍🎯** 
+
+## �� BREAK THE CODE
+
+## Recent Bug Fixes 🔧
+
+### Fixed Issues (Latest Update):
+1. **Player Identity Security**: Fixed security vulnerability where anyone could join with the same name
+   - Each player now has a unique session key for secure identification
+   - No more unauthorized access to other players' sessions
+   - Proper authentication system prevents impersonation
+
+2. **Mid-Game Disconnection Handling**: Players can now properly reconnect during active games
+   - Other players are notified when someone disconnects (🔴 indicator)
+   - Disconnected players can rejoin ongoing games with full state restoration
+   - Game continues seamlessly with proper turn management
+   - Connection status is displayed in real-time
+
+3. **Duplicate Player Names**: Players can no longer join a room with the same name as an existing player
+   - The system validates names and prevents duplicates
+   - Users get clear error messages and can choose a different name
+
+### New Security Features:
+- **Session Key Authentication**: Each player gets a unique, secure session key
+- **Secure Reconnection**: Only the original player can reconnect using their session key
+- **Connection Status Tracking**: Real-time display of who's connected/disconnected
+- **Game State Restoration**: Mid-game reconnections restore complete game state
+
+### How Secure Reconnection Works:
+- When you join a room, you receive a unique session key stored securely in your browser
+- If you accidentally leave or get disconnected, your session key allows secure reconnection
+- Only you can reconnect to your player slot - no one else can impersonate you
+- During active games, you'll rejoin exactly where you left off with all your tiles and progress
+- Other players see real-time connection status updates

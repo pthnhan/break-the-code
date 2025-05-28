@@ -191,12 +191,92 @@
             }
         });
 
+        socket.on('player_reconnected', function(data) {
+            console.log('Player reconnected:', data);
+            showStatus(`${data.player_name} has reconnected`, 'info');
+            
+            // If this is the current player and they're a host, emit ready status
+            const storedData = localStorage.getItem(`playerData_${roomId}`);
+            if (storedData) {
+                try {
+                    const playerData = JSON.parse(storedData);
+                    if (playerData.player_id === data.player_id && playerData.is_host) {
+                        gameState.isHost = true;
+                        gameState.isReady = true;
+                        setTimeout(() => {
+                            socket.emit('player_ready', { ready: true });
+                        }, 100);
+                    }
+                } catch (e) {
+                    console.log('Error parsing stored player data:', e);
+                }
+            }
+        });
+
+        socket.on('player_disconnected', function(data) {
+            console.log('Player disconnected:', data);
+            showStatus(`${data.player_name} has disconnected`, 'warning');
+        });
+
+        socket.on('game_reconnected', function(data) {
+            console.log('Game reconnected, restoring state:', data);
+            
+            // Restore game state
+            gameState.playerData = data;
+            gameState.availableQuestions = data.available_questions;
+            gameState.currentTurn = data.current_turn;
+            gameState.playerCount = data.player_count;
+            gameState.yourPlayerId = data.your_player_id;
+            gameState.allPlayers = data.all_players;
+            
+            // Show game interface
+            document.getElementById('waitingRoom').style.display = 'none';
+            document.getElementById('gameInterface').style.display = 'block';
+            
+            // Restore UI
+            displayYourTiles(data.tiles);
+            displayAvailableQuestions(data.available_questions);
+            updateTurnIndicator(data.current_turn);
+            
+            if (data.center_tiles_count) {
+                setupCenterTiles(data.center_tiles_count);
+            }
+            
+            setupOtherPlayers();
+            updateGuessDisplay();
+            
+            showStatus('Game state restored successfully!', 'success');
+        });
+
         socket.on('room_joined', function(data) {
             console.log('Successfully joined room:', data);
             showStatus(data.message, 'success');
             
+            // Store player information securely
+            localStorage.setItem(`playerData_${roomId}`, JSON.stringify({
+                player_id: data.player_id,
+                player_name: data.player_name,
+                session_key: data.session_key,
+                is_host: data.is_host
+            }));
+            
+            // Update URL to include player info for future reconnections
+            const newUrl = `${window.location.pathname}?player_id=${data.player_id}`;
+            window.history.replaceState({}, '', newUrl);
+            
+            // Set local game state
+            gameState.isHost = data.is_host || false;
+            gameState.isReady = data.is_host || false; // Host is auto-ready
+            
             // Update waiting room buttons for all players
             updateWaitingRoomButtons();
+            
+            // If this is a host, automatically emit ready status
+            if (data.is_host) {
+                setTimeout(() => {
+                    socket.emit('player_ready', { ready: true });
+                }, 100);
+            }
         });
 
         socket.on('game_started', function(data) {
@@ -313,48 +393,80 @@
         });
 
         socket.on('error', function(data) {
-            showStatus(data.message, 'error');
+            console.log('Error received:', data);
+            if (data.message.includes('name already exists')) {
+                showStatus(`${data.message}. Please choose a different name.`, 'error');
+                
+                // If this is a duplicate name error, prompt for a new name
+                setTimeout(() => {
+                    const newName = prompt('A player with this name already exists. Please enter a different name:');
+                    if (newName && newName.trim()) {
+                        socket.emit('join_room', {
+                            room_id: roomId,
+                            player_name: newName.trim()
+                        });
+                    } else {
+                        // If user cancels, redirect to lobby
+                        window.location.href = '/';
+                    }
+                }, 2000);
+            } else {
+                showStatus(data.message, 'error');
+                
+                // If connection failed, clear stored data and redirect
+                if (data.message.includes('Reconnection failed') || data.message.includes('Invalid session key')) {
+                    localStorage.removeItem(`playerData_${roomId}`);
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 3000);
+                }
+            }
         });
 
         socket.on('connect', function() {
             console.log('Connected to server');
             
-            // Check if we have a player_id in the URL (for room creators)
+            // Check if we have stored player data for this room
+            const storedData = localStorage.getItem(`playerData_${roomId}`);
             const urlParams = new URLSearchParams(window.location.search);
-            const playerId = urlParams.get('player_id');
-            const playerName = urlParams.get('player_name');
-            const isHost = urlParams.get('is_host') === 'true';
+            const urlPlayerId = urlParams.get('player_id');
             
-            console.log('URL parameters:', { playerId, playerName, isHost, url: window.location.href });
-            
-            if (isHost) {
-                gameState.isHost = true;
-                gameState.isReady = true; // Host is automatically ready
-                updateWaitingRoomButtons();
-                
-                // If this is a reconnection, emit ready status
-                socket.emit('player_ready', { ready: true });
+            if (storedData && urlPlayerId) {
+                try {
+                    const playerData = JSON.parse(storedData);
+                    
+                    // Verify URL player_id matches stored data
+                    if (playerData.player_id === urlPlayerId) {
+                        console.log('Attempting to reconnect with stored credentials');
+                        
+                        // Try to reconnect with session key
+                        socket.emit('join_room', {
+                            room_id: roomId,
+                            reconnect: {
+                                player_id: playerData.player_id,
+                                session_key: playerData.session_key
+                            }
+                        });
+                        
+                        // Set local state
+                        gameState.isHost = playerData.is_host || false;
+                        gameState.isReady = playerData.is_host || false; // Host is auto-ready
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Error parsing stored player data:', e);
+                    localStorage.removeItem(`playerData_${roomId}`);
+                }
             }
             
-            if (playerId) {
-                // Player is already in the room (room creator), get current state
-                console.log('Player already in room, getting room state');
-                socket.emit('get_room_state', {
-                    room_id: roomId,
-                    player_id: playerId
-                });
-            } else {
-                // New player joining, prompt for name
-                console.log('New player, prompting for name');
-                const playerName = prompt('Enter your name:') || 'Anonymous';
-                socket.emit('join_room', {
-                    room_id: roomId,
-                    player_name: playerName
-                });
-                
-                // Show ready button for non-host players
-                updateWaitingRoomButtons();
-            }
+            // New player - prompt for name
+            console.log('New player joining');
+            const playerName = prompt('Enter your name:') || 'Anonymous';
+            
+            socket.emit('join_room', {
+                room_id: roomId,
+                player_name: playerName
+            });
         });
 
         socket.on('guess_made', function(data) {
@@ -437,20 +549,16 @@
             }
         });
 
-        socket.on('room_created', function(data) {
-            console.log('Room created event received:', data);
-            gameState.isHost = data.is_host;
-            gameState.isReady = true; // Host is automatically ready
-            updateWaitingRoomButtons();
-            
-            // Emit ready status to update other players
-            socket.emit('player_ready', { ready: true });
-        });
-
         socket.on('player_ready_update', function(data) {
             console.log('Player ready update:', data);
             updatePlayersList(data.players, data.players.length, data.all_ready);
-            updateScoreboard(data.players);
+            
+            // Update scoreboard with proper player data
+            const playersForScoreboard = data.players.map(player => ({
+                name: player.name,
+                score: player.score || 0
+            }));
+            updateScoreboard(playersForScoreboard);
         });
 
         // Event listeners
@@ -537,16 +645,25 @@
             listElement.innerHTML = '';
             
             if (Array.isArray(players)) {
-                // Handle array format (with ready status and scores)
+                // Handle array format (with ready status, scores, and connection status)
                 players.forEach(player => {
                     const playerDiv = document.createElement('div');
                     playerDiv.className = 'player-item';
+                    
                     const readyStatus = player.ready ? ' ✅' : ' ⏳';
+                    const connectionStatus = player.connected === false ? ' 🔴 (Disconnected)' : '';
                     const score = player.score !== undefined ? ` (${player.score} pts)` : '';
-                    playerDiv.textContent = player.name + score + readyStatus;
+                    
+                    playerDiv.textContent = player.name + score + readyStatus + connectionStatus;
+                    
                     if (player.ready) {
                         playerDiv.style.backgroundColor = '#c6f6d5';
                     }
+                    if (player.connected === false) {
+                        playerDiv.style.backgroundColor = '#fed7d7';
+                        playerDiv.style.opacity = '0.7';
+                    }
+                    
                     listElement.appendChild(playerDiv);
                 });
             } else {
@@ -758,16 +875,19 @@
 
         function updateTurnIndicator(currentTurn) {
             const indicator = document.getElementById('currentTurnText');
+            const turnIndicator = document.getElementById('turnIndicator');
             const submitBtn = document.getElementById('submitGuess');
             const clearBtn = document.getElementById('clearGuess');
             const tileButtons = document.querySelectorAll('.tile-button');
             
+            // Remove all existing turn classes
+            turnIndicator.classList.remove('your-turn', 'waiting-turn', 'final-round');
+            
             if (currentTurn === gameState.yourPlayerId) {
                 if (gameState.finalRound && gameState.finalRoundPlayer === gameState.yourPlayerId) {
                     // In final round and you are the final player - can only guess
-                    indicator.textContent = "Your Turn - Make your final guess!";
-                    indicator.style.color = '#e53e3e';
-                    indicator.style.fontWeight = 'bold';
+                    turnIndicator.classList.add('final-round');
+                    indicator.innerHTML = '<span class="turn-icon">⚡</span>Final Round - Make your guess!';
                     
                     // Enable guess interface
                     if (submitBtn) submitBtn.disabled = false;
@@ -781,9 +901,8 @@
                     });
                 } else if (gameState.finalRound) {
                     // In final round but not the final player - cannot act
-                    indicator.textContent = "Final round in progress - Waiting...";
-                    indicator.style.color = '#718096';
-                    indicator.style.fontWeight = 'normal';
+                    turnIndicator.classList.add('waiting-turn');
+                    indicator.innerHTML = '<span class="turn-icon">⏳</span>Final round in progress - Waiting...';
                     
                     // Disable guess interface
                     if (submitBtn) submitBtn.disabled = true;
@@ -795,9 +914,8 @@
                     });
                 } else {
                     // Normal turn - can ask questions or guess
-                    indicator.textContent = "Your Turn - Ask a question or make a guess!";
-                    indicator.style.color = '#48bb78';
-                    indicator.style.fontWeight = 'bold';
+                    turnIndicator.classList.add('your-turn');
+                    indicator.innerHTML = '<span class="turn-icon">🎯</span>Your Turn - Ask a question or make a guess!';
                     
                     // Enable guess interface
                     if (submitBtn) submitBtn.disabled = false;
@@ -812,13 +930,12 @@
                 }
             } else {
                 // Not your turn
+                turnIndicator.classList.add('waiting-turn');
                 if (currentTurn && gameState.allPlayers && gameState.allPlayers[currentTurn]) {
-                    indicator.textContent = `${gameState.allPlayers[currentTurn].name}'s Turn`;
+                    indicator.innerHTML = `<span class="turn-icon">⏱️</span>${gameState.allPlayers[currentTurn].name}'s Turn`;
                 } else {
-                    indicator.textContent = 'Waiting for turn...';
+                    indicator.innerHTML = '<span class="turn-icon">⏱️</span>Waiting for turn...';
                 }
-                indicator.style.color = '#4a5568';
-                indicator.style.fontWeight = 'normal';
                 
                 // Disable guess interface when not your turn
                 if (submitBtn) submitBtn.disabled = true;
