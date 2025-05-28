@@ -1002,12 +1002,14 @@ def handle_make_guess(data):
         }
     
     # Broadcast the guess to all players
+    guess.sort(key=lambda x: (x['number'], x['color']))
     emit('guess_made', {
         'player': room['players'][player_id]['name'],
         'guess': guess,
         'target': target_name,
         'correct': is_correct,
-        'actual_tiles': target_tiles if is_correct else None
+        'actual_tiles': target_tiles,
+        'player_count': player_count
     }, room=room_id)
     
     # Check for game ending conditions with new logic
