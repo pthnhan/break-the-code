@@ -35,6 +35,33 @@
                         <label for="numQuestionCards">Number of Question Cards (2-8):</label>
                         <input type="number" id="numQuestionCards" name="numQuestionCards" min="2" max="8" value="4" required>
                     </div>
+                    <div class="form-group">
+                        <label for="timeLimit">Time Limit per Turn:</label>
+                        <select id="timeLimit" name="timeLimit">
+                            <option value="unlimited">Unlimited</option>
+                            <option value="15">15 seconds</option>
+                            <option value="60">1 minute</option>
+                            <option value="120">2 minutes</option>
+                            <option value="180">3 minutes</option>
+                            <option value="300">5 minutes</option>
+                            <option value="custom">Custom...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="customTimeGroup" style="display: none;">
+                        <label for="customTime">Custom Time (minutes):</label>
+                        <input type="number" id="customTime" name="customTime" min="1" max="60" placeholder="Enter minutes">
+                    </div>
+                    <div class="form-group">
+                        <label for="penaltyMode">Time Penalty Mode:</label>
+                        <select id="penaltyMode" name="penaltyMode">
+                            <option value="for_fun">For Fun (Alert only)</option>
+                            <option value="manual">Competitive (Score penalty)</option>
+                        </select>
+                        <small style="color: #666; font-style: italic; margin-top: 5px; display: block;">
+                            • For Fun: Shows alerts when time is exceeded but no penalties<br>
+                            • Competitive: Deducts points based on how much time was exceeded (up to 50 points)
+                        </small>
+                    </div>
                     <button type="submit" class="btn btn-primary">Create Game Room</button>
                 </form>
             </div>
@@ -128,16 +155,40 @@
     <script>
         const socket = io();
 
+        // Handle custom time limit selection
+        document.getElementById('timeLimit').addEventListener('change', function() {
+            const customTimeGroup = document.getElementById('customTimeGroup');
+            if (this.value === 'custom') {
+                customTimeGroup.style.display = 'block';
+                document.getElementById('customTime').required = true;
+            } else {
+                customTimeGroup.style.display = 'none';
+                document.getElementById('customTime').required = false;
+            }
+        });
+
         document.getElementById('createGameForm').addEventListener('submit', function(e) {
             e.preventDefault();
             const playerName = document.getElementById('playerName').value;
             const maxPlayers = parseInt(document.getElementById('maxPlayers').value);
             const numQuestionCards = parseInt(document.getElementById('numQuestionCards').value);
+            const timeLimit = document.getElementById('timeLimit').value;
+            const customTime = document.getElementById('customTime').value;
+            const penaltyMode = document.getElementById('penaltyMode').value;
+            
+            // Validate custom time if selected
+            if (timeLimit === 'custom' && (!customTime || customTime < 1 || customTime > 60)) {
+                showStatus('Please enter a valid custom time (1-60 minutes)', 'error');
+                return;
+            }
             
             socket.emit('create_room', {
                 player_name: playerName,
                 max_players: maxPlayers,
-                num_question_cards: numQuestionCards
+                num_question_cards: numQuestionCards,
+                time_limit: timeLimit,
+                custom_time: customTime,
+                penalty_mode: penaltyMode
             });
         });
 

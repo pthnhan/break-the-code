@@ -818,6 +818,1458 @@
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-3px); }
         }
+        
+        /* Timer display styling */
+        .timer-display {
+            margin-top: 10px;
+            text-align: center;
+        }
+        
+        .timer-bar {
+            width: 200px;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            margin: 8px auto;
+            overflow: hidden;
+            border: 1px solid #cbd5e0;
+        }
+        
+        .timer-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #48bb78 0%, #38a169 50%, #ed8936 80%, #e53e3e 100%);
+            transition: width 1s linear;
+            border-radius: 3px;
+        }
+        
+        .timer-progress.warning {
+            background: linear-gradient(90deg, #ed8936 0%, #e53e3e 100%);
+            animation: pulse-warning 1s infinite;
+        }
+        
+        .timer-progress.critical {
+            background: #e53e3e;
+            animation: pulse-critical 0.5s infinite;
+        }
+        
+        @keyframes pulse-warning {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        @keyframes pulse-critical {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        #timerText {
+            font-weight: bold;
+            color: #4a5568;
+            font-size: 1.1rem;
+        }
+        
+        #timerText.warning {
+            color: #ed8936;
+        }
+        
+        #timerText.critical {
+            color: #e53e3e;
+        }
+        
+        /* Game Settings Section */
+        .game-settings-section {
+            margin: 20px 0;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .game-settings-display {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .setting-item {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid #cbd5e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .setting-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+        }
+        
+        .setting-value {
+            color: #2d3748;
+            font-weight: 500;
+            background: #e6fffa;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+        
+        /* Score History Section */
+        .score-history-section {
+            margin: 20px 0;
+            background: linear-gradient(135deg, #fefcbf 0%, #fef3cd 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #f6e05e;
+        }
+        
+        .score-history-display {
+            margin-top: 15px;
+        }
+        
+        .no-history {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 10px;
+            border: 2px dashed #cbd5e0;
+        }
+        
+        .round-history {
+            margin-bottom: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .round-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .round-title {
+            font-weight: 600;
+            color: #2d3748;
+            font-size: 1rem;
+        }
+        
+        .round-type {
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        
+        .round-type.win {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .round-type.draw {
+            background: #fed7aa;
+            color: #9c4221;
+        }
+        
+        .winners-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .winner-item {
+            background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            border: 1px solid #68d391;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .winner-name {
+            font-weight: 600;
+            color: #22543d;
+        }
+        
+        .winner-points {
+            color: #2f855a;
+            font-weight: 500;
+        }
+        
+        .winner-penalties {
+            color: #c53030;
+            font-size: 0.8rem;
+            font-style: italic;
+        }
+        
+        /* Timer display for all players */
+        .simple-timer-section {
+            margin: 15px 0;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 15px;
+            padding: 20px;
+            border: 2px solid #0ea5e9;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
+        }
+        
+        .simple-timer-section h3 {
+            color: #0c4a6e;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .current-player-timer {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 20px;
+            border-radius: 12px;
+            border: 1px solid #0ea5e9;
+            display: inline-block;
+            min-width: 280px;
+        }
+        
+        .timer-player-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+        
+        .timer-player-name-main {
+            font-weight: 700;
+            color: #0c4a6e;
+            font-size: 1.1rem;
+        }
+        
+        .timer-time-display {
+            font-weight: 600;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 1rem;
+            min-width: 80px;
+        }
+        
+        .timer-time-display.unlimited {
+            background: #e5e7eb;
+            color: #6b7280;
+        }
+        
+        .timer-time-display.active {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .timer-time-display.warning {
+            background: #fecaca;
+            color: #991b1b;
+            animation: pulse 1s infinite;
+        }
+        
+        .waiting-turn {
+            color: #6b7280;
+            font-style: italic;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+        
+        /* Popup Timer Clock Styles */
+        .timer-clock-popup {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideInFromRight 0.5s ease-out;
+        }
+        
+        @keyframes slideInFromRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .clock-container {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 3px solid #e2e8f0;
+            position: relative;
+            min-width: 300px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .clock-container:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .clock-face {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            margin: 0 auto 20px;
+            box-shadow: 
+                inset 0 2px 10px rgba(255, 255, 255, 0.3),
+                0 4px 15px rgba(102, 126, 234, 0.3);
+            border: 4px solid #ffffff;
+        }
+        
+        .clock-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background: #ffffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .clock-hand {
+            position: absolute;
+            background: #ffffff;
+            transform-origin: bottom center;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hour-hand {
+            width: 4px;
+            height: 30px;
+            top: 20%;
+            left: 50%;
+            margin-left: -2px;
+            z-index: 3;
+        }
+        
+        .minute-hand {
+            width: 3px;
+            height: 40px;
+            top: 13%;
+            left: 50%;
+            margin-left: -1.5px;
+            z-index: 2;
+        }
+        
+        .second-hand {
+            width: 1px;
+            height: 45px;
+            top: 11%;
+            left: 50%;
+            margin-left: -0.5px;
+            background: #e53e3e;
+            z-index: 4;
+            animation: secondTick 1s linear infinite;
+        }
+        
+        @keyframes secondTick {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .clock-number {
+            position: absolute;
+            font-weight: bold;
+            color: #ffffff;
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .clock-12 {
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .clock-3 {
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .clock-6 {
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .clock-9 {
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .clock-dots {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        .clock-dot {
+            position: absolute;
+            width: 2px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            top: 4px;
+            left: 50%;
+            margin-left: -1px;
+            transform-origin: 1px 56px;
+            border-radius: 1px;
+        }
+        
+        .timer-info {
+            text-align: center;
+        }
+        
+        .current-player-name {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+            border-radius: 10px;
+            border: 1px solid #81e6d9;
+        }
+        
+        .timer-display-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .digital-time {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #2d3748;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            min-width: 100px;
+            letter-spacing: 1px;
+        }
+        
+        .digital-time.warning {
+            background: linear-gradient(135deg, #fed7aa 0%, #fbb6ce 100%);
+            border-color: #f6ad55;
+            color: #c53030;
+            animation: pulseWarning 1s infinite;
+        }
+        
+        .digital-time.critical {
+            background: linear-gradient(135deg, #fed7d7 0%, #fbb6ce 100%);
+            border-color: #e53e3e;
+            color: #9b2c2c;
+            animation: pulseCritical 0.5s infinite;
+        }
+        
+        @keyframes pulseWarning {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes pulseCritical {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
+            50% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(229, 62, 62, 0); }
+        }
+        
+        .timer-status {
+            font-size: 0.85rem;
+            color: #718096;
+            font-style: italic;
+        }
+        
+        .timer-progress-ring {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .progress-ring {
+            transform: rotate(-90deg);
+        }
+        
+        .progress-ring-background {
+            fill: none;
+            stroke: #e2e8f0;
+            stroke-width: 4;
+        }
+        
+        .progress-ring-progress {
+            fill: none;
+            stroke: #48bb78;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 163.36;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+        }
+        
+        .progress-ring-progress.warning {
+            stroke: #ed8936;
+        }
+        
+        .progress-ring-progress.critical {
+            stroke: #e53e3e;
+        }
+        
+        .progress-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #4a5568;
+        }
+        
+        .close-timer-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: rgba(160, 174, 192, 0.8);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-timer-btn:hover {
+            background: #e53e3e;
+            transform: scale(1.1);
+        }
+        
+        /* Mobile responsiveness for clock popup */
+        @media (max-width: 768px) {
+            .timer-clock-popup {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                right: 10px;
+            }
+            
+            .clock-container {
+                min-width: unset;
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+                padding: 15px;
+            }
+            
+            .clock-face {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .hour-hand {
+                height: 25px;
+                top: 25%;
+            }
+            
+            .minute-hand {
+                height: 35px;
+                top: 15%;
+            }
+            
+            .second-hand {
+                height: 40px;
+                top: 10%;
+            }
+        }
+        
+        /* Floating Timer Clock */
+        .floating-timer-clock {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            animation: slideInFromRight 0.5s ease-out;
+        }
+        
+        @keyframes slideInFromRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .mini-clock-face {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border: 3px solid #e2e8f0;
+            position: relative;
+            min-width: 300px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .mini-clock-face:hover {
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
+            transform: translateY(-2px);
+        }
+        
+        .clock-center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 10px;
+            height: 10px;
+            background: #ffffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .clock-hand {
+            position: absolute;
+            background: #ffffff;
+            transform-origin: bottom center;
+            border-radius: 2px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .hour-hand {
+            width: 4px;
+            height: 30px;
+            top: 20%;
+            left: 50%;
+            margin-left: -2px;
+            z-index: 3;
+        }
+        
+        .minute-hand {
+            width: 3px;
+            height: 40px;
+            top: 13%;
+            left: 50%;
+            margin-left: -1.5px;
+            z-index: 2;
+        }
+        
+        .second-hand {
+            width: 1px;
+            height: 45px;
+            top: 11%;
+            left: 50%;
+            margin-left: -0.5px;
+            background: #e53e3e;
+            z-index: 4;
+            animation: secondTick 1s linear infinite;
+        }
+        
+        @keyframes secondTick {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .clock-number {
+            position: absolute;
+            font-weight: bold;
+            color: #ffffff;
+            font-size: 14px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        
+        .clock-12 {
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .clock-3 {
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .clock-6 {
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .clock-9 {
+            left: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        
+        .clock-dots {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        
+        .clock-dot {
+            position: absolute;
+            width: 2px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.7);
+            top: 4px;
+            left: 50%;
+            margin-left: -1px;
+            transform-origin: 1px 56px;
+            border-radius: 1px;
+        }
+        
+        .floating-timer-info {
+            text-align: center;
+        }
+        
+        .player-name-badge {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 10px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
+            border-radius: 10px;
+            border: 1px solid #81e6d9;
+        }
+        
+        .time-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .digital-time {
+            font-size: 1.5rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #2d3748;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
+            min-width: 100px;
+            letter-spacing: 1px;
+        }
+        
+        .digital-time.warning {
+            background: linear-gradient(135deg, #fed7aa 0%, #fbb6ce 100%);
+            border-color: #f6ad55;
+            color: #c53030;
+            animation: pulseWarning 1s infinite;
+        }
+        
+        .digital-time.critical {
+            background: linear-gradient(135deg, #fed7d7 0%, #fbb6ce 100%);
+            border-color: #e53e3e;
+            color: #9b2c2c;
+            animation: pulseCritical 0.5s infinite;
+        }
+        
+        @keyframes pulseWarning {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes pulseCritical {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
+            50% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(229, 62, 62, 0); }
+        }
+        
+        .timer-status {
+            font-size: 0.85rem;
+            color: #718096;
+            font-style: italic;
+        }
+        
+        .timer-progress-ring {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .ring-background {
+            fill: none;
+            stroke: #e2e8f0;
+            stroke-width: 4;
+        }
+        
+        .ring-progress {
+            fill: none;
+            stroke: #48bb78;
+            stroke-width: 4;
+            stroke-linecap: round;
+            stroke-dasharray: 163.36;
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+        }
+        
+        .ring-progress.warning {
+            stroke: #ed8936;
+        }
+        
+        .ring-progress.critical {
+            stroke: #e53e3e;
+        }
+        
+        .ring-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #4a5568;
+        }
+        
+        .mini-close-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: rgba(160, 174, 192, 0.8);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            line-height: 1;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mini-close-btn:hover {
+            background: #e53e3e;
+            transform: scale(1.1);
+        }
+        
+        /* Mobile responsiveness for floating timer clock */
+        @media (max-width: 768px) {
+            .floating-timer-clock {
+                top: 10px;
+                right: 10px;
+                left: 10px;
+                right: 10px;
+            }
+            
+            .mini-clock-face {
+                min-width: unset;
+                width: 100%;
+                max-width: 300px;
+                margin: 0 auto;
+                padding: 15px;
+            }
+            
+            .clock-center-dot {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .hour-hand {
+                height: 25px;
+                top: 25%;
+            }
+            
+            .minute-hand {
+                height: 35px;
+                top: 15%;
+            }
+            
+            .second-hand {
+                height: 40px;
+                top: 10%;
+            }
+        }
+        
+        /* Floating Timer Clock Styles */
+        .floating-timer-clock {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            animation: gentleSlideIn 0.6s ease-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        @keyframes gentleSlideIn {
+            from {
+                transform: translateX(150px) scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .mini-clock-face {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            box-shadow: 
+                0 4px 15px rgba(102, 126, 234, 0.3),
+                0 2px 8px rgba(0, 0, 0, 0.1);
+            border: 3px solid rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+        
+        .mini-clock-face:hover {
+            transform: scale(1.05);
+            box-shadow: 
+                0 6px 20px rgba(102, 126, 234, 0.4),
+                0 3px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .clock-center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 6px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .clock-hand {
+            position: absolute;
+            background: #ffffff;
+            transform-origin: bottom center;
+            border-radius: 1px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        
+        .hour-hand {
+            width: 2px;
+            height: 18px;
+            top: 25%;
+            left: 50%;
+            margin-left: -1px;
+            z-index: 3;
+        }
+        
+        .minute-hand {
+            width: 1.5px;
+            height: 24px;
+            top: 18%;
+            left: 50%;
+            margin-left: -0.75px;
+            z-index: 2;
+        }
+        
+        .second-hand {
+            width: 0.5px;
+            height: 26px;
+            top: 16%;
+            left: 50%;
+            margin-left: -0.25px;
+            background: #ff6b6b;
+            z-index: 4;
+        }
+        
+        .clock-mark {
+            position: absolute;
+            width: 2px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 1px;
+        }
+        
+        .clock-12 {
+            top: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .clock-3 {
+            right: 2px;
+            top: 50%;
+            transform: translateY(-50%) rotate(90deg);
+        }
+        
+        .clock-6 {
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .clock-9 {
+            left: 2px;
+            top: 50%;
+            transform: translateY(-50%) rotate(90deg);
+        }
+        
+        .floating-timer-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .player-name-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4a5568;
+            padding: 3px 8px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .time-display {
+            font-size: 1rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #2d3748;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 4px 8px;
+            border-radius: 8px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(5px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            letter-spacing: 0.5px;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .time-display.warning {
+            background: rgba(255, 193, 7, 0.9);
+            border-color: #ffc107;
+            color: #856404;
+            animation: gentlePulse 1s infinite;
+        }
+        
+        .time-display.critical {
+            background: rgba(220, 53, 69, 0.9);
+            border-color: #dc3545;
+            color: white;
+            animation: urgentPulse 0.5s infinite;
+        }
+        
+        @keyframes gentlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+        
+        @keyframes urgentPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+        
+        .timer-ring {
+            position: relative;
+            width: 45px;
+            height: 45px;
+        }
+        
+        .mini-progress-ring {
+            transform: rotate(-90deg);
+            width: 45px;
+            height: 45px;
+        }
+        
+        .ring-background {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.3);
+            stroke-width: 2;
+        }
+        
+        .ring-progress {
+            fill: none;
+            stroke: #48bb78;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-dasharray: 125.66; /* 2π × 20 */
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+        }
+        
+        .ring-progress.warning {
+            stroke: #ffc107;
+        }
+        
+        .ring-progress.critical {
+            stroke: #dc3545;
+        }
+        
+        .ring-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: #4a5568;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+        
+        .mini-close-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            border: none;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+            line-height: 1;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+        
+        .mini-close-btn:hover {
+            background: #dc3545;
+            transform: scale(1.2);
+            box-shadow: 0 3px 10px rgba(220, 53, 69, 0.4);
+        }
+        
+        /* Mobile responsiveness for floating timer */
+        @media (max-width: 768px) {
+            .floating-timer-clock {
+                top: 10px;
+                right: 10px;
+                scale: 0.9;
+            }
+            
+            .player-name-badge {
+                font-size: 0.7rem;
+                max-width: 100px;
+            }
+            
+            .time-display {
+                font-size: 0.9rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .floating-timer-clock {
+                scale: 0.8;
+                top: 5px;
+                right: 5px;
+            }
+        }
+        
+        /* Floating Timer Display Styles */
+        .floating-timer-display {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            animation: gentleSlideIn 0.6s ease-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        @keyframes gentleSlideIn {
+            from {
+                transform: translateX(120px) scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .floating-timer-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+        }
+        
+        .player-name-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4a5568;
+            padding: 4px 10px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: all 0.3s ease;
+        }
+        
+        .player-name-badge:hover {
+            transform: scale(1.02);
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.15);
+        }
+        
+        .time-display {
+            font-size: 1.1rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #2d3748;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.1);
+            letter-spacing: 1px;
+            min-width: 65px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .time-display:hover {
+            transform: scale(1.02);
+        }
+        
+        .time-display.warning {
+            background: rgba(255, 193, 7, 0.95);
+            border-color: #ffc107;
+            color: #856404;
+            animation: gentlePulse 1s infinite;
+            box-shadow: 0 3px 15px rgba(255, 193, 7, 0.3);
+        }
+        
+        .time-display.critical {
+            background: rgba(220, 53, 69, 0.95);
+            border-color: #dc3545;
+            color: white;
+            animation: urgentPulse 0.5s infinite;
+            box-shadow: 0 3px 15px rgba(220, 53, 69, 0.4);
+        }
+        
+        @keyframes gentlePulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.04); }
+        }
+        
+        @keyframes urgentPulse {
+            0%, 100% { 
+                transform: scale(1); 
+                box-shadow: 0 3px 15px rgba(220, 53, 69, 0.4);
+            }
+            50% { 
+                transform: scale(1.08); 
+                box-shadow: 0 5px 20px rgba(220, 53, 69, 0.6);
+            }
+        }
+        
+        .timer-ring {
+            position: relative;
+            width: 45px;
+            height: 45px;
+            margin-top: 2px;
+        }
+        
+        .mini-progress-ring {
+            transform: rotate(-90deg);
+            width: 45px;
+            height: 45px;
+        }
+        
+        .ring-background {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.4);
+            stroke-width: 2.5;
+        }
+        
+        .ring-progress {
+            fill: none;
+            stroke: #48bb78;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            stroke-dasharray: 125.66; /* 2π × 20 */
+            stroke-dashoffset: 0;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+            filter: drop-shadow(0 2px 4px rgba(72, 187, 120, 0.3));
+        }
+        
+        .ring-progress.warning {
+            stroke: #ffc107;
+            filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3));
+        }
+        
+        .ring-progress.critical {
+            stroke: #dc3545;
+            filter: drop-shadow(0 2px 4px rgba(220, 53, 69, 0.3));
+        }
+        
+        .ring-percentage {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: #4a5568;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 50%;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .mini-close-btn {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 20px;
+            height: 20px;
+            border: none;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: bold;
+            line-height: 1;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .mini-close-btn:hover {
+            background: #dc3545;
+            transform: scale(1.15);
+            box-shadow: 0 3px 12px rgba(220, 53, 69, 0.4);
+        }
+        
+        /* Mobile responsiveness for floating timer */
+        @media (max-width: 768px) {
+            .floating-timer-display {
+                top: 10px;
+                right: 10px;
+                scale: 0.9;
+            }
+            
+            .player-name-badge {
+                font-size: 0.7rem;
+                max-width: 100px;
+                padding: 3px 8px;
+            }
+            
+            .time-display {
+                font-size: 1rem;
+                padding: 5px 10px;
+            }
+            
+            .timer-ring {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .mini-progress-ring {
+                width: 40px;
+                height: 40px;
+            }
+            
+            .ring-percentage {
+                width: 24px;
+                height: 24px;
+                font-size: 0.6rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .floating-timer-display {
+                scale: 0.85;
+                top: 8px;
+                right: 8px;
+            }
+            
+            .player-name-badge {
+                font-size: 0.65rem;
+                max-width: 90px;
+            }
+            
+            .time-display {
+                font-size: 0.95rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -854,6 +2306,21 @@
                         <span class="btn-icon">🔄</span> Reorder Players
                     </button>
                 </div>
+                
+                <div class="waiting-actions">
+                    <button id="startGameBtn" class="btn btn-primary" disabled style="display: none;">
+                        <span class="btn-icon">🚀</span> Start Game
+                    </button>
+                    <button id="readyBtn" class="btn btn-success" style="display: none;">
+                        <span class="btn-icon">✅</span> Ready
+                    </button>
+                    <button id="notReadyBtn" class="btn btn-warning" style="display: none;">
+                        <span class="btn-icon">⏳</span> Not Ready
+                    </button>
+                    <button id="backToLobby" class="btn btn-secondary">
+                        <span class="btn-icon">🏠</span> Back to Lobby
+                    </button>
+                </div>
             </div>
             
             <div class="game-info">
@@ -867,19 +2334,18 @@
                 </div>
             </div>
             
-            <div class="waiting-actions">
-                <button id="startGameBtn" class="btn btn-primary" disabled style="display: none;">
-                    <span class="btn-icon">🚀</span> Start Game
-                </button>
-                <button id="readyBtn" class="btn btn-success" style="display: none;">
-                    <span class="btn-icon">✅</span> Ready
-                </button>
-                <button id="notReadyBtn" class="btn btn-warning" style="display: none;">
-                    <span class="btn-icon">⏳</span> Not Ready
-                </button>
-                <button id="backToLobby" class="btn btn-secondary">
-                    <span class="btn-icon">🏠</span> Back to Lobby
-                </button>
+            <!-- Game Settings Section -->
+            <div class="game-settings-section">
+                <h3 class="section-title">⚙️ Game Settings</h3>
+                <div id="gameSettingsDisplay" class="game-settings-display"></div>
+            </div>
+            
+            <!-- Score History Section -->
+            <div class="score-history-section">
+                <h3 class="section-title">📊 Score History</h3>
+                <div id="scoreHistoryDisplay" class="score-history-display">
+                    <p class="no-history">No games completed yet. Start playing to see score history!</p>
+                </div>
             </div>
         </div>
 
@@ -888,6 +2354,12 @@
             <!-- Turn Indicator -->
             <div id="turnIndicator" class="turn-indicator">
                 <span id="currentTurnText">Waiting for game to start...</span>
+                <!-- <div id="timerDisplay" class="timer-display" style="display: none;">
+                    <span id="timerText">Time: --:--</span>
+                    <div id="timerBar" class="timer-bar">
+                        <div id="timerProgress" class="timer-progress"></div>
+                    </div>
+                </div> -->
             </div>
 
             <!-- Scoreboard -->
@@ -895,7 +2367,7 @@
                 <h3>Score Board</h3>
                 <div id="gameScoreboard" class="scoreboard"></div>
             </div>
-
+            
             <!-- Your Tiles -->
             <div class="your-tiles-section">
                 <h3>Your Tiles</h3>
@@ -986,6 +2458,23 @@
     <audio id="wrongAnswerSound" src="/static/sounds/wrong_answer.wav" preload="auto"></audio>
     <audio id="correctAnswerSound" src="/static/sounds/correct_answer.mp3" preload="auto"></audio>
 
+    <!-- Floating Timer Display -->
+    <div id="timerClockPopup" class="floating-timer-display" style="display: none;">
+        <div class="floating-timer-info">
+            <div class="player-name-badge" id="clockPlayerName">Player</div>
+            <div class="time-display" id="clockTimerDisplay">00:00</div>
+            <div class="timer-ring">
+                <svg class="mini-progress-ring" width="45" height="45">
+                    <circle class="ring-background" cx="22.5" cy="22.5" r="20" />
+                    <circle class="ring-progress" cx="22.5" cy="22.5" r="20" id="progressCircle" />
+                </svg>
+                <div class="ring-percentage" id="progressPercentage">100%</div>
+            </div>
+        </div>
+        
+        <button class="mini-close-btn" id="closeTimerBtn" title="Hide Timer">✕</button>
+    </div>
+
     <script>
         const socket = io();
         const roomId = '{{ room_id }}';
@@ -1008,6 +2497,11 @@
         let reorderMode = false;
         let originalPlayerOrder = [];
         let currentPlayerOrder = [];
+        
+        // Timer functionality variables
+        let timerInterval = null;
+        let currentTimeLimit = null;
+        let turnStartTime = null;
 
         // Socket event handlers
         socket.on('player_joined', function(data) {
@@ -1015,6 +2509,14 @@
             updatePlayersList(data.players, data.player_count);
             updateScoreboard(data.players);
             gameState.playerCount = data.player_count;
+            
+            // Update game settings and score history
+            if (data.game_settings) {
+                updateGameSettings(data.game_settings);
+            }
+            if (data.score_history) {
+                updateScoreHistory(data.score_history);
+            }
             
             // Enable start button if enough players
             const startBtn = document.getElementById('startGameBtn');
@@ -1136,8 +2638,28 @@
             gameState.availableQuestions = data.available_questions;
             gameState.currentTurn = data.current_turn;
             gameState.playerCount = data.player_count;
+            gameState.timeLimit = data.time_limit;
+            gameState.penaltyMode = data.penalty_mode;
+            
+            // Start timer updates for all players
+            startTimerUpdates();
             
             console.log('Waiting for personalized game data...');
+        });
+
+        socket.on('time_violation', function(data) {
+            console.log('Time violation:', data);
+            
+            let message = `⏰ ${data.player_name}: ${data.message}`;
+            let statusType = 'warning';
+            
+            if (data.penalty_type === 'score_penalty') {
+                statusType = 'warning';
+                message = `📉 ${data.player_name} received a score penalty for exceeding time!`;
+            }
+            
+            showStatus(message, statusType);
+            addToGameLog(`⏰ Time violation: ${data.message}`, 'answer');
         });
 
         socket.on('player_game_data', function(data) {
@@ -1156,6 +2678,8 @@
                 gameState.playerCount = data.player_count;
                 gameState.yourPlayerId = data.your_player_id;
                 gameState.allPlayers = data.all_players;
+                gameState.timeLimit = data.time_limit;
+                gameState.penaltyMode = data.penalty_mode;
                 
                 console.log('Hiding waiting room, showing game interface');
                 
@@ -1181,6 +2705,13 @@
                 displayYourTiles(data.tiles);
                 displayAvailableQuestions(data.available_questions);
                 updateTurnIndicator(data.current_turn);
+                
+                // Start timer if it's my turn and there's a time limit
+                if (data.current_turn === data.your_player_id && data.time_limit) {
+                    startTimer(data.time_limit);
+                } else {
+                    stopTimer();
+                }
                 
                 if (data.center_tiles_count) {
                     setupCenterTiles(data.center_tiles_count);
@@ -1242,6 +2773,20 @@
                 }
             }
             updateTurnIndicator(data.current_turn);
+            
+            // Ensure timer updates are running during active game
+            if (document.getElementById('gameInterface').style.display !== 'none' && !timerUpdateInterval) {
+                console.log('Starting timer updates on turn change');
+                startTimerUpdates();
+            }
+            
+            // Start timer for the new player's turn
+            if (data.current_turn === gameState.yourPlayerId && gameState.timeLimit) {
+                startTimer(gameState.timeLimit);
+            } else {
+                stopTimer();
+            }
+            
             if (data.current_turn === gameState.yourPlayerId) {
                 playSound('turnChangeSound');
             }
@@ -1361,6 +2906,15 @@
                 // Trigger celebration effects for correct guesses
                 showCelebration();
                 playSound('correctAnswerSound');
+                
+                // Ensure timer updates continue if game is still active
+                // Only restart if we're still in game interface and don't have timer updates running
+                setTimeout(() => {
+                    if (document.getElementById('gameInterface').style.display !== 'none' && !timerUpdateInterval) {
+                        console.log('Restarting timer updates after correct guess');
+                        startTimerUpdates();
+                    }
+                }, 500); // Small delay to allow server to process game state
             } else {
                 message += ` - <span class="wrong-result">❌ WRONG</span>`;
                 if (data.player_count === 2) {
@@ -1382,6 +2936,9 @@
             showStatus(data.message, 'info');
             updateTurnIndicator(gameState.currentTurn);
             
+            // Ensure timer updates continue during final round
+            ensureTimerUpdatesActive();
+            
             // Disable question asking for everyone in final round
             const questionCards = document.querySelectorAll('.question-card');
             questionCards.forEach(card => {
@@ -1392,11 +2949,14 @@
 
         socket.on('game_ended', function(data) {
             addToGameLog(`Game Over! Winners: ${data.winners.join(', ')}`);
-            if (data.is_draw) {
-                showStatus(`${data.message} (No points awarded for draws)`, 'info');
-            } else {
-                showStatus(`${data.message} (Winners get +1 point!)`, 'success');
-            }
+            // The message from server now includes actual points awarded after penalties
+            showStatus(data.message, data.is_draw ? 'info' : 'success');
+            
+            // Stop and reset timer
+            stopTimer();
+            stopTimerUpdates(); // Stop all player timer updates
+            currentTimeLimit = null;
+            turnStartTime = null;
             
             // Disable further interactions
             const submitBtn = document.getElementById('submitGuess');
@@ -1421,6 +2981,10 @@
                     gameState.finalRoundPlayer = null;
                     gameState.currentTurn = null;
                     gameState.isReady = gameState.isHost; // Host auto-ready
+                    
+                    // Reset timer state
+                    gameState.timeLimit = null;
+                    gameState.penaltyMode = null;
                     
                     // Update waiting room buttons
                     updateWaitingRoomButtons();
@@ -1905,6 +3469,8 @@
         }
 
         function setupGuessInterface() {
+            console.log('setupGuessInterface called - player count:', gameState.playerCount);
+            
             // Update guess interface title based on game mode
             const guessSection = document.querySelector('.guess-section h3');
             if (gameState.playerCount === 2) {
@@ -1922,10 +3488,18 @@
             }
             
             const availableTilesContainer = document.getElementById('availableTiles');
+            console.log('Available tiles container found:', !!availableTilesContainer);
+            
+            if (!availableTilesContainer) {
+                console.error('availableTiles container not found!');
+                return;
+            }
+            
             availableTilesContainer.innerHTML = '';
 
             // Add tiles 0-9 in sequential order with spacing
             for (let number = 0; number <= 9; number++) {
+                console.log('Creating tiles for number:', number);
                 if (number === 5) {
                     // For number 5, add green tiles instead of black/white
                     const greenTile1 = {number: 5, color: 'green'};
@@ -1991,6 +3565,9 @@
                     availableTilesContainer.appendChild(spacer);
                 }
             }
+            
+            console.log('Total elements created:', availableTilesContainer.children.length);
+            console.log('Available tiles container children:', availableTilesContainer.children);
 
             // Setup clear and submit buttons
             const clearButton = document.getElementById('clearGuess');
@@ -2282,6 +3859,67 @@
                 sound.play().catch(e => {});
             }
         }
+        
+        // Timer management functions
+        function startTimer(timeLimit) {
+            if (timeLimit === null || timeLimit === undefined) {
+                hidePopupClock();
+                return;
+            }
+            
+            currentTimeLimit = timeLimit;
+            turnStartTime = Date.now();
+            
+            // Ensure global timer updates are running when starting individual timer
+            ensureTimerUpdatesActive();
+            
+            // No need to show timer here - it's handled by updateSimpleTimer
+            
+            // Clear any existing timer
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
+            
+            // Update timer every second
+            timerInterval = setInterval(updateTimerDisplay, 1000);
+        }
+        
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            // Timer hiding is handled by updateSimpleTimer when there's no active timer
+        }
+        
+        function showTimer() {
+            // Legacy function - timer display is now handled by showPopupClock
+        }
+        
+        function hideTimer() {
+            // Legacy function - timer hiding is now handled by hidePopupClock
+        }
+        
+        function updateTimerDisplay() {
+            // Legacy function - timer updates are now handled by the all_timers_update socket event
+            // and updateSimpleTimer function
+        }
+        
+        function formatTimeLimit(seconds) {
+            if (!seconds) return 'Unlimited';
+            
+            if (seconds < 60) {
+                return `${seconds} seconds`;
+            } else {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                if (remainingSeconds === 0) {
+                    return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+                } else {
+                    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+                }
+            }
+        }
 
         socket.on('disconnect', function() {
             console.log('Connected to server');
@@ -2556,6 +4194,277 @@
             socket.emit('reorder_players', {
                 new_order: currentPlayerOrder
             });
+        }
+        
+        // Game Settings Display Functions
+        function updateGameSettings(settings) {
+            const gameSettingsDisplay = document.getElementById('gameSettingsDisplay');
+            
+            if (!settings) {
+                gameSettingsDisplay.innerHTML = '<p>Game settings not available</p>';
+                return;
+            }
+            
+            // Format time limit display
+            let timeLimitText = 'Unlimited';
+            if (settings.time_limit) {
+                if (settings.time_limit_display === 'custom') {
+                    timeLimitText = `${settings.custom_time} minutes (custom)`;
+                } else if (settings.time_limit < 60) {
+                    timeLimitText = `${settings.time_limit} seconds`;
+                } else {
+                    timeLimitText = `${Math.floor(settings.time_limit / 60)} minutes`;
+                }
+            }
+            
+            // Format penalty mode display
+            let penaltyModeText = settings.penalty_mode === 'for_fun' ? 'For Fun (Alerts only)' : 'Competitive (Score penalty)';
+            
+            gameSettingsDisplay.innerHTML = `
+                <div class="setting-item">
+                    <span class="setting-label">Max Players:</span>
+                    <span class="setting-value">${settings.max_players}</span>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Question Cards:</span>
+                    <span class="setting-value">${settings.num_question_cards}</span>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Time Limit:</span>
+                    <span class="setting-value">${timeLimitText}</span>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Penalty Mode:</span>
+                    <span class="setting-value">${penaltyModeText}</span>
+                </div>
+            `;
+        }
+        
+        // Score History Display Functions
+        function updateScoreHistory(scoreHistory) {
+            const scoreHistoryDisplay = document.getElementById('scoreHistoryDisplay');
+            
+            if (!scoreHistory || scoreHistory.length === 0) {
+                scoreHistoryDisplay.innerHTML = '<p class="no-history">No games completed yet. Start playing to see score history!</p>';
+                return;
+            }
+            
+            // Display rounds in reverse order (most recent first)
+            const historyHTML = scoreHistory.slice().reverse().map(round => {
+                const roundTypeClass = round.is_draw ? 'draw' : 'win';
+                const roundTypeText = round.is_draw ? 'Draw' : 'Win';
+                
+                const winnersHTML = round.winners.map(winner => `
+                    <div class="winner-item">
+                        <span class="winner-name">${winner.player_name}</span>
+                        <span class="winner-points">+${winner.points_awarded} pts</span>
+                        ${winner.penalties > 0 ? `<span class="winner-penalties">(-${winner.penalties} penalty)</span>` : ''}
+                    </div>
+                `).join('');
+                
+                return `
+                    <div class="round-history">
+                        <div class="round-header">
+                            <span class="round-title">Round ${round.round}</span>
+                            <span class="round-type ${roundTypeClass}">${roundTypeText}</span>
+                        </div>
+                        <div class="winners-list">
+                            ${winnersHTML}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            scoreHistoryDisplay.innerHTML = historyHTML;
+        }
+        
+        // Timer Display Functions
+        function updateSimpleTimer(timerData) {
+            if (!timerData || !timerData.timers) {
+                console.log('updateSimpleTimer: No timer data, hiding clock');
+                hidePopupClock();
+                return;
+            }
+            
+            // Show the timer during game
+            if (document.getElementById('gameInterface').style.display !== 'none') {
+                // Find the current turn player
+                const currentTurnTimer = Object.entries(timerData.timers).find(([playerId, timer]) => timer.is_current_turn);
+                
+                if (currentTurnTimer) {
+                    const [playerId, timer] = currentTurnTimer;
+                    console.log(`updateSimpleTimer: Showing timer for player ${timer.player_name} (Final round: ${gameState.finalRound})`);
+                    showPopupClock(timer);
+                } else {
+                    console.log('updateSimpleTimer: No current turn player found, hiding clock');
+                    hidePopupClock();
+                }
+            } else {
+                console.log('updateSimpleTimer: Game interface not visible, hiding clock');
+                hidePopupClock();
+            }
+        }
+        
+        function showPopupClock(timerData) {
+            const popup = document.getElementById('timerClockPopup');
+            const playerName = document.getElementById('clockPlayerName');
+            const timerDisplay = document.getElementById('clockTimerDisplay');
+            const progressCircle = document.getElementById('progressCircle');
+            const progressPercentage = document.getElementById('progressPercentage');
+            
+            // Show popup
+            popup.style.display = 'block';
+            
+            // Update player name
+            playerName.textContent = timerData.player_name;
+            
+            // Update timer display
+            const hasTimeLimit = timerData.time_limit !== null;
+            let timerDisplayClass = '';
+            let progressValue = 100;
+            
+            if (hasTimeLimit && timerData.remaining_time !== null) {
+                const remainingSeconds = Math.max(0, timerData.remaining_time);
+                const minutes = Math.floor(remainingSeconds / 60);
+                const seconds = Math.floor(remainingSeconds % 60);
+                timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Calculate progress percentage
+                progressValue = (remainingSeconds / timerData.time_limit) * 100;
+                
+                if (remainingSeconds <= 10) {
+                    timerDisplayClass = 'critical';
+                } else if (remainingSeconds <= 30) {
+                    timerDisplayClass = 'warning';
+                }
+            } else {
+                timerDisplay.textContent = '∞';
+            }
+            
+            // Update display classes
+            timerDisplay.className = `time-display ${timerDisplayClass}`;
+            
+            // Update progress ring
+            updateProgressRing(progressValue, timerDisplayClass);
+            progressPercentage.textContent = `${Math.round(progressValue)}%`;
+        }
+        
+        function hidePopupClock() {
+            const popup = document.getElementById('timerClockPopup');
+            popup.style.display = 'none';
+        }
+        
+        function updateProgressRing(percentage, statusClass = '') {
+            const progressCircle = document.getElementById('progressCircle');
+            const circumference = 2 * Math.PI * 20; // radius = 20 for the smaller ring
+            const offset = circumference - (percentage / 100) * circumference;
+            
+            progressCircle.style.strokeDashoffset = offset;
+            
+            // Update color based on status
+            progressCircle.className = `ring-progress ${statusClass}`;
+        }
+        
+        function updateClockHands() {
+            const now = new Date();
+            const hours = now.getHours() % 12;
+            const minutes = now.getMinutes();
+            const seconds = now.getSeconds();
+            
+            // Calculate angles (360 degrees = 12 hours, 60 minutes, 60 seconds)
+            const hourAngle = (hours * 30) + (minutes * 0.5); // 30 degrees per hour + minute adjustment
+            const minuteAngle = minutes * 6; // 6 degrees per minute
+            const secondAngle = seconds * 6; // 6 degrees per second
+            
+            // Apply rotations
+            const hourHand = document.getElementById('hourHand');
+            const minuteHand = document.getElementById('minuteHand');
+            const secondHand = document.getElementById('secondHand');
+            
+            if (hourHand) hourHand.style.transform = `rotate(${hourAngle}deg)`;
+            if (minuteHand) minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+            if (secondHand) secondHand.style.transform = `rotate(${secondAngle}deg)`;
+        }
+        
+        // Add event listener for close button
+        document.addEventListener('DOMContentLoaded', function() {
+            const closeBtn = document.getElementById('closeTimerBtn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    hidePopupClock();
+                });
+            }
+        });
+        
+        // Socket event handlers for new features
+        socket.on('game_reset_to_waiting', function(data) {
+            console.log('Game reset to waiting:', data);
+            
+            // Switch to waiting room
+            document.getElementById('gameInterface').style.display = 'none';
+            document.getElementById('waitingRoom').style.display = 'block';
+            
+            // Update player list and game info
+            updatePlayersList(data.players, data.players.length);
+            updateGameSettings(data.game_settings);
+            updateScoreHistory(data.score_history);
+            
+            // Clear timers
+            clearInterval(timerInterval);
+            timerInterval = null;
+            hidePopupClock();
+            
+            showStatus('Game completed! Ready for next round.', 'success');
+        });
+        
+        socket.on('all_timers_update', function(data) {
+            updateSimpleTimer(data);
+            // Ensure timer updates stay active during game
+            ensureTimerUpdatesActive();
+        });
+        
+        socket.on('game_info_update', function(data) {
+            if (data.game_settings) {
+                updateGameSettings(data.game_settings);
+            }
+            if (data.score_history) {
+                updateScoreHistory(data.score_history);
+            }
+        });
+        
+        // Request game info when page loads
+        socket.emit('get_game_info');
+        
+        // Request timer updates periodically during game
+        let timerUpdateInterval = null;
+        
+        function startTimerUpdates() {
+            if (timerUpdateInterval) {
+                clearInterval(timerUpdateInterval);
+            }
+            timerUpdateInterval = setInterval(() => {
+                if (document.getElementById('gameInterface').style.display !== 'none') {
+                    socket.emit('get_all_timers');
+                }
+            }, 1000);
+            console.log('Timer updates started');
+        }
+        
+        function stopTimerUpdates() {
+            if (timerUpdateInterval) {
+                clearInterval(timerUpdateInterval);
+                timerUpdateInterval = null;
+            }
+            hidePopupClock();
+            console.log('Timer updates stopped');
+        }
+        
+        // Ensure timer updates are running during active game
+        function ensureTimerUpdatesActive() {
+            if (document.getElementById('gameInterface').style.display !== 'none' && !timerUpdateInterval) {
+                console.log('Timer updates were inactive during game, restarting...');
+                startTimerUpdates();
+            }
         }
     </script>
 </body>

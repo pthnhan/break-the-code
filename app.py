@@ -13,8 +13,16 @@ class BreakTheCodeGame:
     def __init__(self):
         self.rooms = {}
         
-    def create_game_room(self, room_id, max_players=4, num_question_cards=4):
+    def create_game_room(self, room_id, max_players=4, num_question_cards=4, time_limit='unlimited', custom_time=None, penalty_mode='for_fun'):
         """Create a new game room"""
+        # Calculate actual time limit in seconds
+        if time_limit == 'unlimited':
+            actual_time_limit = None
+        elif time_limit == 'custom':
+            actual_time_limit = int(custom_time) * 60 if custom_time else None
+        else:
+            actual_time_limit = int(time_limit)
+        
         self.rooms[room_id] = {
             'players': {},
             'player_order': [],  # Track custom player order
@@ -27,7 +35,23 @@ class BreakTheCodeGame:
             'center_cards': [],
             'used_question_cards': [],
             'host': None,  # Track room host
-            'ready_players': set()  # Track ready players
+            'ready_players': set(),  # Track ready players
+            'time_limit': actual_time_limit,  # Time limit in seconds or None for unlimited
+            'penalty_mode': penalty_mode,  # 'for_fun', 'manual'
+            'turn_start_time': None,  # Track when current turn started
+            'turn_timers': {},  # Track individual player turn times (for display purposes)
+            'player_penalties': {},  # Track accumulated penalties per player
+            'player_turn_start_times': {},  # Track individual player turn start times
+            'score_history': [],  # Track score changes through rounds
+            'round_number': 0,  # Track current round number
+            'game_settings': {  # Store game settings for display
+                'max_players': max_players,
+                'num_question_cards': num_question_cards,
+                'time_limit': actual_time_limit,
+                'penalty_mode': penalty_mode,
+                'time_limit_display': time_limit,
+                'custom_time': custom_time
+            }
         }
         
     def create_tiles(self):
@@ -259,6 +283,8 @@ class BreakTheCodeGame:
             room['game_state'] = 'playing'
             # Set first player's turn using the custom order
             room['current_turn'] = room['player_order'][0]
+            # Start timer for the first player
+            self.start_turn_timer(room_id, room['current_turn'])
             return True, "Game started"
         return False, "Failed to start game"
 
@@ -371,6 +397,94 @@ class BreakTheCodeGame:
             
         return False
 
+    def start_turn_timer(self, room_id, player_id):
+        """Start timer for a player's turn"""
+        room = self.rooms[room_id]
+        if room['time_limit'] is not None:
+            # Store individual player turn start time
+            if 'player_turn_start_times' not in room:
+                room['player_turn_start_times'] = {}
+            
+            current_time = time.time()
+            room['player_turn_start_times'][player_id] = current_time
+            print(f"DEBUG: Started timer for {room['players'][player_id]['name']} (ID: {player_id}) at {current_time}")
+            
+            # Also store in turn_timers for compatibility
+            if player_id not in room['turn_timers']:
+                room['turn_timers'][player_id] = 0
+    
+    def get_remaining_time(self, room_id, player_id):
+        """Get remaining time for current turn"""
+        room = self.rooms[room_id]
+        if room['time_limit'] is None:
+            return None  # Unlimited time
+        
+        if 'player_turn_start_times' not in room or player_id not in room['player_turn_start_times']:
+            return room['time_limit']
+        
+        elapsed = time.time() - room['player_turn_start_times'][player_id]
+        remaining = room['time_limit'] - elapsed
+        return max(0, remaining)
+    
+    def check_time_violation(self, room_id, player_id):
+        """Check if player exceeded time limit and apply penalty"""
+        room = self.rooms[room_id]
+        if room['time_limit'] is None:
+            return False, "unlimited"
+        
+        if 'player_turn_start_times' not in room or player_id not in room['player_turn_start_times']:
+            return False, "no_timer"
+        
+        elapsed = time.time() - room['player_turn_start_times'][player_id]
+        exceed_time = elapsed - room['time_limit']
+        
+        current_turn = room.get('current_turn', 'unknown')
+        current_turn_name = room['players'][current_turn]['name'] if current_turn in room['players'] else 'unknown'
+        
+        print(f"DEBUG: Timer check for {room['players'][player_id]['name']} (ID: {player_id})")
+        print(f"DEBUG: Current turn is: {current_turn_name} (ID: {current_turn})")
+        print(f"DEBUG: Timer details - elapsed={elapsed:.1f}s, limit={room['time_limit']}s, exceed={exceed_time:.1f}s")
+        print(f"DEBUG: Player's timer started at: {room['player_turn_start_times'][player_id]}")
+        
+        if exceed_time <= 0:
+            return False, "within_limit"
+        
+        penalty_mode = room['penalty_mode']
+        
+        if penalty_mode == 'for_fun':
+            return True, {
+                'type': 'alert',
+                'message': f"Time exceeded by {exceed_time:.1f} seconds - this is just for fun!",
+                'exceed_time': exceed_time
+            }
+        elif penalty_mode == 'manual':
+            # Calculate score penalty based on exceed time ratio
+            exceed_ratio = exceed_time / room['time_limit']
+            penalty_points = min(50, int(exceed_ratio * 25))  # Max 50 point penalty
+            
+            return True, {
+                'type': 'score_penalty',
+                'message': f"Time exceeded by {exceed_time:.1f} seconds - {penalty_points} point penalty!",
+                'exceed_time': exceed_time,
+                'penalty_points': penalty_points
+            }
+        
+        return False, "unknown_mode"
+    
+    def apply_time_penalty(self, room_id, player_id, penalty_info):
+        """Apply time penalty to player"""
+        room = self.rooms[room_id]
+        
+        if penalty_info['type'] == 'score_penalty':
+            # Track penalty points for end-of-game calculation using separate tracking
+            if player_id not in room['player_penalties']:
+                room['player_penalties'][player_id] = 0
+            room['player_penalties'][player_id] += penalty_info['penalty_points']
+            print(f"DEBUG: Applied {penalty_info['penalty_points']} penalty to {player_id} ({room['players'][player_id]['name']}). Total penalties now: {room['player_penalties'][player_id]}")
+            print(f"DEBUG: All player penalties: {[(pid, room['player_penalties'].get(pid, 0), room['players'][pid]['name']) for pid in room['players']]}")
+        
+        return penalty_info
+
 # Global game instance
 game_manager = BreakTheCodeGame()
 
@@ -388,8 +502,11 @@ def handle_create_room(data):
     player_name = data.get('player_name', 'Anonymous')
     max_players = data.get('max_players', 4)
     num_question_cards = data.get('num_question_cards', 4)  # Get from client
+    time_limit = data.get('time_limit', 'unlimited')
+    custom_time = data.get('custom_time')
+    penalty_mode = data.get('penalty_mode', 'for_fun')
     
-    game_manager.create_game_room(room_id, max_players, num_question_cards) # Pass to game creation
+    game_manager.create_game_room(room_id, max_players, num_question_cards, time_limit, custom_time, penalty_mode)
     
     player_id = str(uuid.uuid4())
     success, message = game_manager.join_room(room_id, player_id, player_name)
@@ -474,7 +591,9 @@ def handle_join_room(data):
                     'current_turn': room['current_turn'],
                     'game_state': 'playing',
                     'your_player_id': player_id,
-                    'all_players': {pid: {'name': room['players'][pid]['name']} for pid in room['players'] if pid != player_id}
+                    'all_players': {pid: {'name': room['players'][pid]['name']} for pid in room['players'] if pid != player_id},
+                    'time_limit': room['time_limit'],
+                    'penalty_mode': room['penalty_mode']
                 }
                 
                 if len(room['players']) >= 3 and 'center_tiles_count' in room:
@@ -491,7 +610,10 @@ def handle_join_room(data):
                         'score': room['players'][pid]['score'],
                         'connected': room['players'][pid]['connected']
                     } for pid in room['player_order']],
-                    'player_count': len(room['players'])
+                    'player_count': len(room['players']),
+                    'game_settings': room['game_settings'],
+                    'score_history': room['score_history'],
+                    'round_number': room['round_number']
                 }, room=room_id)
             
             return
@@ -552,7 +674,9 @@ def handle_join_room(data):
                     'current_turn': room['current_turn'],
                     'game_state': 'playing',
                     'your_player_id': disconnected_player['player_id'],
-                    'all_players': {pid: {'name': room['players'][pid]['name']} for pid in room['players'] if pid != disconnected_player['player_id']}
+                    'all_players': {pid: {'name': room['players'][pid]['name']} for pid in room['players'] if pid != disconnected_player['player_id']},
+                    'time_limit': room['time_limit'],
+                    'penalty_mode': room['penalty_mode']
                 }
                 
                 if len(room['players']) >= 3 and 'center_tiles_count' in room:
@@ -569,7 +693,10 @@ def handle_join_room(data):
                         'score': room['players'][pid]['score'],
                         'connected': room['players'][pid]['connected']
                     } for pid in room['player_order']],
-                    'player_count': len(room['players'])
+                    'player_count': len(room['players']),
+                    'game_settings': room['game_settings'],
+                    'score_history': room['score_history'],
+                    'round_number': room['round_number']
                 }, room=room_id)
             
             return
@@ -610,7 +737,10 @@ def handle_join_room(data):
                 'score': room['players'][pid]['score'],
                 'connected': room['players'][pid]['connected']
             } for pid in room['player_order']],
-            'player_count': len(game_manager.rooms[room_id]['players'])
+            'player_count': len(game_manager.rooms[room_id]['players']),
+            'game_settings': room['game_settings'],
+            'score_history': room['score_history'],
+            'round_number': room['round_number']
         }, room=room_id)
     else:
         print(f"Failed to join room: {message}")
@@ -729,7 +859,9 @@ def handle_start_game():
                 'current_turn': room['current_turn'],
                 'game_state': 'playing',
                 'your_player_id': player_id,
-                'all_players': {pid: {'name': room['players'][pid]['name']} for pid in room['players'] if pid != player_id}
+                'all_players': {pid: {'name': room['players'][pid]['name']} for pid in room['players'] if pid != player_id},
+                'time_limit': room['time_limit'],
+                'penalty_mode': room['penalty_mode']
             }
             
             if len(room['players']) >= 3 and 'center_tiles_count' in room:
@@ -744,7 +876,9 @@ def handle_start_game():
             'player_count': len(room['players']),
             'available_questions': room['available_questions'],
             'current_turn': room['current_turn'],
-            'game_state': 'playing'
+            'game_state': 'playing',
+            'time_limit': room['time_limit'],
+            'penalty_mode': room['penalty_mode']
         }, room=room_id)
         
         # Now send personalized data to each player individually using their session
@@ -758,7 +892,9 @@ def handle_start_game():
                 'current_turn': room['current_turn'],
                 'game_state': 'playing',
                 'your_player_id': player_id,
-                'all_players': {pid: {'name': room['players'][pid]['name']} for pid in room['players'] if pid != player_id}
+                'all_players': {pid: {'name': room['players'][pid]['name']} for pid in room['players'] if pid != player_id},
+                'time_limit': room['time_limit'],
+                'penalty_mode': room['penalty_mode']
             }
             
             if len(room['players']) >= 3 and 'center_tiles_count' in room:
@@ -849,11 +985,26 @@ def handle_ask_question(data):
         'total_questions_remaining': len(room['available_questions'])
     }, room=room_id)
     
+    # Check for time violation before changing turn
+    time_violation, penalty_info = game_manager.check_time_violation(room_id, player_id)
+    if time_violation and penalty_info != "within_limit":
+        # Apply penalties and continue
+        game_manager.apply_time_penalty(room_id, player_id, penalty_info)
+        emit('time_violation', {
+            'message': penalty_info['message'],
+            'penalty_type': penalty_info['type'],
+            'player_name': room['players'][player_id]['name']
+        }, room=room_id)
+    
     # Move to next player's turn
     players = room['player_order']
     current_index = players.index(player_id)
+    
     next_index = (current_index + 1) % len(players)
     room['current_turn'] = players[next_index]
+    
+    # Start timer for the next player
+    game_manager.start_turn_timer(room_id, room['current_turn'])
     
     emit('turn_changed', {
         'current_turn': room['current_turn'],
@@ -1008,6 +1159,17 @@ def handle_make_guess(data):
     
     room = game_manager.rooms[room_id]
     
+    # Check for time violation before processing the guess
+    time_violation, penalty_info = game_manager.check_time_violation(room_id, player_id)
+    if time_violation and penalty_info != "within_limit":
+        # Apply penalties and continue
+        game_manager.apply_time_penalty(room_id, player_id, penalty_info)
+        emit('time_violation', {
+            'message': penalty_info['message'],
+            'penalty_type': penalty_info['type'],
+            'player_name': room['players'][player_id]['name']
+        }, room=room_id)
+    
     # Check turn validation
     if room.get('final_round'):
         # In final round, only the final round player can guess
@@ -1022,11 +1184,12 @@ def handle_make_guess(data):
     
     player_count = len(room['players'])
     
-    # Validate guess length based on game mode
-    expected_length = get_expected_guess_length(player_count, guess_type)
-    if len(guess) != expected_length:
-        emit('error', {'message': f'Guess must have exactly {expected_length} tiles'})
-        return
+    # Validate guess length based on game mode (skip if forced empty guess due to time violation)
+    if guess:  # Only validate if guess is not empty (due to time violation)
+        expected_length = get_expected_guess_length(player_count, guess_type)
+        if len(guess) != expected_length:
+            emit('error', {'message': f'Guess must have exactly {expected_length} tiles'})
+            return
     
     # Check guess correctness based on game mode
     is_correct = False
@@ -1115,12 +1278,41 @@ def update_player_scores(room_id, winners, is_draw):
     """Update player scores based on game results"""
     room = game_manager.rooms[room_id]
     
-    if not is_draw:
-        # Winners get +1 point
-        for winner_id in winners:
-            if winner_id in room['players']:
-                room['players'][winner_id]['score'] += 1
-    # For draws, no points are awarded
+    # Record the round results
+    round_result = {
+        'round': room['round_number'] + 1,
+        'winners': [],
+        'is_draw': is_draw,
+        'timestamp': time.time()
+    }
+    
+    # Winners get +100 points minus any time penalties accumulated during the game
+    for winner_id in winners:
+        if winner_id in room['players']:
+            base_points = 100
+            # Calculate total penalties accumulated during this game
+            total_penalties = room['player_penalties'].get(winner_id, 0)
+            # Award points after subtracting penalties, but don't go below 0
+            final_points = max(0, base_points - total_penalties)
+            
+            old_score = room['players'][winner_id]['score']
+            room['players'][winner_id]['score'] += final_points
+            
+            # Record this player's result
+            round_result['winners'].append({
+                'player_id': winner_id,
+                'player_name': room['players'][winner_id]['name'],
+                'points_awarded': final_points,
+                'penalties': total_penalties,
+                'old_score': old_score,
+                'new_score': room['players'][winner_id]['score']
+            })
+            
+            print(f"DEBUG: Player {winner_id} ({room['players'][winner_id]['name']}) awarded {final_points} points (100 - {total_penalties} penalties)")
+    
+    # Add round result to history
+    room['score_history'].append(round_result)
+    room['round_number'] += 1
 
 def reset_game_for_next_round(room_id):
     """Reset game state for next round while preserving scores and players"""
@@ -1131,6 +1323,7 @@ def reset_game_for_next_round(room_id):
     room['current_turn'] = None
     room['final_round'] = False
     room['final_round_player'] = None
+    room['final_round_started_emitted'] = False  # Clear the final round started emission flag
     room['first_successful_guess'] = None
     room['winners'] = None
     room['center_tiles'] = []
@@ -1138,6 +1331,20 @@ def reset_game_for_next_round(room_id):
     room['used_question_cards'] = []
     room['correct_guessers'] = []  # Clear the correct guessers list
     room['first_correct_guesser'] = None  # Clear the first correct guesser
+    
+    # Reset timer-related variables
+    room['turn_start_time'] = None
+    room['turn_timers'] = {}
+    room['player_penalties'] = {}  # Clear accumulated penalties
+    room['player_turn_start_times'] = {}  # Clear individual player timer tracking
+    
+    # Reset ready players
+    room['ready_players'] = set()
+    
+    # Auto-mark host as ready if exists
+    if room.get('host') and room['host'] in room['players']:
+        room['players'][room['host']]['ready'] = True
+        room['ready_players'].add(room['host'])
     
     # Reset player game data but keep scores and names
     for player_id in room['players']:
@@ -1149,14 +1356,21 @@ def reset_game_for_next_round(room_id):
         player.pop('guess_timestamp', None)
         player.pop('center_guess_correct', None)
         player.pop('has_guessed', None)  # Clear has_guessed flag
+        player.pop('time_violation_loss', None)  # Clear any time violation flags
     
-    # Reset ready players
-    room['ready_players'] = set()
-    
-    # Auto-mark host as ready if exists
-    if room.get('host') and room['host'] in room['players']:
-        room['players'][room['host']]['ready'] = True
-        room['ready_players'].add(room['host'])
+    # Broadcast updated game info to all players
+    emit('game_reset_to_waiting', {
+        'players': [{
+            'id': pid,
+            'name': room['players'][pid]['name'],
+            'ready': room['players'][pid]['ready'],
+            'score': room['players'][pid]['score'],
+            'connected': room['players'][pid]['connected']
+        } for pid in room['player_order']],
+        'game_settings': room['game_settings'],
+        'score_history': room['score_history'],
+        'round_number': room['round_number']
+    }, room=room_id)
 
 def check_two_player_win_condition_new(room_id, guessing_player_id, is_correct):
     """Check win condition for 2-player game with new logic"""
@@ -1176,9 +1390,16 @@ def check_two_player_win_condition_new(room_id, guessing_player_id, is_correct):
                 # Both players guessed correctly - it's a draw
                 room['winners'] = [player_1, player_2]
                 update_player_scores(room_id, [player_1, player_2], is_draw=True)
+                
+                # Calculate actual points awarded after penalties
+                player_1_penalties = room['player_penalties'].get(player_1, 0)
+                player_2_penalties = room['player_penalties'].get(player_2, 0)
+                player_1_points = max(0, 100 - player_1_penalties)
+                player_2_points = max(0, 100 - player_2_penalties)
+                
                 emit('game_ended', {
                     'winners': [room['players'][pid]['name'] for pid in [player_1, player_2]],
-                    'message': 'Both players guessed correctly! It\'s a draw!',
+                    'message': f'Both players guessed correctly! It\'s a draw! ({room["players"][player_1]["name"]}: +{player_1_points} pts, {room["players"][player_2]["name"]}: +{player_2_points} pts)',
                     'is_draw': True,
                     'redirect_to_waiting': True
                 }, room=room_id)
@@ -1186,9 +1407,14 @@ def check_two_player_win_condition_new(room_id, guessing_player_id, is_correct):
                 # Only player 1 guessed correctly - player 1 wins
                 room['winners'] = [player_1]
                 update_player_scores(room_id, [player_1], is_draw=False)
+                
+                # Calculate actual points awarded after penalties
+                player_1_penalties = room['player_penalties'].get(player_1, 0)
+                player_1_points = max(0, 100 - player_1_penalties)
+                
                 emit('game_ended', {
                     'winners': [room['players'][player_1]['name']],
-                    'message': f"{room['players'][player_1]['name']} wins!",
+                    'message': f"{room['players'][player_1]['name']} wins! (+{player_1_points} pts)",
                     'is_draw': False,
                     'redirect_to_waiting': True
                 }, room=room_id)
@@ -1208,9 +1434,13 @@ def check_two_player_win_condition_new(room_id, guessing_player_id, is_correct):
             room['winners'] = [player_2]
             update_player_scores(room_id, [player_2], is_draw=False)
             
+            # Calculate actual points awarded after penalties
+            player_2_penalties = room['player_penalties'].get(player_2, 0)
+            player_2_points = max(0, 100 - player_2_penalties)
+            
             emit('game_ended', {
                 'winners': [room['players'][player_2]['name']],
-                'message': f"{room['players'][player_2]['name']} wins! Game over.",
+                'message': f"{room['players'][player_2]['name']} wins! Game over. (+{player_2_points} pts)",
                 'is_draw': False,
                 'redirect_to_waiting': True
             }, room=room_id)
@@ -1223,6 +1453,9 @@ def check_two_player_win_condition_new(room_id, guessing_player_id, is_correct):
             room['final_round'] = True
             room['final_round_player'] = player_2  # Only player 2 can guess now
             room['current_turn'] = player_2  # Set turn to final round player
+            
+            # Start timer for player 2's final turn
+            game_manager.start_turn_timer(room_id, player_2)
             
             emit('final_round_started', {
                 'message': f"{room['players'][player_1]['name']} guessed correctly! {room['players'][player_2]['name']} has one final chance to guess.",
@@ -1259,33 +1492,48 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
     # Get player's position (1, 2, 3, or 4)
     player_position = players.index(guessing_player_id) + 1
     
+    print(f"DEBUG: Player {player_position} ({room['players'][guessing_player_id]['name']}) guessed {'correctly' if is_correct else 'incorrectly'}")
+    
     if is_correct:
         # Initialize correct guessers list if not exists
         if 'correct_guessers' not in room:
             room['correct_guessers'] = []
-        room['correct_guessers'].append(guessing_player_id)
+        
+        # Only add if not already in the list (prevent duplicates)
+        if guessing_player_id not in room['correct_guessers']:
+            room['correct_guessers'].append(guessing_player_id)
+            print(f"DEBUG: Added {room['players'][guessing_player_id]['name']} to correct guessers. Total: {[room['players'][pid]['name'] for pid in room['correct_guessers']]}")
         
         # If Player 3 guesses correctly at any point, game ends immediately
         if player_position == 3:
+            print(f"DEBUG: Player 3 guessed correctly, ending game immediately")
             room['game_state'] = 'finished'
             # Give points to all correct guessers
             update_player_scores(room_id, room['correct_guessers'], is_draw=False)
             
+            # Calculate actual points awarded after penalties for each winner
+            winner_details = []
+            for winner_id in room['correct_guessers']:
+                penalties = room['player_penalties'].get(winner_id, 0)
+                points = max(0, 100 - penalties)
+                winner_details.append(f"{room['players'][winner_id]['name']}: +{points} pts")
+            
             # Create winners message
             winner_names = [room['players'][pid]['name'] for pid in room['correct_guessers']]
-            winners_msg = ', '.join(winner_names)
+            winners_msg = ', '.join(winner_details)
             
             emit('game_ended', {
                 'winners': winner_names,
-                'message': f"Game Over! All correct guessers get a point! Winners: {winners_msg}",
+                'message': f"Game Over! Winners: {winners_msg}",
                 'is_draw': False,
                 'redirect_to_waiting': True
             }, room=room_id)
             reset_game_for_next_round(room_id)
             return
         
-        # For Player 1 or 2 correct guess - enter final round
+        # For Player 1 or 2 correct guess - enter final round or continue final round
         if not room.get('final_round'):
+            print(f"DEBUG: Starting final round because Player {player_position} guessed correctly first")
             room['final_round'] = True
             room['first_correct_guesser'] = guessing_player_id
             
@@ -1295,94 +1543,76 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
             
             # Mark the correct guesser as having guessed
             room['players'][guessing_player_id]['has_guessed'] = True
-            
-            # Find next eligible player
-            next_player = None
-            if player_position == 1:
-                # Player 1 guessed correctly, player 2 gets next turn
-                if len(players) > 1:
-                    next_player = players[1]  # Player 2
-            elif player_position == 2:
-                # Player 2 guessed correctly, player 3 gets next turn
-                if len(players) > 2:
-                    next_player = players[2]  # Player 3
-            
-            if next_player:
-                room['current_turn'] = next_player
-                room['final_round_player'] = next_player
-                
-                emit('final_round_started', {
-                    'message': f"{room['players'][guessing_player_id]['name']} guessed correctly! {room['players'][next_player]['name']} has the next chance to guess.",
-                    'first_winner': room['players'][guessing_player_id]['name'],
-                    'final_player': next_player,
-                    'final_player_name': room['players'][next_player]['name']
-                }, room=room_id)
-                
-                emit('turn_changed', {
-                    'current_turn': next_player,
-                    'current_player_name': room['players'][next_player]['name'],
-                    'final_round': True,
-                    'final_round_player': next_player
-                }, room=room_id)
-            else:
-                # No other players to guess (shouldn't happen in normal gameplay)
-                room['game_state'] = 'finished'
-                update_player_scores(room_id, [guessing_player_id], is_draw=False)
-                emit('game_ended', {
-                    'winners': [room['players'][guessing_player_id]['name']],
-                    'message': f"{room['players'][guessing_player_id]['name']} wins!",
-                    'is_draw': False,
-                    'redirect_to_waiting': True
-                }, room=room_id)
-                reset_game_for_next_round(room_id)
         else:
-            # In final round, handle subsequent correct guesses
-            next_player = None
-            first_guesser_pos = players.index(room['first_correct_guesser']) + 1
+            # Already in final round, mark this player as having guessed
+            print(f"DEBUG: Player {player_position} guessed correctly in final round")
+            room['players'][guessing_player_id]['has_guessed'] = True
+        
+        # Determine who gets the next turn in final round
+        first_guesser_pos = players.index(room['first_correct_guesser']) + 1
+        next_player = None
+        
+        print(f"DEBUG: First guesser was Player {first_guesser_pos}, looking for next player...")
+        
+        # If first guesser was player 1, both 2 and 3 should get chances
+        if first_guesser_pos == 1:
+            # Look for player 2 or 3 who hasn't guessed yet
+            for pos in [2, 3]:
+                if pos - 1 < len(players):  # Make sure player exists
+                    potential_next = players[pos - 1]
+                    if not room['players'][potential_next].get('has_guessed', False):
+                        next_player = potential_next
+                        next_pos = pos
+                        print(f"DEBUG: Next player is Player {next_pos} ({room['players'][potential_next]['name']})")
+                        break
+        
+        # If first guesser was player 2, only player 3 gets a chance
+        elif first_guesser_pos == 2:
+            if 2 < len(players) and not room['players'][players[2]].get('has_guessed', False):
+                next_player = players[2]  # Player 3
+                print(f"DEBUG: Next player is Player 3 ({room['players'][next_player]['name']})")
+        
+        if next_player:
+            room['current_turn'] = next_player
+            room['final_round_player'] = next_player
             
-            # If first guesser was player 1, check if both 2 and 3 have guessed
-            if first_guesser_pos == 1:
-                # Look for player 2 or 3 who hasn't guessed
-                for pos in [2, 3]:
-                    if pos - 1 < len(players):  # Make sure player exists
-                        potential_next = players[pos - 1]
-                        if not room['players'][potential_next].get('has_guessed', False):
-                            next_player = potential_next
-                            break
+            # Start timer for the next player in final round  
+            game_manager.start_turn_timer(room_id, next_player)
             
-            # If first guesser was player 2, check if player 3 has guessed
-            elif first_guesser_pos == 2:
-                if 2 < len(players) and not room['players'][players[2]].get('has_guessed', False):
-                    next_player = players[2]  # Player 3
+            emit('turn_changed', {
+                'current_turn': next_player,
+                'current_player_name': room['players'][next_player]['name'],
+                'final_round': True,
+                'final_round_player': next_player
+            }, room=room_id)
+        else:
+            # All eligible players have guessed - game ends
+            print(f"DEBUG: All eligible players have guessed, ending game")
+            room['game_state'] = 'finished'
+            # Give points to all correct guessers
+            update_player_scores(room_id, room['correct_guessers'], is_draw=False)
             
-            if next_player:
-                room['current_turn'] = next_player
-                room['final_round_player'] = next_player
-                emit('turn_changed', {
-                    'current_turn': next_player,
-                    'current_player_name': room['players'][next_player]['name'],
-                    'final_round': True,
-                    'final_round_player': next_player
-                }, room=room_id)
-            else:
-                # All eligible players have guessed - game ends
-                room['game_state'] = 'finished'
-                # Give points to all correct guessers
-                update_player_scores(room_id, room['correct_guessers'], is_draw=False)
-                
-                # Create winners message
-                winner_names = [room['players'][pid]['name'] for pid in room['correct_guessers']]
-                winners_msg = ', '.join(winner_names)
-                
-                emit('game_ended', {
-                    'winners': winner_names,
-                    'message': f"Game Over! All correct guessers get a point! Winners: {winners_msg}",
-                    'is_draw': False,
-                    'redirect_to_waiting': True
-                }, room=room_id)
-                reset_game_for_next_round(room_id)
+            # Calculate actual points awarded after penalties for each winner
+            winner_details = []
+            for winner_id in room['correct_guessers']:
+                penalties = room['player_penalties'].get(winner_id, 0)
+                points = max(0, 100 - penalties)
+                winner_details.append(f"{room['players'][winner_id]['name']}: +{points} pts")
+            
+            # Create winners message
+            winner_names = [room['players'][pid]['name'] for pid in room['correct_guessers']]
+            winners_msg = ', '.join(winner_details)
+            
+            emit('game_ended', {
+                'winners': winner_names,
+                'message': f"Game Over! Winners: {winners_msg}",
+                'is_draw': False,
+                'redirect_to_waiting': True
+            }, room=room_id)
+            reset_game_for_next_round(room_id)
     else:
         # Incorrect guess
+        print(f"DEBUG: Player {player_position} guessed incorrectly")
         if room.get('final_round'):
             # Mark this player as having guessed in final round
             room['players'][guessing_player_id]['has_guessed'] = True
@@ -1390,6 +1620,8 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
             # Find next eligible player based on first guesser's position
             first_guesser_pos = players.index(room['first_correct_guesser']) + 1
             next_player = None
+            
+            print(f"DEBUG: In final round, first guesser was Player {first_guesser_pos}")
             
             # If first guesser was player 1, both 2 and 3 get a chance
             if first_guesser_pos == 1:
@@ -1399,12 +1631,14 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
                         potential_next = players[pos - 1]
                         if not room['players'][potential_next].get('has_guessed', False):
                             next_player = potential_next
+                            print(f"DEBUG: Next player after incorrect guess is Player {pos} ({room['players'][potential_next]['name']})")
                             break
             
             # If first guesser was player 2, only player 3 gets a chance
             elif first_guesser_pos == 2:
                 if 2 < len(players) and not room['players'][players[2]].get('has_guessed', False):
                     next_player = players[2]  # Player 3
+                    print(f"DEBUG: Next player after incorrect guess is Player 3 ({room['players'][next_player]['name']})")
             
             if next_player:
                 room['current_turn'] = next_player
@@ -1417,17 +1651,25 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
                 }, room=room_id)
             else:
                 # No more players to guess - game ends with current correct guessers
+                print(f"DEBUG: No more players to guess after incorrect guess, ending game")
                 room['game_state'] = 'finished'
                 # Give points to all correct guessers
                 update_player_scores(room_id, room['correct_guessers'], is_draw=False)
                 
+                # Calculate actual points awarded after penalties for each winner
+                winner_details = []
+                for winner_id in room['correct_guessers']:
+                    penalties = room['player_penalties'].get(winner_id, 0)
+                    points = max(0, 100 - penalties)
+                    winner_details.append(f"{room['players'][winner_id]['name']}: +{points} pts")
+                
                 # Create winners message
                 winner_names = [room['players'][pid]['name'] for pid in room['correct_guessers']]
-                winners_msg = ', '.join(winner_names)
+                winners_msg = ', '.join(winner_details)
                 
                 emit('game_ended', {
                     'winners': winner_names,
-                    'message': f"Game Over! All correct guessers get a point! Winners: {winners_msg}",
+                    'message': f"Game Over! Winners: {winners_msg}",
                     'is_draw': False,
                     'redirect_to_waiting': True
                 }, room=room_id)
@@ -1439,6 +1681,10 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
             next_player_id = players[next_index]
             
             room['current_turn'] = next_player_id
+            
+            # Start timer for the next player
+            game_manager.start_turn_timer(room_id, next_player_id)
+            
             emit('turn_changed', {
                 'current_turn': next_player_id,
                 'current_player_name': room['players'][next_player_id]['name'],
@@ -1481,7 +1727,10 @@ def handle_get_room_state(data):
                 'score': room['players'][pid]['score'],
                 'connected': room['players'][pid]['connected']
             } for pid in room['player_order']],
-            'player_count': len(room['players'])
+            'player_count': len(game_manager.rooms[room_id]['players']),
+            'game_settings': room['game_settings'],
+            'score_history': room['score_history'],
+            'round_number': room['round_number']
         }, room=room_id)
     else:
         # Player not found in session or room
@@ -1521,8 +1770,55 @@ def handle_disconnect():
                     'score': room['players'][pid]['score'],
                     'connected': room['players'][pid]['connected']
                 } for pid in room['player_order']],
-                'player_count': len(room['players'])
+                'player_count': len(room['players']),
+                'game_settings': room['game_settings'],
+                'score_history': room['score_history'],
+                'round_number': room['round_number']
             }, room=room_id)
+
+@socketio.on('get_game_info')
+def handle_get_game_info():
+    room_id = session.get('room_id')
+    
+    if not room_id or room_id not in game_manager.rooms:
+        emit('error', {'message': 'Invalid room'})
+        return
+    
+    room = game_manager.rooms[room_id]
+    
+    # Send game settings and score history
+    emit('game_info_update', {
+        'game_settings': room['game_settings'],
+        'score_history': room['score_history'],
+        'round_number': room['round_number']
+    })
+
+@socketio.on('get_all_timers')
+def handle_get_all_timers():
+    room_id = session.get('room_id')
+    
+    if not room_id or room_id not in game_manager.rooms:
+        emit('error', {'message': 'Invalid room'})
+        return
+    
+    room = game_manager.rooms[room_id]
+    
+    # Get timer information for all players
+    timer_info = {}
+    for player_id in room['players']:
+        remaining_time = game_manager.get_remaining_time(room_id, player_id)
+        timer_info[player_id] = {
+            'player_name': room['players'][player_id]['name'],
+            'remaining_time': remaining_time,
+            'is_current_turn': room.get('current_turn') == player_id,
+            'time_limit': room['time_limit']
+        }
+    
+    emit('all_timers_update', {
+        'timers': timer_info,
+        'current_turn': room.get('current_turn'),
+        'time_limit': room['time_limit']
+    })
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0', port=5000, debug=True) 
