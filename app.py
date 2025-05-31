@@ -1281,34 +1281,53 @@ def update_player_scores(room_id, winners, is_draw):
     # Record the round results
     round_result = {
         'round': room['round_number'] + 1,
-        'winners': [],
+        'players': [],  # Track all players and their results
         'is_draw': is_draw,
         'timestamp': time.time()
     }
     
-    # Winners get +100 points minus any time penalties accumulated during the game
-    for winner_id in winners:
-        if winner_id in room['players']:
+    # Process all players to determine their results
+    for player_id in room['players']:
+        player_data = room['players'][player_id]
+        is_winner = player_id in winners
+        
+        # Determine result for this player
+        if is_draw and is_winner:
+            result = 'Draw'
+        elif is_winner:
+            result = 'Win'
+        else:
+            result = 'Loss'
+        
+        # Calculate points awarded
+        if is_winner:
             base_points = 100
             # Calculate total penalties accumulated during this game
-            total_penalties = room['player_penalties'].get(winner_id, 0)
+            total_penalties = room['player_penalties'].get(player_id, 0)
             # Award points after subtracting penalties, but don't go below 0
             final_points = max(0, base_points - total_penalties)
             
-            old_score = room['players'][winner_id]['score']
-            room['players'][winner_id]['score'] += final_points
+            old_score = player_data['score']
+            room['players'][player_id]['score'] += final_points
             
-            # Record this player's result
-            round_result['winners'].append({
-                'player_id': winner_id,
-                'player_name': room['players'][winner_id]['name'],
-                'points_awarded': final_points,
-                'penalties': total_penalties,
-                'old_score': old_score,
-                'new_score': room['players'][winner_id]['score']
-            })
-            
-            print(f"DEBUG: Player {winner_id} ({room['players'][winner_id]['name']}) awarded {final_points} points (100 - {total_penalties} penalties)")
+            print(f"DEBUG: Player {player_id} ({player_data['name']}) awarded {final_points} points (100 - {total_penalties} penalties)")
+        else:
+            # Losing player gets no points
+            final_points = 0
+            total_penalties = room['player_penalties'].get(player_id, 0)
+            old_score = player_data['score']
+            # No score change for losing players
+        
+        # Record this player's result
+        round_result['players'].append({
+            'player_id': player_id,
+            'player_name': player_data['name'],
+            'result': result,
+            'points_awarded': final_points,
+            'penalties': total_penalties,
+            'old_score': old_score,
+            'new_score': room['players'][player_id]['score']
+        })
     
     # Add round result to history
     room['score_history'].append(round_result)
@@ -1488,6 +1507,7 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
     """Check win condition for 3-4 player game with center guessing"""
     room = game_manager.rooms[room_id]
     players = room['player_order']
+    num_players = len(players)
     
     # Get player's position (1, 2, 3, or 4)
     player_position = players.index(guessing_player_id) + 1
@@ -1504,9 +1524,9 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
             room['correct_guessers'].append(guessing_player_id)
             print(f"DEBUG: Added {room['players'][guessing_player_id]['name']} to correct guessers. Total: {[room['players'][pid]['name'] for pid in room['correct_guessers']]}")
         
-        # If Player 3 guesses correctly at any point, game ends immediately
-        if player_position == 3:
-            print(f"DEBUG: Player 3 guessed correctly, ending game immediately")
+        # If the last player (Player 3 in 3-player, Player 4 in 4-player) guesses correctly, game ends immediately
+        if player_position == num_players:
+            print(f"DEBUG: Player {player_position} (last player) guessed correctly, ending game immediately")
             room['game_state'] = 'finished'
             # Give points to all correct guessers
             update_player_scores(room_id, room['correct_guessers'], is_draw=False)
@@ -1531,7 +1551,7 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
             reset_game_for_next_round(room_id)
             return
         
-        # For Player 1 or 2 correct guess - enter final round or continue final round
+        # For any other player's correct guess - enter final round or continue final round
         if not room.get('final_round'):
             print(f"DEBUG: Starting final round because Player {player_position} guessed correctly first")
             room['final_round'] = True
@@ -1554,23 +1574,15 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
         
         print(f"DEBUG: First guesser was Player {first_guesser_pos}, looking for next player...")
         
-        # If first guesser was player 1, both 2 and 3 should get chances
-        if first_guesser_pos == 1:
-            # Look for player 2 or 3 who hasn't guessed yet
-            for pos in [2, 3]:
-                if pos - 1 < len(players):  # Make sure player exists
-                    potential_next = players[pos - 1]
-                    if not room['players'][potential_next].get('has_guessed', False):
-                        next_player = potential_next
-                        next_pos = pos
-                        print(f"DEBUG: Next player is Player {next_pos} ({room['players'][potential_next]['name']})")
-                        break
-        
-        # If first guesser was player 2, only player 3 gets a chance
-        elif first_guesser_pos == 2:
-            if 2 < len(players) and not room['players'][players[2]].get('has_guessed', False):
-                next_player = players[2]  # Player 3
-                print(f"DEBUG: Next player is Player 3 ({room['players'][next_player]['name']})")
+        # Find the next eligible player (any player with higher position than first guesser who hasn't guessed)
+        for pos in range(first_guesser_pos + 1, num_players + 1):
+            if pos - 1 < len(players):  # Make sure player exists
+                potential_next = players[pos - 1]
+                if not room['players'][potential_next].get('has_guessed', False):
+                    next_player = potential_next
+                    next_pos = pos
+                    print(f"DEBUG: Next player is Player {next_pos} ({room['players'][potential_next]['name']})")
+                    break
         
         if next_player:
             room['current_turn'] = next_player
@@ -1623,22 +1635,14 @@ def check_center_guess_win_condition_new(room_id, guessing_player_id, is_correct
             
             print(f"DEBUG: In final round, first guesser was Player {first_guesser_pos}")
             
-            # If first guesser was player 1, both 2 and 3 get a chance
-            if first_guesser_pos == 1:
-                # Look for player 2 or 3 who hasn't guessed
-                for pos in [2, 3]:
-                    if pos - 1 < len(players):  # Make sure player exists
-                        potential_next = players[pos - 1]
-                        if not room['players'][potential_next].get('has_guessed', False):
-                            next_player = potential_next
-                            print(f"DEBUG: Next player after incorrect guess is Player {pos} ({room['players'][potential_next]['name']})")
-                            break
-            
-            # If first guesser was player 2, only player 3 gets a chance
-            elif first_guesser_pos == 2:
-                if 2 < len(players) and not room['players'][players[2]].get('has_guessed', False):
-                    next_player = players[2]  # Player 3
-                    print(f"DEBUG: Next player after incorrect guess is Player 3 ({room['players'][next_player]['name']})")
+            # Find the next eligible player (any player with higher position than first guesser who hasn't guessed)
+            for pos in range(first_guesser_pos + 1, num_players + 1):
+                if pos - 1 < len(players):  # Make sure player exists
+                    potential_next = players[pos - 1]
+                    if not room['players'][potential_next].get('has_guessed', False):
+                        next_player = potential_next
+                        print(f"DEBUG: Next player after incorrect guess is Player {pos} ({room['players'][potential_next]['name']})")
+                        break
             
             if next_player:
                 room['current_turn'] = next_player

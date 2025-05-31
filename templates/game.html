@@ -988,6 +988,13 @@
             margin-top: 8px;
         }
         
+        .players-results-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
         .winner-item {
             background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
             padding: 6px 10px;
@@ -999,17 +1006,78 @@
             gap: 5px;
         }
         
+        .player-result-item {
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            border: 1px solid;
+        }
+        
+        .player-result-item.win {
+            background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+            border-color: #68d391;
+        }
+        
+        .player-result-item.draw {
+            background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
+            border-color: #f59e0b;
+        }
+        
+        .player-result-item.loss {
+            background: linear-gradient(135deg, #fecaca 0%, #f87171 100%);
+            border-color: #ef4444;
+        }
+        
+        .player-name {
+            font-weight: 600;
+        }
+        
+        .player-result-item.win .player-name {
+            color: #22543d;
+        }
+        
+        .player-result-item.draw .player-name {
+            color: #92400e;
+        }
+        
+        .player-result-item.loss .player-name {
+            color: #991b1b;
+        }
+        
+        .player-result {
+            font-weight: 500;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: white;
+        }
+        
+        .player-result.win {
+            background: #22543d;
+        }
+        
+        .player-result.draw {
+            background: #92400e;
+        }
+        
+        .player-result.loss {
+            background: #991b1b;
+        }
+        
         .winner-name {
             font-weight: 600;
             color: #22543d;
         }
         
-        .winner-points {
+        .winner-points, .player-points {
             color: #2f855a;
             font-weight: 500;
         }
         
-        .winner-penalties {
+        .winner-penalties, .player-penalties {
             color: #c53030;
             font-size: 0.8rem;
             font-style: italic;
@@ -4252,24 +4320,31 @@
             // Display rounds in reverse order (most recent first)
             const historyHTML = scoreHistory.slice().reverse().map(round => {
                 const roundTypeClass = round.is_draw ? 'draw' : 'win';
-                const roundTypeText = round.is_draw ? 'Draw' : 'Win';
                 
-                const winnersHTML = round.winners.map(winner => `
-                    <div class="winner-item">
-                        <span class="winner-name">${winner.player_name}</span>
-                        <span class="winner-points">+${winner.points_awarded} pts</span>
-                        ${winner.penalties > 0 ? `<span class="winner-penalties">(-${winner.penalties} penalty)</span>` : ''}
-                    </div>
-                `).join('');
+                // Handle both old format (winners) and new format (players)
+                const playersData = round.players || round.winners || [];
+                
+                const playersHTML = playersData.map(player => {
+                    const resultClass = player.result ? player.result.toLowerCase() : (player.points_awarded > 0 ? 'win' : 'loss');
+                    const resultText = player.result || (player.points_awarded > 0 ? 'Win' : 'Loss');
+                    
+                    return `
+                        <div class="player-result-item ${resultClass}">
+                            <span class="player-name">${player.player_name}</span>
+                            <span class="player-result ${resultClass}">${resultText}</span>
+                            ${player.points_awarded > 0 ? `<span class="player-points">+${player.points_awarded} pts</span>` : ''}
+                            ${player.penalties > 0 ? `<span class="player-penalties">(-${player.penalties} penalty)</span>` : ''}
+                        </div>
+                    `;
+                }).join('');
                 
                 return `
                     <div class="round-history">
                         <div class="round-header">
                             <span class="round-title">Round ${round.round}</span>
-                            <span class="round-type ${roundTypeClass}">${roundTypeText}</span>
                         </div>
-                        <div class="winners-list">
-                            ${winnersHTML}
+                        <div class="players-results-list">
+                            ${playersHTML}
                         </div>
                     </div>
                 `;
