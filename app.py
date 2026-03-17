@@ -1,12 +1,17 @@
+import os
+import json
+import random
+import time
+import uuid
+
+from dotenv import load_dotenv
 from flask import Flask, render_template, request, jsonify, session
 from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
-import random
-import uuid
-import json
-import time
+
+load_dotenv()
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'break_the_code_secret_key_2024'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'break_the_code_secret_key_2024')
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='gevent')
 
 class BreakTheCodeGame:
@@ -1825,4 +1830,5 @@ def handle_get_all_timers():
     })
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True) 
+    port = int(os.getenv('PORT', '5000'))
+    socketio.run(app, host='0.0.0.0', port=port, debug=True)

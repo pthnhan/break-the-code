@@ -47,13 +47,66 @@ For complete and detailed rules, refer to the [official rulebook PDF](https://bo
    pip install -r requirements.txt
    ```
 
-3. **Run the application**
+3. **Create a local environment file**
+   ```bash
+   cat <<'EOF' > .env
+   PORT=5000
+   SECRET_KEY=break_the_code_secret_key_2024
+   EOF
+   ```
+
+4. **Run the application**
    ```bash
    python app.py
    ```
 
-4. **Open your browser**
+5. **Open your browser**
    Navigate to `http://localhost:5000`
+
+## 🚀 VPS CI/CD With GitHub Actions
+
+This repo includes a GitHub Actions workflow at `.github/workflows/deploy.yml` that deploys on every push to `main` by SSHing into your VPS and running `sh deploy.sh`.
+
+### One-time VPS setup
+
+1. Clone this repository onto your VPS in a stable directory such as `/srv/break-the-code`
+2. Create the server-side `.env` file in that directory with the values you want for production
+3. Make sure the VPS has these commands available:
+   - `git`
+   - `python3`
+   - `python3 -m venv`
+   - `pgrep` is recommended but optional
+4. Make sure the cloned repository on the VPS can `git pull`
+   - For a private repo, this usually means configuring a deploy key or SSH access on the server
+
+### Required GitHub Actions secrets
+
+Add these in GitHub: `Settings -> Secrets and variables -> Actions`
+
+- `VPS_HOST`: server hostname or IP
+- `VPS_USER`: SSH username
+- `VPS_APP_DIR`: absolute path to the app directory on the server, for example `/srv/break-the-code`
+- `VPS_SSH_KEY`: private SSH key used by GitHub Actions to connect to the VPS
+
+### Optional GitHub Actions secrets
+
+- `VPS_PORT`: SSH port if not `22`
+- `VPS_KNOWN_HOSTS`: recommended pinned host key entry for strict SSH host verification
+
+### Deployment behavior
+
+- Push to `main`
+- GitHub Actions opens an SSH session to the VPS
+- The workflow changes into `VPS_APP_DIR`
+- The workflow runs `DEPLOY_BRANCH=<pushed-branch> sh deploy.sh`
+- `deploy.sh` pulls the latest code, refreshes `.venv`, installs dependencies, and restarts Gunicorn
+
+### Example server `.env`
+
+```bash
+PORT=5000
+SECRET_KEY=replace-this-in-production
+```
 
 ## 🎮 How to Play
 
@@ -195,7 +248,7 @@ Modify `static/css/style.css` to customize the appearance.
 
 **Can't connect to game:**
 - Ensure Python and dependencies are installed
-- Check if port 5000 is available
+- Check your `.env` file and make sure `PORT=5000` (or use the port you want)
 - Try refreshing the browser
 
 **Game not starting:**
