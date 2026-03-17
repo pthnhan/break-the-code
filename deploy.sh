@@ -13,6 +13,7 @@ fi
 PORT="${PORT:-5000}"
 GIT_REMOTE="${GIT_REMOTE:-origin}"
 DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+SKIP_GIT_PULL="${SKIP_GIT_PULL:-0}"
 PYTHON_BIN="${PYTHON_BIN:-python3}"
 VENV_DIR="${VENV_DIR:-.venv}"
 VENV_PYTHON="${VENV_DIR}/bin/python"
@@ -23,8 +24,12 @@ if ! command -v "${PYTHON_BIN}" >/dev/null 2>&1; then
     exit 1
 fi
 
-# Pull latest changes
-git pull "${GIT_REMOTE}" "${DEPLOY_BRANCH}"
+# Pull latest changes unless explicitly skipped for local runs.
+if [ "${SKIP_GIT_PULL}" = "1" ]; then
+    echo "⏭️ Skipping git pull"
+else
+    git pull "${GIT_REMOTE}" "${DEPLOY_BRANCH}"
+fi
 
 # Create or reuse a project-local virtual environment so deploy does not
 # depend on system-wide pip/gunicorn commands being installed.
