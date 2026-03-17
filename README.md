@@ -67,6 +67,8 @@ For complete and detailed rules, refer to the [official rulebook PDF](https://bo
 
 This repo includes a GitHub Actions workflow at `.github/workflows/deploy.yml` that deploys on every push to `main` by SSHing into your VPS and running `sh deploy.sh`.
 
+Previous platform-specific deployment files have been removed so the repo now documents and uses a single deployment path: GitHub Actions to your VPS over SSH.
+
 ### One-time VPS setup
 
 1. Clone this repository onto your VPS in a stable directory such as `/srv/break-the-code`
@@ -196,16 +198,21 @@ SECRET_KEY=replace-this-in-production
 
 ### File Structure
 ```
-break-the-code-webapp/
+break-the-code/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml     # GitHub Actions VPS deploy workflow
 ├── app.py                 # Main Flask application
+├── deploy.sh              # Server-side deploy script run over SSH
 ├── requirements.txt       # Python dependencies
-├── README.md             # This file
+├── README.md              # This file
 ├── templates/
-│   ├── index.html        # Landing page
-│   └── game.html         # Game interface
+│   ├── index.html         # Landing page
+│   └── game.html          # Game interface
 └── static/
-    └── css/
-        └── style.css     # Styling
+    ├── css/
+    │   └── style.css      # Shared styling
+    └── sounds/            # Game sound effects
 ```
 
 ### Game Logic
