@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BREAK THE CODE - Game Room</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%94%8D%3C/text%3E%3C/svg%3E">
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%94%8D%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <style>
@@ -14,7 +16,7 @@
             transform: scale(1.02);
             transition: all 0.2s ease;
         }
-        
+
         /* Styling for actual tiles display in game log */
         .guessed-tiles-display {
             display: inline-flex;
@@ -26,7 +28,7 @@
             border-radius: 8px;
             border: 1px solid #e2e8f0;
         }
-        
+
         .actual-tile {
             display: inline-block;
             min-width: 28px;
@@ -40,31 +42,31 @@
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: all 0.2s ease;
         }
-        
+
         .actual-tile:hover {
             transform: scale(1.1);
         }
-        
+
         .actual-tile.black {
             background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
             color: white;
             border-color: #4a5568;
         }
-        
+
         .actual-tile.white {
             background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
             color: #2d3748;
             border-color: #cbd5e0;
         }
-        
+
         .actual-tile.green {
             background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
             color: white;
             border-color: #48bb78;
         }
-        
+
         /* Game log message formatting */
-         .correct-result {
+        .correct-result {
             color: #22543d;
             font-weight: bold;
             background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
@@ -77,7 +79,7 @@
             font-size: 11px;
             letter-spacing: 0.5px;
         }
-        
+
         .wrong-result {
             color: #742a2a;
             font-weight: bold;
@@ -91,7 +93,7 @@
             font-size: 11px;
             letter-spacing: 0.5px;
         }
-        
+
         .log-entry {
             padding: 12px 16px;
             margin: 8px 0;
@@ -104,12 +106,12 @@
             position: relative;
             overflow: hidden;
         }
-        
+
         .log-entry:hover {
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
             transform: translateY(-1px);
         }
-        
+
         .log-entry::before {
             content: '';
             position: absolute;
@@ -119,7 +121,7 @@
             width: 4px;
             background: linear-gradient(180deg, #4299e1 0%, #3182ce 100%);
         }
-        
+
         .log-entry strong {
             color: #2d3748;
             background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
@@ -127,7 +129,7 @@
             border-radius: 6px;
             font-weight: 600;
         }
-        
+
         .log-entry em {
             color: #4a5568;
             font-style: normal;
@@ -137,20 +139,28 @@
             border-radius: 4px;
             margin: 0 4px;
         }
-        
+
         .guess-icon {
             font-size: 16px;
             margin-right: 8px;
             display: inline-block;
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+
+            100% {
+                transform: scale(1);
+            }
         }
-        
+
         .reveal-label {
             color: #4a5568;
             font-weight: 600;
@@ -163,44 +173,44 @@
             border-radius: 6px;
             display: inline-block;
         }
-        
+
         /* Question and Answer styling */
         .question-log-entry {
             background: linear-gradient(135deg, #e6fffa 0%, #b2f5ea 100%);
             border: 1px solid #81e6d9;
         }
-        
+
         .question-log-entry::before {
             background: linear-gradient(180deg, #38b2ac 0%, #319795 100%);
         }
-        
+
         .answer-log-entry {
             background: linear-gradient(135deg, #fef5e7 0%, #fed7aa 100%);
             border: 1px solid #f6ad55;
             margin-left: 20px;
         }
-        
+
         .answer-log-entry::before {
             background: linear-gradient(180deg, #ed8936 0%, #dd6b20 100%);
         }
-        
+
         .question-icon {
             font-size: 16px;
             margin-right: 8px;
             color: #38b2ac;
         }
-        
+
         .answer-icon {
             font-size: 14px;
             margin-right: 6px;
             color: #ed8936;
         }
-        
+
         .question-highlight {
             font-weight: bold;
             color: #2f855a;
         }
-        
+
         .player-name-question {
             background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
             color: #2b6cb0;
@@ -208,7 +218,7 @@
             border-radius: 6px;
             font-weight: 600;
         }
-        
+
         .player-name-answer {
             background: linear-gradient(135deg, #fbb6ce 0%, #f687b3 100%);
             color: #b83280;
@@ -232,20 +242,6 @@
             margin-bottom: 15px;
             text-align: center;
             font-weight: 600;
-            position: relative;
-            padding-bottom: 12px;
-        }
-
-        .scoreboard-section h3::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60px;
-            height: 3px;
-            background: linear-gradient(90deg, #4299e1 0%, #3182ce 100%);
-            border-radius: 2px;
         }
 
         .score-item {
@@ -319,11 +315,22 @@
         }
 
         @keyframes shine {
-            0% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.1); }
-            100% { opacity: 0.8; transform: scale(1); }
+            0% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1.1);
+            }
+
+            100% {
+                opacity: 0.8;
+                transform: scale(1);
+            }
         }
-        
+
         /* Enhanced Waiting Room Design */
         .waiting-room {
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(247, 250, 252, 0.95) 100%);
@@ -350,8 +357,15 @@
         }
 
         @keyframes gradientMove {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
         }
 
         .waiting-room h2 {
@@ -377,8 +391,15 @@
         }
 
         @keyframes pendulum {
-            0%, 100% { transform: translateY(-50%) rotate(-10deg); }
-            50% { transform: translateY(-50%) rotate(10deg); }
+
+            0%,
+            100% {
+                transform: translateY(-50%) rotate(-10deg);
+            }
+
+            50% {
+                transform: translateY(-50%) rotate(10deg);
+            }
         }
 
         .players-list {
@@ -526,8 +547,13 @@
         }
 
         @keyframes scanLine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
         }
 
         /* Room info enhancement */
@@ -563,12 +589,12 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 4px rgba(66, 153, 225, 0.3);
         }
-        
+
         /* Additional waiting room elements */
         .waiting-header {
             margin-bottom: 40px;
         }
-        
+
         .waiting-subtitle {
             color: #718096;
             font-size: 1.2rem;
@@ -576,25 +602,25 @@
             font-style: italic;
             opacity: 0.9;
         }
-        
+
         .players-section {
             margin: 25px 0;
         }
-        
+
         .section-title {
             color: #4a5568;
             font-size: 1.4rem;
             font-weight: 600;
             margin-bottom: 15px;
         }
-        
+
         .game-info {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin: 25px 0;
         }
-        
+
         .info-card {
             background: #f7fafc;
             padding: 20px;
@@ -603,67 +629,67 @@
             text-align: center;
             transition: all 0.3s ease;
         }
-        
+
         .info-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
         }
-        
+
         .info-card h4 {
             color: #4a5568;
             font-size: 1.3rem;
             font-weight: 600;
             margin-bottom: 15px;
         }
-        
+
         .info-card p {
             color: #718096;
             line-height: 1.6;
             font-size: 0.95rem;
         }
-        
+
         .btn-icon {
             font-size: 1rem;
             margin-right: 8px;
             display: inline-block;
             transition: transform 0.2s ease;
         }
-        
+
         .waiting-actions .btn:hover .btn-icon {
             transform: scale(1.2);
         }
-        
+
         /* Responsive design for waiting room */
         @media (max-width: 768px) {
             .waiting-room {
                 padding: 25px 15px;
             }
-            
+
             .waiting-room h2 {
                 font-size: 2rem;
             }
-            
+
             .waiting-room h2::after {
                 right: -40px;
                 font-size: 1.5rem;
             }
-            
+
             .game-info {
                 grid-template-columns: 1fr;
                 gap: 15px;
             }
-            
+
             .waiting-actions {
                 flex-direction: column;
                 gap: 15px;
             }
-            
+
             .waiting-actions .btn {
                 width: 100%;
                 max-width: 300px;
             }
         }
-        
+
         /* Reorder controls styling */
         .reorder-controls {
             background: #e6fffa;
@@ -673,25 +699,25 @@
             margin-bottom: 15px;
             text-align: center;
         }
-        
+
         .reorder-instructions {
             color: #2c7a7b;
             font-weight: 500;
             margin-bottom: 15px;
             font-size: 0.95rem;
         }
-        
+
         .reorder-actions {
             display: flex;
             gap: 10px;
             justify-content: center;
         }
-        
+
         .host-controls {
             text-align: center;
             margin-top: 15px;
         }
-        
+
         /* Arrow button reorder styling */
         .player-item {
             transition: all 0.3s ease;
@@ -699,7 +725,7 @@
             margin: 8px 0;
             user-select: none;
         }
-        
+
         .players-list.reorder-mode .player-item {
             border-left: 4px solid #cbd5e0;
             padding: 15px 80px 15px 20px;
@@ -711,14 +737,14 @@
             align-items: center;
             justify-content: space-between;
         }
-        
+
         .players-list.reorder-mode .player-item:hover {
             border-left-color: #38b2ac;
             background: #f0fff4;
             transform: translateX(5px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
-        
+
         .player-order-number {
             position: absolute;
             left: -20px;
@@ -737,14 +763,14 @@
             box-shadow: 0 2px 6px rgba(56, 178, 172, 0.3);
             border: 2px solid white;
         }
-        
+
         .players-list.reorder-mode {
             padding: 10px 0 10px 30px;
             background: #f8fafc;
             border-radius: 15px;
             border: 2px dashed #cbd5e0;
         }
-        
+
         .reorder-arrows {
             display: flex;
             flex-direction: column;
@@ -754,7 +780,7 @@
             top: 50%;
             transform: translateY(-50%);
         }
-        
+
         .arrow-btn {
             background: #4299e1;
             color: white;
@@ -771,32 +797,32 @@
             transition: all 0.2s ease;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
-        
+
         .arrow-btn:hover {
             background: #3182ce;
             transform: scale(1.1);
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
-        
+
         .arrow-btn:active {
             transform: scale(0.95);
         }
-        
+
         .arrow-btn:disabled {
             background: #a0aec0;
             cursor: not-allowed;
             transform: none;
             box-shadow: none;
         }
-        
+
         .arrow-btn.up {
             border-radius: 4px 4px 2px 2px;
         }
-        
+
         .arrow-btn.down {
             border-radius: 2px 2px 4px 4px;
         }
-        
+
         /* Reorder instructions */
         .reorder-instructions {
             color: #2c7a7b;
@@ -808,24 +834,31 @@
             justify-content: center;
             gap: 8px;
         }
-        
+
         .reorder-instructions::before {
             content: '↕️';
             font-size: 1.2rem;
             animation: pointUp 1.5s ease-in-out infinite;
         }
-        
+
         @keyframes pointUp {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-3px);
+            }
         }
-        
+
         /* Timer display styling */
         .timer-display {
             margin-top: 10px;
             text-align: center;
         }
-        
+
         .timer-bar {
             width: 200px;
             height: 8px;
@@ -835,48 +868,62 @@
             overflow: hidden;
             border: 1px solid #cbd5e0;
         }
-        
+
         .timer-progress {
             height: 100%;
             background: linear-gradient(90deg, #48bb78 0%, #38a169 50%, #ed8936 80%, #e53e3e 100%);
             transition: width 1s linear;
             border-radius: 3px;
         }
-        
+
         .timer-progress.warning {
             background: linear-gradient(90deg, #ed8936 0%, #e53e3e 100%);
             animation: pulse-warning 1s infinite;
         }
-        
+
         .timer-progress.critical {
             background: #e53e3e;
             animation: pulse-critical 0.5s infinite;
         }
-        
+
         @keyframes pulse-warning {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
         }
-        
+
         @keyframes pulse-critical {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.3;
+            }
         }
-        
+
         #timerText {
             font-weight: bold;
             color: #4a5568;
             font-size: 1.1rem;
         }
-        
+
         #timerText.warning {
             color: #ed8936;
         }
-        
+
         #timerText.critical {
             color: #e53e3e;
         }
-        
+
         /* Game Settings Section */
         .game-settings-section {
             margin: 20px 0;
@@ -885,14 +932,14 @@
             padding: 20px;
             border: 1px solid #bfdbfe;
         }
-        
+
         .game-settings-display {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
             margin-top: 15px;
         }
-        
+
         .setting-item {
             background: rgba(255, 255, 255, 0.8);
             padding: 12px 15px;
@@ -902,13 +949,13 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .setting-label {
             font-weight: 600;
             color: #4a5568;
             font-size: 0.9rem;
         }
-        
+
         .setting-value {
             color: #2d3748;
             font-weight: 500;
@@ -917,7 +964,7 @@
             border-radius: 6px;
             font-size: 0.85rem;
         }
-        
+
         /* Score History Section */
         .score-history-section {
             margin: 20px 0;
@@ -926,11 +973,11 @@
             padding: 20px;
             border: 1px solid #f6e05e;
         }
-        
+
         .score-history-display {
             margin-top: 15px;
         }
-        
+
         .no-history {
             text-align: center;
             color: #718096;
@@ -940,7 +987,7 @@
             border-radius: 10px;
             border: 2px dashed #cbd5e0;
         }
-        
+
         .round-history {
             margin-bottom: 15px;
             background: rgba(255, 255, 255, 0.9);
@@ -949,7 +996,7 @@
             border: 1px solid #e2e8f0;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
-        
+
         .round-header {
             display: flex;
             justify-content: space-between;
@@ -958,44 +1005,44 @@
             padding-bottom: 8px;
             border-bottom: 1px solid #e2e8f0;
         }
-        
+
         .round-title {
             font-weight: 600;
             color: #2d3748;
             font-size: 1rem;
         }
-        
+
         .round-type {
             padding: 3px 8px;
             border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 500;
         }
-        
+
         .round-type.win {
             background: #c6f6d5;
             color: #22543d;
         }
-        
+
         .round-type.draw {
             background: #fed7aa;
             color: #9c4221;
         }
-        
+
         .winners-list {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-top: 8px;
         }
-        
+
         .players-results-list {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
             margin-top: 8px;
         }
-        
+
         .winner-item {
             background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
             padding: 6px 10px;
@@ -1006,7 +1053,7 @@
             align-items: center;
             gap: 5px;
         }
-        
+
         .player-result-item {
             padding: 6px 10px;
             border-radius: 8px;
@@ -1016,38 +1063,38 @@
             gap: 5px;
             border: 1px solid;
         }
-        
+
         .player-result-item.win {
             background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
             border-color: #68d391;
         }
-        
+
         .player-result-item.draw {
             background: linear-gradient(135deg, #fef3c7 0%, #fcd34d 100%);
             border-color: #f59e0b;
         }
-        
+
         .player-result-item.loss {
             background: linear-gradient(135deg, #fecaca 0%, #f87171 100%);
             border-color: #ef4444;
         }
-        
+
         .player-name {
             font-weight: 600;
         }
-        
+
         .player-result-item.win .player-name {
             color: #22543d;
         }
-        
+
         .player-result-item.draw .player-name {
             color: #92400e;
         }
-        
+
         .player-result-item.loss .player-name {
             color: #991b1b;
         }
-        
+
         .player-result {
             font-weight: 500;
             font-size: 0.8rem;
@@ -1055,35 +1102,37 @@
             border-radius: 4px;
             color: white;
         }
-        
+
         .player-result.win {
             background: #22543d;
         }
-        
+
         .player-result.draw {
             background: #92400e;
         }
-        
+
         .player-result.loss {
             background: #991b1b;
         }
-        
+
         .winner-name {
             font-weight: 600;
             color: #22543d;
         }
-        
-        .winner-points, .player-points {
+
+        .winner-points,
+        .player-points {
             color: #2f855a;
             font-weight: 500;
         }
-        
-        .winner-penalties, .player-penalties {
+
+        .winner-penalties,
+        .player-penalties {
             color: #c53030;
             font-size: 0.8rem;
             font-style: italic;
         }
-        
+
         /* Timer display for all players */
         .simple-timer-section {
             margin: 15px 0;
@@ -1094,7 +1143,7 @@
             text-align: center;
             box-shadow: 0 4px 12px rgba(14, 165, 233, 0.15);
         }
-        
+
         .simple-timer-section h3 {
             color: #0c4a6e;
             margin-bottom: 15px;
@@ -1104,7 +1153,7 @@
             justify-content: center;
             gap: 8px;
         }
-        
+
         .current-player-timer {
             background: rgba(255, 255, 255, 0.9);
             padding: 15px 20px;
@@ -1113,20 +1162,20 @@
             display: inline-block;
             min-width: 280px;
         }
-        
+
         .timer-player-info {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 15px;
         }
-        
+
         .timer-player-name-main {
             font-weight: 700;
             color: #0c4a6e;
             font-size: 1.1rem;
         }
-        
+
         .timer-time-display {
             font-weight: 600;
             padding: 8px 16px;
@@ -1134,30 +1183,30 @@
             font-size: 1rem;
             min-width: 80px;
         }
-        
+
         .timer-time-display.unlimited {
             background: #e5e7eb;
             color: #6b7280;
         }
-        
+
         .timer-time-display.active {
             background: #fef3c7;
             color: #92400e;
         }
-        
+
         .timer-time-display.warning {
             background: #fecaca;
             color: #991b1b;
             animation: pulse 1s infinite;
         }
-        
+
         .waiting-turn {
             color: #6b7280;
             font-style: italic;
             font-size: 0.9rem;
             margin-top: 10px;
         }
-        
+
         /* Popup Timer Clock Styles */
         .timer-clock-popup {
             position: fixed;
@@ -1166,18 +1215,19 @@
             z-index: 1000;
             animation: slideInFromRight 0.5s ease-out;
         }
-        
+
         @keyframes slideInFromRight {
             from {
                 transform: translateX(100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
             }
         }
-        
+
         .clock-container {
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border-radius: 20px;
@@ -1189,12 +1239,12 @@
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
-        
+
         .clock-container:hover {
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
             transform: translateY(-2px);
         }
-        
+
         .clock-face {
             width: 120px;
             height: 120px;
@@ -1202,12 +1252,12 @@
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             position: relative;
             margin: 0 auto 20px;
-            box-shadow: 
+            box-shadow:
                 inset 0 2px 10px rgba(255, 255, 255, 0.3),
                 0 4px 15px rgba(102, 126, 234, 0.3);
             border: 4px solid #ffffff;
         }
-        
+
         .clock-center {
             position: absolute;
             top: 50%;
@@ -1220,7 +1270,7 @@
             z-index: 10;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
-        
+
         .clock-hand {
             position: absolute;
             background: #ffffff;
@@ -1228,7 +1278,7 @@
             border-radius: 2px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
-        
+
         .hour-hand {
             width: 4px;
             height: 30px;
@@ -1237,7 +1287,7 @@
             margin-left: -2px;
             z-index: 3;
         }
-        
+
         .minute-hand {
             width: 3px;
             height: 40px;
@@ -1246,7 +1296,7 @@
             margin-left: -1.5px;
             z-index: 2;
         }
-        
+
         .second-hand {
             width: 1px;
             height: 45px;
@@ -1257,12 +1307,17 @@
             z-index: 4;
             animation: secondTick 1s linear infinite;
         }
-        
+
         @keyframes secondTick {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        
+
         .clock-number {
             position: absolute;
             font-weight: bold;
@@ -1270,31 +1325,31 @@
             font-size: 14px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
-        
+
         .clock-12 {
             top: 8px;
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         .clock-3 {
             right: 8px;
             top: 50%;
             transform: translateY(-50%);
         }
-        
+
         .clock-6 {
             bottom: 8px;
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         .clock-9 {
             left: 8px;
             top: 50%;
             transform: translateY(-50%);
         }
-        
+
         .clock-dots {
             position: absolute;
             top: 0;
@@ -1302,7 +1357,7 @@
             right: 0;
             bottom: 0;
         }
-        
+
         .clock-dot {
             position: absolute;
             width: 2px;
@@ -1314,11 +1369,11 @@
             transform-origin: 1px 56px;
             border-radius: 1px;
         }
-        
+
         .timer-info {
             text-align: center;
         }
-        
+
         .current-player-name {
             font-size: 1.1rem;
             font-weight: 700;
@@ -1329,7 +1384,7 @@
             border-radius: 10px;
             border: 1px solid #81e6d9;
         }
-        
+
         .timer-display-container {
             display: flex;
             flex-direction: column;
@@ -1337,7 +1392,7 @@
             gap: 5px;
             margin-bottom: 15px;
         }
-        
+
         .digital-time {
             font-size: 1.5rem;
             font-weight: bold;
@@ -1350,52 +1405,68 @@
             min-width: 100px;
             letter-spacing: 1px;
         }
-        
+
         .digital-time.warning {
             background: linear-gradient(135deg, #fed7aa 0%, #fbb6ce 100%);
             border-color: #f6ad55;
             color: #c53030;
             animation: pulseWarning 1s infinite;
         }
-        
+
         .digital-time.critical {
             background: linear-gradient(135deg, #fed7d7 0%, #fbb6ce 100%);
             border-color: #e53e3e;
             color: #9b2c2c;
             animation: pulseCritical 0.5s infinite;
         }
-        
+
         @keyframes pulseWarning {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
-        
+
         @keyframes pulseCritical {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
-            50% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(229, 62, 62, 0); }
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+            }
+
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 10px rgba(229, 62, 62, 0);
+            }
         }
-        
+
         .timer-status {
             font-size: 0.85rem;
             color: #718096;
             font-style: italic;
         }
-        
+
         .timer-progress-ring {
             position: relative;
             display: inline-block;
         }
-        
+
         .progress-ring {
             transform: rotate(-90deg);
         }
-        
+
         .progress-ring-background {
             fill: none;
             stroke: #e2e8f0;
             stroke-width: 4;
         }
-        
+
         .progress-ring-progress {
             fill: none;
             stroke: #48bb78;
@@ -1405,15 +1476,15 @@
             stroke-dashoffset: 0;
             transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
         }
-        
+
         .progress-ring-progress.warning {
             stroke: #ed8936;
         }
-        
+
         .progress-ring-progress.critical {
             stroke: #e53e3e;
         }
-        
+
         .progress-percentage {
             position: absolute;
             top: 50%;
@@ -1423,7 +1494,7 @@
             font-weight: bold;
             color: #4a5568;
         }
-        
+
         .close-timer-btn {
             position: absolute;
             top: 8px;
@@ -1443,12 +1514,12 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .close-timer-btn:hover {
             background: #e53e3e;
             transform: scale(1.1);
         }
-        
+
         /* Mobile responsiveness for clock popup */
         @media (max-width: 768px) {
             .timer-clock-popup {
@@ -1457,7 +1528,7 @@
                 left: 10px;
                 right: 10px;
             }
-            
+
             .clock-container {
                 min-width: unset;
                 width: 100%;
@@ -1465,28 +1536,28 @@
                 margin: 0 auto;
                 padding: 15px;
             }
-            
+
             .clock-face {
                 width: 100px;
                 height: 100px;
             }
-            
+
             .hour-hand {
                 height: 25px;
                 top: 25%;
             }
-            
+
             .minute-hand {
                 height: 35px;
                 top: 15%;
             }
-            
+
             .second-hand {
                 height: 40px;
                 top: 10%;
             }
         }
-        
+
         /* Floating Timer Clock */
         .floating-timer-clock {
             position: fixed;
@@ -1495,18 +1566,19 @@
             z-index: 1000;
             animation: slideInFromRight 0.5s ease-out;
         }
-        
+
         @keyframes slideInFromRight {
             from {
                 transform: translateX(100%);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0);
                 opacity: 1;
             }
         }
-        
+
         .mini-clock-face {
             background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
             border-radius: 20px;
@@ -1518,12 +1590,12 @@
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
         }
-        
+
         .mini-clock-face:hover {
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.25);
             transform: translateY(-2px);
         }
-        
+
         .clock-center-dot {
             position: absolute;
             top: 50%;
@@ -1536,7 +1608,7 @@
             z-index: 10;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
-        
+
         .clock-hand {
             position: absolute;
             background: #ffffff;
@@ -1544,7 +1616,7 @@
             border-radius: 2px;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
-        
+
         .hour-hand {
             width: 4px;
             height: 30px;
@@ -1553,7 +1625,7 @@
             margin-left: -2px;
             z-index: 3;
         }
-        
+
         .minute-hand {
             width: 3px;
             height: 40px;
@@ -1562,7 +1634,7 @@
             margin-left: -1.5px;
             z-index: 2;
         }
-        
+
         .second-hand {
             width: 1px;
             height: 45px;
@@ -1573,12 +1645,17 @@
             z-index: 4;
             animation: secondTick 1s linear infinite;
         }
-        
+
         @keyframes secondTick {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
         }
-        
+
         .clock-number {
             position: absolute;
             font-weight: bold;
@@ -1586,31 +1663,31 @@
             font-size: 14px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
-        
+
         .clock-12 {
             top: 8px;
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         .clock-3 {
             right: 8px;
             top: 50%;
             transform: translateY(-50%);
         }
-        
+
         .clock-6 {
             bottom: 8px;
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         .clock-9 {
             left: 8px;
             top: 50%;
             transform: translateY(-50%);
         }
-        
+
         .clock-dots {
             position: absolute;
             top: 0;
@@ -1618,7 +1695,7 @@
             right: 0;
             bottom: 0;
         }
-        
+
         .clock-dot {
             position: absolute;
             width: 2px;
@@ -1630,11 +1707,11 @@
             transform-origin: 1px 56px;
             border-radius: 1px;
         }
-        
+
         .floating-timer-info {
             text-align: center;
         }
-        
+
         .player-name-badge {
             font-size: 1.1rem;
             font-weight: 700;
@@ -1645,7 +1722,7 @@
             border-radius: 10px;
             border: 1px solid #81e6d9;
         }
-        
+
         .time-display {
             display: flex;
             flex-direction: column;
@@ -1653,7 +1730,7 @@
             gap: 5px;
             margin-bottom: 15px;
         }
-        
+
         .digital-time {
             font-size: 1.5rem;
             font-weight: bold;
@@ -1666,48 +1743,64 @@
             min-width: 100px;
             letter-spacing: 1px;
         }
-        
+
         .digital-time.warning {
             background: linear-gradient(135deg, #fed7aa 0%, #fbb6ce 100%);
             border-color: #f6ad55;
             color: #c53030;
             animation: pulseWarning 1s infinite;
         }
-        
+
         .digital-time.critical {
             background: linear-gradient(135deg, #fed7d7 0%, #fbb6ce 100%);
             border-color: #e53e3e;
             color: #9b2c2c;
             animation: pulseCritical 0.5s infinite;
         }
-        
+
         @keyframes pulseWarning {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
         }
-        
+
         @keyframes pulseCritical {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7); }
-            50% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(229, 62, 62, 0); }
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
+            }
+
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 10px rgba(229, 62, 62, 0);
+            }
         }
-        
+
         .timer-status {
             font-size: 0.85rem;
             color: #718096;
             font-style: italic;
         }
-        
+
         .timer-progress-ring {
             position: relative;
             display: inline-block;
         }
-        
+
         .ring-background {
             fill: none;
             stroke: #e2e8f0;
             stroke-width: 4;
         }
-        
+
         .ring-progress {
             fill: none;
             stroke: #48bb78;
@@ -1717,15 +1810,15 @@
             stroke-dashoffset: 0;
             transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
         }
-        
+
         .ring-progress.warning {
             stroke: #ed8936;
         }
-        
+
         .ring-progress.critical {
             stroke: #e53e3e;
         }
-        
+
         .ring-percentage {
             position: absolute;
             top: 50%;
@@ -1735,7 +1828,7 @@
             font-weight: bold;
             color: #4a5568;
         }
-        
+
         .mini-close-btn {
             position: absolute;
             top: 8px;
@@ -1755,12 +1848,12 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .mini-close-btn:hover {
             background: #e53e3e;
             transform: scale(1.1);
         }
-        
+
         /* Mobile responsiveness for floating timer clock */
         @media (max-width: 768px) {
             .floating-timer-clock {
@@ -1769,7 +1862,7 @@
                 left: 10px;
                 right: 10px;
             }
-            
+
             .mini-clock-face {
                 min-width: unset;
                 width: 100%;
@@ -1777,28 +1870,28 @@
                 margin: 0 auto;
                 padding: 15px;
             }
-            
+
             .clock-center-dot {
                 width: 100px;
                 height: 100px;
             }
-            
+
             .hour-hand {
                 height: 25px;
                 top: 25%;
             }
-            
+
             .minute-hand {
                 height: 35px;
                 top: 15%;
             }
-            
+
             .second-hand {
                 height: 40px;
                 top: 10%;
             }
         }
-        
+
         /* Floating Timer Clock Styles */
         .floating-timer-clock {
             position: fixed;
@@ -1811,38 +1904,39 @@
             align-items: center;
             gap: 8px;
         }
-        
+
         @keyframes gentleSlideIn {
             from {
                 transform: translateX(150px) scale(0.8);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0) scale(1);
                 opacity: 1;
             }
         }
-        
+
         .mini-clock-face {
             width: 70px;
             height: 70px;
             border-radius: 50%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             position: relative;
-            box-shadow: 
+            box-shadow:
                 0 4px 15px rgba(102, 126, 234, 0.3),
                 0 2px 8px rgba(0, 0, 0, 0.1);
             border: 3px solid rgba(255, 255, 255, 0.9);
             transition: all 0.3s ease;
         }
-        
+
         .mini-clock-face:hover {
             transform: scale(1.05);
-            box-shadow: 
+            box-shadow:
                 0 6px 20px rgba(102, 126, 234, 0.4),
                 0 3px 12px rgba(0, 0, 0, 0.15);
         }
-        
+
         .clock-center-dot {
             position: absolute;
             top: 50%;
@@ -1855,7 +1949,7 @@
             z-index: 10;
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         }
-        
+
         .clock-hand {
             position: absolute;
             background: #ffffff;
@@ -1863,7 +1957,7 @@
             border-radius: 1px;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
         }
-        
+
         .hour-hand {
             width: 2px;
             height: 18px;
@@ -1872,7 +1966,7 @@
             margin-left: -1px;
             z-index: 3;
         }
-        
+
         .minute-hand {
             width: 1.5px;
             height: 24px;
@@ -1881,7 +1975,7 @@
             margin-left: -0.75px;
             z-index: 2;
         }
-        
+
         .second-hand {
             width: 0.5px;
             height: 26px;
@@ -1891,7 +1985,7 @@
             background: #ff6b6b;
             z-index: 4;
         }
-        
+
         .clock-mark {
             position: absolute;
             width: 2px;
@@ -1899,38 +1993,38 @@
             background: rgba(255, 255, 255, 0.8);
             border-radius: 1px;
         }
-        
+
         .clock-12 {
             top: 2px;
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         .clock-3 {
             right: 2px;
             top: 50%;
             transform: translateY(-50%) rotate(90deg);
         }
-        
+
         .clock-6 {
             bottom: 2px;
             left: 50%;
             transform: translateX(-50%);
         }
-        
+
         .clock-9 {
             left: 2px;
             top: 50%;
             transform: translateY(-50%) rotate(90deg);
         }
-        
+
         .floating-timer-info {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 4px;
         }
-        
+
         .player-name-badge {
             font-size: 0.75rem;
             font-weight: 600;
@@ -1946,7 +2040,7 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        
+
         .time-display {
             font-size: 1rem;
             font-weight: bold;
@@ -1962,67 +2056,82 @@
             min-width: 50px;
             text-align: center;
         }
-        
+
         .time-display.warning {
             background: rgba(255, 193, 7, 0.9);
             border-color: #ffc107;
             color: #856404;
             animation: gentlePulse 1s infinite;
         }
-        
+
         .time-display.critical {
             background: rgba(220, 53, 69, 0.9);
             border-color: #dc3545;
             color: white;
             animation: urgentPulse 0.5s infinite;
         }
-        
+
         @keyframes gentlePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.03); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.03);
+            }
         }
-        
+
         @keyframes urgentPulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.08); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.08);
+            }
         }
-        
+
         .timer-ring {
             position: relative;
             width: 45px;
             height: 45px;
         }
-        
+
         .mini-progress-ring {
             transform: rotate(-90deg);
             width: 45px;
             height: 45px;
         }
-        
+
         .ring-background {
             fill: none;
             stroke: rgba(255, 255, 255, 0.3);
             stroke-width: 2;
         }
-        
+
         .ring-progress {
             fill: none;
             stroke: #48bb78;
             stroke-width: 2;
             stroke-linecap: round;
-            stroke-dasharray: 125.66; /* 2π × 20 */
+            stroke-dasharray: 125.66;
+            /* 2π × 20 */
             stroke-dashoffset: 0;
             transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
         }
-        
+
         .ring-progress.warning {
             stroke: #ffc107;
         }
-        
+
         .ring-progress.critical {
             stroke: #dc3545;
         }
-        
+
         .ring-percentage {
             position: absolute;
             top: 50%;
@@ -2040,7 +2149,7 @@
             justify-content: center;
             border: 1px solid rgba(102, 126, 234, 0.2);
         }
-        
+
         .mini-close-btn {
             position: absolute;
             top: -5px;
@@ -2061,13 +2170,13 @@
             justify-content: center;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
         }
-        
+
         .mini-close-btn:hover {
             background: #dc3545;
             transform: scale(1.2);
             box-shadow: 0 3px 10px rgba(220, 53, 69, 0.4);
         }
-        
+
         /* Mobile responsiveness for floating timer */
         @media (max-width: 768px) {
             .floating-timer-clock {
@@ -2075,17 +2184,17 @@
                 right: 10px;
                 scale: 0.9;
             }
-            
+
             .player-name-badge {
                 font-size: 0.7rem;
                 max-width: 100px;
             }
-            
+
             .time-display {
                 font-size: 0.9rem;
             }
         }
-        
+
         @media (max-width: 480px) {
             .floating-timer-clock {
                 scale: 0.8;
@@ -2093,7 +2202,7 @@
                 right: 5px;
             }
         }
-        
+
         /* Floating Timer Display Styles */
         .floating-timer-display {
             position: fixed;
@@ -2106,18 +2215,19 @@
             align-items: center;
             gap: 6px;
         }
-        
+
         @keyframes gentleSlideIn {
             from {
                 transform: translateX(120px) scale(0.9);
                 opacity: 0;
             }
+
             to {
                 transform: translateX(0) scale(1);
                 opacity: 1;
             }
         }
-        
+
         .floating-timer-info {
             display: flex;
             flex-direction: column;
@@ -2125,7 +2235,7 @@
             gap: 6px;
             position: relative;
         }
-        
+
         .player-name-badge {
             font-size: 0.75rem;
             font-weight: 600;
@@ -2142,12 +2252,12 @@
             text-overflow: ellipsis;
             transition: all 0.3s ease;
         }
-        
+
         .player-name-badge:hover {
             transform: scale(1.02);
             box-shadow: 0 3px 15px rgba(0, 0, 0, 0.15);
         }
-        
+
         .time-display {
             font-size: 1.1rem;
             font-weight: bold;
@@ -2164,11 +2274,11 @@
             text-align: center;
             transition: all 0.3s ease;
         }
-        
+
         .time-display:hover {
             transform: scale(1.02);
         }
-        
+
         .time-display.warning {
             background: rgba(255, 193, 7, 0.95);
             border-color: #ffc107;
@@ -2176,7 +2286,7 @@
             animation: gentlePulse 1s infinite;
             box-shadow: 0 3px 15px rgba(255, 193, 7, 0.3);
         }
-        
+
         .time-display.critical {
             background: rgba(220, 53, 69, 0.95);
             border-color: #dc3545;
@@ -2184,63 +2294,74 @@
             animation: urgentPulse 0.5s infinite;
             box-shadow: 0 3px 15px rgba(220, 53, 69, 0.4);
         }
-        
+
         @keyframes gentlePulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.04); }
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.04);
+            }
         }
-        
+
         @keyframes urgentPulse {
-            0%, 100% { 
-                transform: scale(1); 
+
+            0%,
+            100% {
+                transform: scale(1);
                 box-shadow: 0 3px 15px rgba(220, 53, 69, 0.4);
             }
-            50% { 
-                transform: scale(1.08); 
+
+            50% {
+                transform: scale(1.08);
                 box-shadow: 0 5px 20px rgba(220, 53, 69, 0.6);
             }
         }
-        
+
         .timer-ring {
             position: relative;
             width: 45px;
             height: 45px;
             margin-top: 2px;
         }
-        
+
         .mini-progress-ring {
             transform: rotate(-90deg);
             width: 45px;
             height: 45px;
         }
-        
+
         .ring-background {
             fill: none;
             stroke: rgba(255, 255, 255, 0.4);
             stroke-width: 2.5;
         }
-        
+
         .ring-progress {
             fill: none;
             stroke: #48bb78;
             stroke-width: 2.5;
             stroke-linecap: round;
-            stroke-dasharray: 125.66; /* 2π × 20 */
+            stroke-dasharray: 125.66;
+            /* 2π × 20 */
             stroke-dashoffset: 0;
             transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
             filter: drop-shadow(0 2px 4px rgba(72, 187, 120, 0.3));
         }
-        
+
         .ring-progress.warning {
             stroke: #ffc107;
             filter: drop-shadow(0 2px 4px rgba(255, 193, 7, 0.3));
         }
-        
+
         .ring-progress.critical {
             stroke: #dc3545;
             filter: drop-shadow(0 2px 4px rgba(220, 53, 69, 0.3));
         }
-        
+
         .ring-percentage {
             position: absolute;
             top: 50%;
@@ -2259,7 +2380,7 @@
             border: 1px solid rgba(102, 126, 234, 0.2);
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-        
+
         .mini-close-btn {
             position: absolute;
             top: -8px;
@@ -2280,13 +2401,13 @@
             justify-content: center;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
-        
+
         .mini-close-btn:hover {
             background: #dc3545;
             transform: scale(1.15);
             box-shadow: 0 3px 12px rgba(220, 53, 69, 0.4);
         }
-        
+
         /* Mobile responsiveness for floating timer */
         @media (max-width: 768px) {
             .floating-timer-display {
@@ -2294,47 +2415,47 @@
                 right: 10px;
                 scale: 0.9;
             }
-            
+
             .player-name-badge {
                 font-size: 0.7rem;
                 max-width: 100px;
                 padding: 3px 8px;
             }
-            
+
             .time-display {
                 font-size: 1rem;
                 padding: 5px 10px;
             }
-            
+
             .timer-ring {
                 width: 40px;
                 height: 40px;
             }
-            
+
             .mini-progress-ring {
                 width: 40px;
                 height: 40px;
             }
-            
+
             .ring-percentage {
                 width: 24px;
                 height: 24px;
                 font-size: 0.6rem;
             }
         }
-        
+
         @media (max-width: 480px) {
             .floating-timer-display {
                 scale: 0.85;
                 top: 8px;
                 right: 8px;
             }
-            
+
             .player-name-badge {
                 font-size: 0.65rem;
                 max-width: 90px;
             }
-            
+
             .time-display {
                 font-size: 0.95rem;
             }
@@ -2972,11 +3093,11 @@
             display: none;
             padding: 18px;
             border-radius: 26px;
-            overflow: auto;
+            overflow: visible;
             max-width: 1240px;
             width: 100%;
             margin: 0 auto;
-            max-height: min(70vh, 780px);
+            max-height: none;
         }
 
         .game-stage-card.is-active {
@@ -2995,7 +3116,7 @@
         }
 
         .questions-section[data-game-panel="questions"] {
-            min-height: 520px;
+            min-height: 0;
             position: relative;
             background:
                 radial-gradient(circle at top left, rgba(226, 250, 237, 0.11) 0%, transparent 26%),
@@ -3013,23 +3134,21 @@
             border-radius: inherit;
             background:
                 linear-gradient(120deg, rgba(255, 255, 255, 0.05), transparent 30%),
-                repeating-linear-gradient(
-                    135deg,
+                repeating-linear-gradient(135deg,
                     rgba(255, 255, 255, 0.025) 0,
                     rgba(255, 255, 255, 0.025) 2px,
                     transparent 2px,
-                    transparent 14px
-                );
+                    transparent 14px);
             opacity: 0.75;
         }
 
-        .questions-section[data-game-panel="questions"] > * {
+        .questions-section[data-game-panel="questions"]>* {
             position: relative;
             z-index: 1;
         }
 
         .guess-section[data-game-panel="guess"] {
-            min-height: 420px;
+            min-height: 0;
         }
 
         .scoreboard-section[data-game-panel="score"] {
@@ -3037,7 +3156,7 @@
         }
 
         .game-log-section[data-game-panel="log"] {
-            min-height: 420px;
+            min-height: 0;
         }
 
         .stage-meta {
@@ -3376,7 +3495,7 @@
 
         .game-log {
             max-height: none;
-            min-height: 220px;
+            min-height: 0;
             background: rgba(4, 12, 20, 0.22);
             border-radius: 18px;
             border: 1px solid rgba(138, 191, 255, 0.1);
@@ -3558,8 +3677,8 @@
 
             .game-stage-card {
                 display: none;
-                max-height: calc(100dvh - 290px);
-                overflow: auto;
+                max-height: none;
+                overflow: visible;
             }
 
             .game-stage-card.is-active {
@@ -3679,6 +3798,7 @@
         }
     </style>
 </head>
+
 <body class="game-page">
     <div class="game-container">
         <header class="game-header">
@@ -3702,7 +3822,8 @@
                 <form id="directJoinForm" class="join-sheet-form">
                     <div class="form-group">
                         <label for="directJoinName">Player name</label>
-                        <input type="text" id="directJoinName" name="directJoinName" maxlength="24" placeholder="Your name" autocomplete="nickname" required>
+                        <input type="text" id="directJoinName" name="directJoinName" maxlength="24"
+                            placeholder="Your name" autocomplete="nickname" required>
                     </div>
                     <div class="join-sheet-actions">
                         <button id="joinSheetBack" type="button" class="btn btn-secondary">Back</button>
@@ -3734,11 +3855,12 @@
                 <button type="button" class="panel-tab" data-waiting-panel-target="settings">Settings</button>
                 <button type="button" class="panel-tab" data-waiting-panel-target="history">History</button>
             </div>
-            
+
             <div class="players-section waiting-view is-active" data-waiting-panel="lobby">
                 <h3 class="section-title">Lobby</h3>
                 <div id="reorderControls" class="reorder-controls" style="display: none;">
-                    <p class="reorder-instructions">Use the arrow buttons to move players up or down. The first player will go first in the game.</p>
+                    <p class="reorder-instructions">Use the arrow buttons to move players up or down. The first player
+                        will go first in the game.</p>
                     <div class="reorder-actions">
                         <button id="saveOrderBtn" class="btn btn-success btn-small">Save Order</button>
                         <button id="cancelOrderBtn" class="btn btn-secondary btn-small">Cancel</button>
@@ -3750,7 +3872,7 @@
                         <span class="btn-icon">🔄</span> Reorder Players
                     </button>
                 </div>
-                
+
                 <div class="waiting-actions">
                     <button id="startGameBtn" class="btn btn-primary" disabled style="display: none;">
                         <span class="btn-icon">🚀</span> Start Game
@@ -3766,7 +3888,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="game-info waiting-view is-active" data-waiting-panel="lobby">
                 <div class="info-card">
                     <h4>Game modes</h4>
@@ -3777,13 +3899,13 @@
                     <p>Good turns stay short: ask once, learn something, then move back to the board.</p>
                 </div>
             </div>
-            
+
             <!-- Game Settings Section -->
             <div class="game-settings-section waiting-view" data-waiting-panel="settings">
                 <h3 class="section-title">Game settings</h3>
                 <div id="gameSettingsDisplay" class="game-settings-display"></div>
             </div>
-            
+
             <!-- Score History Section -->
             <div class="score-history-section waiting-view" data-waiting-panel="history">
                 <h3 class="section-title">Score history</h3>
@@ -3852,7 +3974,7 @@
                     <div class="stage-meta">
                         <div>
                             <p class="stage-kicker">Guess</p>
-                            <h3>Break the code</h3>
+                            <h3>Break the Code</h3>
                         </div>
                         <span class="meta-badge">Final answer builder</span>
                     </div>
@@ -3860,17 +3982,17 @@
                         <div class="guess-instructions">
                             <p>Build your answer from left to right.</p>
                         </div>
-                        
+
                         <div class="available-tiles-section">
                             <h4>Available tiles</h4>
                             <div id="availableTiles" class="available-tiles-grid"></div>
                         </div>
-                        
+
                         <div class="current-guess-section">
                             <h4>Your guess</h4>
                             <div id="guessBuilder" class="guess-builder"></div>
                         </div>
-                        
+
                         <div class="guess-actions">
                             <button id="submitGuess" class="btn btn-success">Submit Guess</button>
                             <button id="clearGuess" class="btn btn-secondary">Clear</button>
@@ -3911,15 +4033,16 @@
                     <p class="question-sheet-note">
                         This question will be asked to all other players.
                     </p>
-                    
+
                     <div id="numberSelectionSection" style="display: none; margin: 20px 0;">
                         <h4 style="color: #4a5568; margin-bottom: 10px;">Choose a number for this question:</h4>
-                        <div id="numberButtons" class="number-buttons-container" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <div id="numberButtons" class="number-buttons-container"
+                            style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                             <!-- Number buttons will be dynamically added here -->
                         </div>
                         <p id="selectedNumberDisplay" style="margin-top: 10px; font-weight: bold; color: #38a169;"></p>
                     </div>
-                    
+
                     <div class="question-actions">
                         <button id="confirmQuestion" class="btn btn-primary">Ask Question</button>
                         <button id="cancelQuestion" class="btn btn-secondary">Cancel</button>
@@ -3956,7 +4079,7 @@
                 <div class="ring-percentage" id="progressPercentage">100%</div>
             </div>
         </div>
-        
+
         <button class="mini-close-btn" id="closeTimerBtn" title="Hide Timer">✕</button>
     </div>
 
@@ -3977,12 +4100,12 @@
             finalRound: false,
             finalRoundPlayer: null
         };
-        
+
         // Reorder functionality variables
         let reorderMode = false;
         let originalPlayerOrder = [];
         let currentPlayerOrder = [];
-        
+
         // Timer functionality variables
         let timerInterval = null;
         let currentTimeLimit = null;
@@ -4191,7 +4314,7 @@
         }
 
         // Socket event handlers
-        socket.on('player_joined', function(data) {
+        socket.on('player_joined', function (data) {
             console.log('Player joined event received:', data);
             const allReady = getAllPlayersReady(data.players, data.player_count);
             updatePlayersList(data.players, data.player_count, allReady);
@@ -4199,7 +4322,7 @@
             gameState.playerCount = data.player_count;
             syncLocalPlayerState(data.players);
             updateWaitingRoomButtons();
-            
+
             // Update game settings and score history
             if (data.game_settings) {
                 updateGameSettings(data.game_settings);
@@ -4209,10 +4332,10 @@
             }
         });
 
-        socket.on('player_reconnected', function(data) {
+        socket.on('player_reconnected', function (data) {
             console.log('Player reconnected:', data);
             showStatus(`${data.player_name} has reconnected`, 'info');
-            
+
             // If this is the current player and they're a host, emit ready status
             const storedData = localStorage.getItem(`playerData_${roomId}`);
             if (storedData) {
@@ -4231,12 +4354,12 @@
             }
         });
 
-        socket.on('player_disconnected', function(data) {
+        socket.on('player_disconnected', function (data) {
             console.log('Player disconnected:', data);
             showStatus(`${data.player_name} has disconnected`, 'warning');
         });
 
-        socket.on('player_removed', function(data) {
+        socket.on('player_removed', function (data) {
             console.log('Player removed from room:', data);
             localStorage.removeItem(`playerData_${roomId}`);
             showStatus(data.message || 'You were removed from the room.', 'warning');
@@ -4245,14 +4368,14 @@
             }, 1200);
         });
 
-        socket.on('player_removed_notice', function(data) {
+        socket.on('player_removed_notice', function (data) {
             console.log('Player removed notice:', data);
             showStatus(data.message || `${data.player_name} was removed from the room.`, 'info');
         });
 
-        socket.on('game_reconnected', function(data) {
+        socket.on('game_reconnected', function (data) {
             console.log('Game reconnected, restoring state:', data);
-            
+
             // Restore game state
             gameState.playerData = data;
             gameState.availableQuestions = data.available_questions;
@@ -4264,34 +4387,34 @@
             gameState.penaltyMode = data.penalty_mode;
             gameState.finalRound = Boolean(data.final_round);
             gameState.finalRoundPlayer = data.final_round_player || null;
-            
+
             // Show game interface
             document.getElementById('waitingRoom').style.display = 'none';
             document.getElementById('gameInterface').style.display = 'block';
             hideJoinSheet();
             setGamePanel('table');
-            
+
             // Restore UI
             displayYourTiles(data.tiles);
             displayAvailableQuestions(data.available_questions);
             updateTurnIndicator(data.current_turn);
-            
+
             if (data.center_tiles_count) {
                 setupCenterTiles(data.center_tiles_count);
             }
-            
+
             setupOtherPlayers();
             updateGuessDisplay();
             ensureTimerUpdatesActive();
-            
+
             showStatus('Game state restored successfully!', 'success');
         });
 
-        socket.on('room_joined', function(data) {
+        socket.on('room_joined', function (data) {
             console.log('Successfully joined room:', data);
             showStatus(data.message, 'success');
             hideJoinSheet();
-            
+
             // Store player information securely
             localStorage.setItem(`playerData_${roomId}`, JSON.stringify({
                 player_id: data.player_id,
@@ -4299,20 +4422,20 @@
                 session_key: data.session_key,
                 is_host: data.is_host
             }));
-            
+
             // Update URL to include player info for future reconnections
             const newUrl = `${window.location.pathname}?player_id=${data.player_id}`;
             window.history.replaceState({}, '', newUrl);
-            
+
             // Set local game state
             gameState.yourPlayerId = data.player_id;
             gameState.isHost = data.is_host || false;
             gameState.isReady = data.is_host || false; // Host is auto-ready
-            
+
             // Update waiting room buttons for all players
             updateWaitingRoomButtons();
             setWaitingPanel('lobby');
-            
+
             // If this is a host, automatically emit ready status
             if (data.is_host) {
                 setTimeout(() => {
@@ -4321,11 +4444,11 @@
             }
         });
 
-        socket.on('game_started', function(data) {
+        socket.on('game_started', function (data) {
             console.log('Game started event received:', data);
             showStatus('Game has started!', 'success');
             hideJoinSheet();
-            
+
             // Update basic game state
             gameState.availableQuestions = data.available_questions;
             gameState.currentTurn = data.current_turn;
@@ -4334,29 +4457,29 @@
             gameState.penaltyMode = data.penalty_mode;
             gameState.finalRound = false;
             gameState.finalRoundPlayer = null;
-            
+
             // Start timer updates for all players
             startTimerUpdates();
-            
+
             console.log('Waiting for personalized game data...');
         });
 
-        socket.on('time_violation', function(data) {
+        socket.on('time_violation', function (data) {
             console.log('Time violation:', data);
-            
+
             let message = `⏰ ${data.player_name}: ${data.message}`;
             let statusType = 'warning';
-            
+
             if (data.penalty_type === 'score_penalty') {
                 statusType = 'warning';
                 message = `📉 ${data.player_name} received a score penalty for exceeding time!`;
             }
-            
+
             showStatus(message, statusType);
             addToGameLog(`⏰ Time violation: ${data.message}`, 'answer');
         });
 
-        socket.on('player_game_data', function(data) {
+        socket.on('player_game_data', function (data) {
             console.log('Player game data received:', data);
 
             gameState.playerData = data;
@@ -4417,14 +4540,14 @@
             console.log('Game interface setup complete');
         });
 
-        socket.on('question_asked', function(data) {
+        socket.on('question_asked', function (data) {
             // Format the question with ** ** highlighting
             const formattedQuestion = data.question.replace(/\*\*(.*?)\*\*/g, '<span class="question-highlight">$1</span>');
-            
+
             // Add question to log with special styling
             const questionMessage = `<span class="question-icon">❓</span> <span class="player-name-question">${data.asking_player}</span> asked: "${formattedQuestion}"`;
             addToGameLog(questionMessage, 'question');
-            
+
             // Display all answers with special styling
             for (const playerId in data.answers) {
                 const playerInfo = data.answers[playerId];
@@ -4433,11 +4556,11 @@
             }
         });
 
-        socket.on('questions_updated', function(data) {
+        socket.on('questions_updated', function (data) {
             console.log('Questions updated:', data.available_questions);
             gameState.availableQuestions = data.available_questions;
             displayAvailableQuestions(data.available_questions);
-            
+
             // Show appropriate status message
             if (data.new_question_added) {
                 showStatus('Question cards refreshed! New card added.', 'info');
@@ -4448,43 +4571,43 @@
                     showStatus(`Questions updated - ${data.total_questions_remaining} question(s) remaining.`, 'info');
                 }
             }
-            
+
             // Hide question interface if it's open
             hideQuestionInterface();
         });
 
-        socket.on('turn_changed', function(data) {
+        socket.on('turn_changed', function (data) {
             gameState.currentTurn = data.current_turn;
             gameState.finalRound = Boolean(data.final_round);
             gameState.finalRoundPlayer = data.final_round_player || null;
             updateTurnIndicator(data.current_turn);
-            
+
             // Ensure timer updates are running during active game
             if (document.getElementById('gameInterface').style.display !== 'none' && !timerUpdateInterval) {
                 console.log('Starting timer updates on turn change');
                 startTimerUpdates();
             }
-            
+
             // Start timer for the new player's turn
             if (data.current_turn === gameState.yourPlayerId && gameState.timeLimit) {
                 startTimer(gameState.timeLimit);
             } else {
                 stopTimer();
             }
-            
+
             if (data.current_turn === gameState.yourPlayerId) {
                 playSound('turnChangeSound');
             }
         });
 
-        socket.on('error', function(data) {
+        socket.on('error', function (data) {
             console.log('Error received:', data);
             if (data.message.includes('name already exists')) {
                 showStatus(`${data.message}. Choose a different name.`, 'error');
                 openJoinSheet('That name is already taken in this room. Choose a different one.');
             } else {
                 showStatus(data.message, 'error');
-                
+
                 // If connection failed, clear stored data and redirect
                 if (data.message.includes('Reconnection failed') || data.message.includes('Invalid session key')) {
                     localStorage.removeItem(`playerData_${roomId}`);
@@ -4493,14 +4616,14 @@
             }
         });
 
-        socket.on('connect', function() {
+        socket.on('connect', function () {
             console.log('Connected to server');
-            
+
             // Check if we have stored player data for this room
             const storedData = getStoredPlayerData();
             const urlParams = new URLSearchParams(window.location.search);
             const urlPlayerId = urlParams.get('player_id');
-            
+
             if (storedData && storedData.player_id && storedData.session_key) {
                 if (!urlPlayerId || storedData.player_id === urlPlayerId) {
                     console.log('Attempting to reconnect with stored credentials');
@@ -4511,7 +4634,7 @@
                             session_key: storedData.session_key
                         }
                     });
-                    
+
                     gameState.yourPlayerId = storedData.player_id;
                     gameState.isHost = storedData.is_host || false;
                     gameState.isReady = storedData.is_host || false;
@@ -4520,42 +4643,42 @@
 
                 console.log('Stored player data does not match URL player_id, skipping auto-reconnect');
             }
-            
+
             console.log('New player joining');
             openJoinSheet(`Choose a player name to join room ${roomId}.`);
         });
 
-        // Event listeners for reorder functionality  
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('reorderPlayersBtn').addEventListener('click', function() {
+        // Event listeners for reorder functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('reorderPlayersBtn').addEventListener('click', function () {
                 enterReorderMode();
             });
 
-            document.getElementById('saveOrderBtn').addEventListener('click', function() {
+            document.getElementById('saveOrderBtn').addEventListener('click', function () {
                 savePlayerOrder();
             });
 
-            document.getElementById('cancelOrderBtn').addEventListener('click', function() {
+            document.getElementById('cancelOrderBtn').addEventListener('click', function () {
                 exitReorderMode();
             });
 
-            document.getElementById('directJoinForm').addEventListener('submit', function(event) {
+            document.getElementById('directJoinForm').addEventListener('submit', function (event) {
                 event.preventDefault();
                 submitDirectJoin();
             });
 
-            document.getElementById('joinSheetBack').addEventListener('click', function() {
+            document.getElementById('joinSheetBack').addEventListener('click', function () {
                 window.location.href = '/';
             });
 
             document.querySelectorAll('[data-waiting-panel-target]').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     setWaitingPanel(button.dataset.waitingPanelTarget);
                 });
             });
 
             document.querySelectorAll('[data-game-panel-target]').forEach(button => {
-                button.addEventListener('click', function() {
+                button.addEventListener('click', function () {
                     setGamePanel(button.dataset.gamePanelTarget);
                 });
             });
@@ -4564,21 +4687,21 @@
             setGamePanel('table');
         });
 
-        socket.on('guess_made', function(data) {
+        socket.on('guess_made', function (data) {
             let message = `<span class="guess-icon">🎯</span> <strong>${data.player}</strong> guessed <em>${data.target}</em>`;
             if (data.correct) {
                 message += ` - <span class="correct-result">🎉 CORRECT! ✅</span>`;
                 // if (data.actual_tiles) {
-                //     const tilesHTML = data.actual_tiles.map(tile => 
+                //     const tilesHTML = data.actual_tiles.map(tile =>
                 //         `<span class="actual-tile ${tile.color}">${tile.number}</span>`
                 //     ).join('');
                 //     message += ` <span class="guessed-tiles-display">[${tilesHTML}]</span>`;
                 // }
-                
+
                 // Trigger celebration effects for correct guesses
                 showCelebration();
                 playSound('correctAnswerSound');
-                
+
                 // Ensure timer updates continue if game is still active
                 // Only restart if we're still in game interface and don't have timer updates running
                 setTimeout(() => {
@@ -4590,7 +4713,7 @@
             } else {
                 message += ` - <span class="wrong-result">❌ WRONG</span>`;
                 if (data.player_count === 2) {
-                    const tilesHTML = data.guess.map(tile => 
+                    const tilesHTML = data.guess.map(tile =>
                         `<span class="actual-tile ${tile.color}">${tile.number}</span>`
                     ).join('');
                     message += `<br><span class="reveal-label">🔍 Guessed tiles:</span> <span class="guessed-tiles-display">${tilesHTML}</span>`;
@@ -4600,17 +4723,17 @@
             addToGameLog(message);
         });
 
-        socket.on('final_round_started', function(data) {
+        socket.on('final_round_started', function (data) {
             console.log('Final round started:', data);
             gameState.finalRound = true;
             gameState.finalRoundPlayer = data.final_player;
             addToGameLog(data.message);
             showStatus(data.message, 'info');
             updateTurnIndicator(gameState.currentTurn);
-            
+
             // Ensure timer updates continue during final round
             ensureTimerUpdatesActive();
-            
+
             // Disable question asking for everyone in final round
             const questionCards = document.querySelectorAll('.question-card');
             questionCards.forEach(card => {
@@ -4619,28 +4742,28 @@
             });
         });
 
-        socket.on('game_ended', function(data) {
+        socket.on('game_ended', function (data) {
             addToGameLog(`Game Over! Winners: ${data.winners.join(', ')}`);
             // The message from server now includes actual points awarded after penalties
             showStatus(data.message, data.is_draw ? 'info' : 'success');
-            
+
             // Stop and reset timer
             stopTimer();
             stopTimerUpdates(); // Stop all player timer updates
             currentTimeLimit = null;
             turnStartTime = null;
-            
+
             // Disable further interactions
             const submitBtn = document.getElementById('submitGuess');
             const clearBtn = document.getElementById('clearGuess');
             if (submitBtn) submitBtn.disabled = true;
             if (clearBtn) clearBtn.disabled = true;
-            
+
             // Disable tile buttons
             document.querySelectorAll('.tile-button').forEach(btn => {
                 btn.disabled = true;
             });
-            
+
             // Redirect to waiting room if specified
             if (data.redirect_to_waiting) {
                 setTimeout(() => {
@@ -4648,36 +4771,36 @@
                     document.getElementById('gameInterface').style.display = 'none';
                     document.getElementById('waitingRoom').style.display = 'block';
                     setWaitingPanel('lobby');
-                    
+
                     // Reset game state
                     gameState.finalRound = false;
                     gameState.finalRoundPlayer = null;
                     gameState.currentTurn = null;
                     gameState.isReady = gameState.isHost; // Host auto-ready
-                    
+
                     // Reset timer state
                     gameState.timeLimit = null;
                     gameState.penaltyMode = null;
-                    
+
                     // Update waiting room buttons
                     updateWaitingRoomButtons();
-                    
+
                     // Emit ready status if host
                     if (gameState.isHost) {
                         socket.emit('player_ready', { ready: true });
                     }
-                    
+
                     showStatus('Game finished! Ready for next game?', 'info');
                 }, 3000);
             }
         });
 
-        socket.on('player_ready_update', function(data) {
+        socket.on('player_ready_update', function (data) {
             console.log('Player ready update:', data);
             updatePlayersList(data.players, data.players.length, data.all_ready);
             syncLocalPlayerState(data.players);
             updateWaitingRoomButtons();
-            
+
             // Update scoreboard with proper player data
             const playersForScoreboard = data.players.map(player => ({
                 name: player.name,
@@ -4687,55 +4810,55 @@
         });
 
         // Event listeners
-        document.getElementById('startGameBtn').addEventListener('click', function() {
+        document.getElementById('startGameBtn').addEventListener('click', function () {
             console.log('Start game button clicked!');
             console.log('Button disabled state:', this.disabled);
             console.log('Player count:', gameState.playerCount);
-            
+
             if (this.disabled) {
                 console.log('Button is disabled, cannot start game');
                 return;
             }
-            
+
             console.log('Emitting start_game event...');
             socket.emit('start_game');
         });
 
-        document.getElementById('backToLobby').addEventListener('click', function() {
+        document.getElementById('backToLobby').addEventListener('click', function () {
             window.location.href = '/';
         });
 
-        document.getElementById('copyRoomId').addEventListener('click', function() {
+        document.getElementById('copyRoomId').addEventListener('click', function () {
             navigator.clipboard.writeText(roomId);
             showStatus('Room ID copied to clipboard!', 'success');
         });
 
-        document.getElementById('confirmQuestion').addEventListener('click', function() {
+        document.getElementById('confirmQuestion').addEventListener('click', function () {
             const data = {
                 question_index: gameState.selectedQuestionIndex
             };
-            
+
             // Include chosen number if one was selected
             if (gameState.chosenNumber !== null) {
                 data.chosen_number = gameState.chosenNumber;
             }
-            
+
             socket.emit('ask_question', data);
-            
+
             hideQuestionInterface();
         });
 
-        document.getElementById('cancelQuestion').addEventListener('click', function() {
+        document.getElementById('cancelQuestion').addEventListener('click', function () {
             hideQuestionInterface();
         });
 
-        document.getElementById('readyBtn').addEventListener('click', function() {
+        document.getElementById('readyBtn').addEventListener('click', function () {
             gameState.isReady = true;
             socket.emit('player_ready', { ready: true });
             updateWaitingRoomButtons();
         });
 
-        document.getElementById('notReadyBtn').addEventListener('click', function() {
+        document.getElementById('notReadyBtn').addEventListener('click', function () {
             gameState.isReady = false;
             socket.emit('player_ready', { ready: false });
             updateWaitingRoomButtons();
@@ -4746,7 +4869,7 @@
             const startBtn = document.getElementById('startGameBtn');
             const readyBtn = document.getElementById('readyBtn');
             const notReadyBtn = document.getElementById('notReadyBtn');
-            
+
             if (gameState.isHost) {
                 // Host sees start button
                 startBtn.style.display = 'inline-block';
@@ -4772,7 +4895,7 @@
             if (allReady === null && Array.isArray(players)) {
                 allReady = getAllPlayersReady(players, count);
             }
-            
+
             if (Array.isArray(players)) {
                 // Handle array format (with ready status, scores, and connection status)
                 players.forEach(player => {
@@ -4796,12 +4919,12 @@
                     }));
                 });
             }
-            
+
             const countDiv = document.createElement('div');
             countDiv.className = 'player-count';
             countDiv.textContent = `${count} player(s) joined`;
             listElement.appendChild(countDiv);
-            
+
             // Show host controls if user is host and not in reorder mode
             const hostControls = document.getElementById('hostControls');
             if (gameState.isHost && !reorderMode) {
@@ -4809,7 +4932,7 @@
             } else {
                 hostControls.style.display = 'none';
             }
-            
+
             // Update start button for host
             if (gameState.isHost) {
                 const startBtn = document.getElementById('startGameBtn');
@@ -4824,9 +4947,9 @@
         function updateScoreboard(players) {
             const scoreboard = document.getElementById('gameScoreboard');
             if (!scoreboard) return;
-            
+
             scoreboard.innerHTML = '';
-            
+
             // Convert players object to array if needed and sort by score
             let playerList = [];
             if (Array.isArray(players)) {
@@ -4834,16 +4957,16 @@
             } else if (typeof players === 'object') {
                 playerList = Object.values(players);
             }
-            
+
             // Sort by score (highest first)
             playerList.sort((a, b) => (b.score || 0) - (a.score || 0));
-            
+
             playerList.forEach((player, index) => {
                 const scoreItem = document.createElement('div');
                 scoreItem.className = 'score-item';
                 const position = index + 1;
                 const medal = position === 1 ? '🥇' : position === 2 ? '🥈' : position === 3 ? '🥉' : '';
-                
+
                 // Create score item content with medal animation if applicable
                 let content = '';
                 if (medal) {
@@ -4854,7 +4977,7 @@
                     <span class="score-name">${player.name}</span>
                     <span class="score-points">${player.score || 0} pts</span>
                 `;
-                
+
                 scoreItem.innerHTML = content;
                 scoreboard.appendChild(scoreItem);
             });
@@ -4863,7 +4986,7 @@
         function displayYourTiles(tiles) {
             const container = document.getElementById('yourTiles');
             container.innerHTML = '';
-            
+
             tiles.forEach(tile => {
                 const tileElement = document.createElement('div');
                 tileElement.className = `tile tile-${tile.color}`;
@@ -4875,7 +4998,7 @@
         function displayAvailableQuestions(questions) {
             const container = document.getElementById('availableQuestions');
             container.innerHTML = '';
-            
+
             questions.forEach((question, index) => {
                 const questionElement = document.createElement('button');
                 questionElement.type = 'button';
@@ -4890,7 +5013,7 @@
                 if (requiresNumber) {
                     questionElement.classList.add('requires-choice');
                 }
-                
+
                 // Format text between ** ** as bold and green
                 const formattedText = question.replace(/\*\*(.*?)\*\*/g, '<span class="question-highlight">$1</span>');
                 questionElement.innerHTML = `
@@ -4904,7 +5027,7 @@
                         <span class="question-card-footer">${footerText}</span>
                     </span>
                 `;
-                
+
                 questionElement.addEventListener('click', () => {
                     container.querySelectorAll('.question-card').forEach(card => card.classList.remove('selected'));
                     if (selectQuestion(index, question)) {
@@ -4952,7 +5075,7 @@
                 showStatus("It's not your turn!", 'error');
                 return false;
             }
-            
+
             // Check if in final round
             if (gameState.finalRound) {
                 if (gameState.finalRoundPlayer === gameState.yourPlayerId) {
@@ -4962,22 +5085,22 @@
                 }
                 return false;
             }
-            
+
             gameState.selectedQuestionIndex = index;
             gameState.selectedQuestion = question;
             gameState.chosenNumber = null; // Reset chosen number
-            
+
             // Format the selected question with the same highlighting
             const formattedText = question.replace(/\*\*(.*?)\*\*/g, '<span class="question-highlight">$1</span>');
             document.getElementById('selectedQuestion').innerHTML = formattedText;
-            
+
             // Check if this question requires number selection
             if (question.includes("You must choose one number before asking that question")) {
                 setupNumberSelection(question);
             } else {
                 hideNumberSelection();
             }
-            
+
             showQuestionInterface();
             return true;
         }
@@ -4986,11 +5109,11 @@
             const numberSection = document.getElementById('numberSelectionSection');
             const numberButtons = document.getElementById('numberButtons');
             const selectedDisplay = document.getElementById('selectedNumberDisplay');
-            
+
             // Clear previous buttons
             numberButtons.innerHTML = '';
             selectedDisplay.textContent = '';
-            
+
             // Determine which numbers are valid for this question
             let validNumbers = [];
             if (question.includes('#8** or **#9')) {
@@ -5002,7 +5125,7 @@
             } else if (question.includes('#6** or **#7')) {
                 validNumbers = [6, 7];
             }
-            
+
             // Create number buttons
             validNumbers.forEach(number => {
                 const button = document.createElement('button');
@@ -5012,10 +5135,10 @@
                 button.addEventListener('click', () => selectNumber(number));
                 numberButtons.appendChild(button);
             });
-            
+
             // Show the number selection section
             numberSection.style.display = 'block';
-            
+
             // Update confirm button state
             updateConfirmButtonState();
         }
@@ -5029,7 +5152,7 @@
 
         function selectNumber(number) {
             gameState.chosenNumber = number;
-            
+
             // Update button states
             document.querySelectorAll('.number-button').forEach(btn => {
                 btn.classList.remove('selected');
@@ -5037,20 +5160,20 @@
                     btn.classList.add('selected');
                 }
             });
-            
+
             // Update display
             const selectedDisplay = document.getElementById('selectedNumberDisplay');
             selectedDisplay.textContent = `Selected number: ${number}`;
-            
+
             // Update confirm button state
             updateConfirmButtonState();
         }
 
         function updateConfirmButtonState() {
             const confirmBtn = document.getElementById('confirmQuestion');
-            const requiresNumber = gameState.selectedQuestion && 
-                                 gameState.selectedQuestion.includes("You must choose one number before asking that question");
-            
+            const requiresNumber = gameState.selectedQuestion &&
+                gameState.selectedQuestion.includes("You must choose one number before asking that question");
+
             if (requiresNumber && gameState.chosenNumber === null) {
                 confirmBtn.disabled = true;
                 confirmBtn.textContent = 'Choose a number first';
@@ -5081,21 +5204,21 @@
             const submitBtn = document.getElementById('submitGuess');
             const clearBtn = document.getElementById('clearGuess');
             const tileButtons = document.querySelectorAll('.tile-button');
-            
+
             // Remove all existing turn classes
             turnIndicator.classList.remove('your-turn', 'waiting-turn', 'final-round');
-            
+
             if (currentTurn === gameState.yourPlayerId) {
                 if (gameState.finalRound && gameState.finalRoundPlayer === gameState.yourPlayerId) {
                     // In final round and you are the final player - can only guess
                     turnIndicator.classList.add('final-round');
                     indicator.innerHTML = '<span class="turn-icon">⚡</span>Final Round - Make your guess!';
                     setGamePanel('guess');
-                    
+
                     // Enable guess interface
                     if (submitBtn) submitBtn.disabled = false;
                     if (clearBtn) clearBtn.disabled = false;
-                    
+
                     // Enable all tile buttons for selection
                     tileButtons.forEach(btn => {
                         btn.disabled = false;
@@ -5106,7 +5229,7 @@
                     // In final round but not the final player - cannot act
                     turnIndicator.classList.add('waiting-turn');
                     indicator.innerHTML = '<span class="turn-icon">⏳</span>Final round in progress - Waiting...';
-                    
+
                     // Disable guess interface
                     if (submitBtn) submitBtn.disabled = true;
                     if (clearBtn) clearBtn.disabled = true;
@@ -5119,11 +5242,11 @@
                     // Normal turn - can ask questions or guess
                     turnIndicator.classList.add('your-turn');
                     indicator.innerHTML = '<span class="turn-icon">🎯</span>Your Turn - Ask a question or make a guess!';
-                    
+
                     // Enable guess interface
                     if (submitBtn) submitBtn.disabled = false;
                     if (clearBtn) clearBtn.disabled = false;
-                    
+
                     // Enable all tile buttons for selection
                     tileButtons.forEach(btn => {
                         btn.disabled = false;
@@ -5139,7 +5262,7 @@
                 } else {
                     indicator.innerHTML = '<span class="turn-icon">⏱️</span>Waiting for turn...';
                 }
-                
+
                 // Disable guess interface when not your turn
                 if (submitBtn) submitBtn.disabled = true;
                 if (clearBtn) clearBtn.disabled = true;
@@ -5154,10 +5277,10 @@
         function setupCenterTiles(count) {
             const section = document.getElementById('centerTilesSection');
             section.style.display = 'block';
-            
+
             const container = document.getElementById('centerTiles');
             container.innerHTML = '';
-            
+
             for (let i = 0; i < count; i++) {
                 const tileElement = document.createElement('div');
                 tileElement.className = 'tile tile-hidden';
@@ -5170,13 +5293,13 @@
             // Setup other players display based on game mode
             const container = document.getElementById('otherPlayers');
             const rivals = Object.entries(gameState.allPlayers || {}).filter(([playerId]) => playerId !== gameState.yourPlayerId);
-            
+
             if (gameState.playerCount === 2) {
                 // 2-player mode: show other player for targeting
                 container.innerHTML = '';
                 const grid = document.createElement('div');
                 grid.className = 'other-players-grid';
-                
+
                 rivals.forEach(([playerId, player]) => {
                     const playerDiv = document.createElement('div');
                     playerDiv.className = 'other-player-item';
@@ -5206,22 +5329,22 @@
 
                 container.appendChild(grid);
             }
-            
+
             // Setup guess interface when game starts
             setupGuessInterface();
         }
 
         function setupGuessInterface() {
             console.log('setupGuessInterface called - player count:', gameState.playerCount);
-            
+
             // Update guess interface title based on game mode
             const guessSection = document.querySelector('.guess-section h3');
             if (gameState.playerCount === 2) {
-                guessSection.textContent = 'Guess Another Player\'s Tiles';
+                guessSection.textContent = 'Break Another Player\'s Code';
             } else {
-                guessSection.textContent = 'Guess the Center Tiles';
+                guessSection.textContent = 'Break the Center Code';
             }
-            
+
             // Update instructions
             const instructions = document.querySelector('.guess-instructions p');
             if (gameState.playerCount === 2) {
@@ -5229,15 +5352,15 @@
             } else {
                 instructions.textContent = 'Click tiles to select/deselect them for your guess:';
             }
-            
+
             const availableTilesContainer = document.getElementById('availableTiles');
             console.log('Available tiles container found:', !!availableTilesContainer);
-            
+
             if (!availableTilesContainer) {
                 console.error('availableTiles container not found!');
                 return;
             }
-            
+
             availableTilesContainer.innerHTML = '';
 
             // Add tiles 0-9 in sequential order with spacing
@@ -5245,13 +5368,13 @@
                 console.log('Creating tiles for number:', number);
                 if (number === 5) {
                     // For number 5, add green tiles instead of black/white
-                    const greenTile1 = {number: 5, color: 'green'};
-                    const greenTile2 = {number: 5, color: 'green'};
-                    
+                    const greenTile1 = { number: 5, color: 'green' };
+                    const greenTile2 = { number: 5, color: 'green' };
+
                     // Calculate index for green tiles
                     const index1 = number * 2;
                     const index2 = number * 2 + 1;
-                    
+
                     const button1 = document.createElement('button');
                     button1.className = `tile-button ${greenTile1.color}`;
                     button1.textContent = greenTile1.number;
@@ -5273,13 +5396,13 @@
                     availableTilesContainer.appendChild(button2);
                 } else {
                     // For all other numbers, add black first, then white
-                    const blackTile = {number: number, color: 'black'};
-                    const whiteTile = {number: number, color: 'white'};
-                    
+                    const blackTile = { number: number, color: 'black' };
+                    const whiteTile = { number: number, color: 'white' };
+
                     // Calculate index
                     const blackIndex = number * 2;
                     const whiteIndex = number * 2 + 1;
-                    
+
                     const blackButton = document.createElement('button');
                     blackButton.className = `tile-button ${blackTile.color}`;
                     blackButton.textContent = blackTile.number;
@@ -5300,7 +5423,7 @@
                     whiteButton.addEventListener('click', () => toggleTileSelection(whiteButton, whiteTile, whiteIndex));
                     availableTilesContainer.appendChild(whiteButton);
                 }
-                
+
                 // Add spacing element after each number (except the last one)
                 if (number < 9) {
                     const spacer = document.createElement('div');
@@ -5308,22 +5431,22 @@
                     availableTilesContainer.appendChild(spacer);
                 }
             }
-            
+
             console.log('Total elements created:', availableTilesContainer.children.length);
             console.log('Available tiles container children:', availableTilesContainer.children);
 
             // Setup clear and submit buttons
             const clearButton = document.getElementById('clearGuess');
             const submitButton = document.getElementById('submitGuess');
-            
+
             // Remove existing event listeners to prevent duplicates
             clearButton.removeEventListener('click', clearGuess);
             submitButton.removeEventListener('click', submitGuess);
-            
+
             // Add fresh event listeners
             clearButton.addEventListener('click', clearGuess);
             submitButton.addEventListener('click', submitGuess);
-            
+
             // Initialize empty selection
             currentGuess = [];
             updateGuessDisplay();
@@ -5333,9 +5456,9 @@
 
         function toggleTileSelection(button, tile, index) {
             const isSelected = button.dataset.selected === 'true';
-            const maxTiles = gameState.playerCount === 2 ? 5 : 
-                           gameState.playerCount === 3 ? 5 :
-                           gameState.playerCount === 4 ? 4 : 5;
+            const maxTiles = gameState.playerCount === 2 ? 5 :
+                gameState.playerCount === 3 ? 5 :
+                    gameState.playerCount === 4 ? 4 : 5;
 
             if (!isSelected) {
                 // Trying to select a tile
@@ -5345,15 +5468,15 @@
                 }
                 // Select the tile
                 button.dataset.selected = 'true';
-                currentGuess.push({...tile, buttonIndex: index});
+                currentGuess.push({ ...tile, buttonIndex: index });
             } else {
                 // Deselecting a tile
                 button.dataset.selected = 'false';
                 // Remove from currentGuess
-                currentGuess = currentGuess.filter(guessedTile => 
-                    !(guessedTile.buttonIndex === index && 
-                      guessedTile.number === tile.number && 
-                      guessedTile.color === tile.color)
+                currentGuess = currentGuess.filter(guessedTile =>
+                    !(guessedTile.buttonIndex === index &&
+                        guessedTile.number === tile.number &&
+                        guessedTile.color === tile.color)
                 );
             }
 
@@ -5381,9 +5504,9 @@
             });
 
             // Show count
-            const maxTiles = gameState.playerCount === 2 ? 5 : 
-                           gameState.playerCount === 3 ? 5 :
-                           gameState.playerCount === 4 ? 4 : 5;
+            const maxTiles = gameState.playerCount === 2 ? 5 :
+                gameState.playerCount === 3 ? 5 :
+                    gameState.playerCount === 4 ? 4 : 5;
             const countElement = document.createElement('p');
             countElement.className = 'guess-count';
             countElement.textContent = `Selected: ${currentGuess.length}/${maxTiles} tiles`;
@@ -5411,17 +5534,17 @@
                 showStatus("It's not your turn!", 'error');
                 return;
             }
-            
+
             // Check final round restrictions
             if (gameState.finalRound && gameState.finalRoundPlayer !== gameState.yourPlayerId) {
                 showStatus("Only the final round player can make guesses now!", 'error');
                 return;
             }
-            
+
             // Updated tile counts for new game modes
-            const maxTiles = gameState.playerCount === 2 ? 5 : 
-                           gameState.playerCount === 3 ? 5 :
-                           gameState.playerCount === 4 ? 4 : 5;
+            const maxTiles = gameState.playerCount === 2 ? 5 :
+                gameState.playerCount === 3 ? 5 :
+                    gameState.playerCount === 4 ? 4 : 5;
 
             if (currentGuess.length !== maxTiles) {
                 showStatus(`Please select exactly ${maxTiles} tiles for your guess`, 'error');
@@ -5444,7 +5567,7 @@
                         break;
                     }
                 }
-                
+
                 if (guessType === 'center') {
                     showStatus('Unable to find target player for guess', 'error');
                     return;
@@ -5453,14 +5576,14 @@
             // For 3-4 player games, guessType remains 'center'
 
             console.log('Submitting guess:', guessData, 'Type:', guessType);
-            
+
             socket.emit('make_guess', {
                 guess: guessData,
                 guess_type: guessType
             });
 
             showStatus('Guess submitted!', 'success');
-            
+
             // Clear the guess after submission
             clearGuess();
         }
@@ -5468,7 +5591,7 @@
         function addToGameLog(message, type = 'default') {
             const logContainer = document.getElementById('gameLog');
             const logEntry = document.createElement('div');
-            
+
             // Set appropriate CSS classes based on type
             if (type === 'question') {
                 logEntry.className = 'log-entry question-log-entry';
@@ -5477,7 +5600,7 @@
             } else {
                 logEntry.className = 'log-entry';
             }
-            
+
             // Add timestamp and message content
             const timestamp = new Date().toLocaleTimeString();
             if (type === 'answer') {
@@ -5486,7 +5609,7 @@
             } else {
                 logEntry.innerHTML = `<span style="color: #718096; font-size: 11px;">${timestamp}</span> ${message}`;
             }
-            
+
             logContainer.appendChild(logEntry);
             logContainer.scrollTop = logContainer.scrollHeight;
         }
@@ -5495,7 +5618,7 @@
             const statusDiv = document.getElementById('status');
             statusDiv.textContent = message;
             statusDiv.className = `status-message ${type}`;
-            
+
             clearTimeout(statusTimeout);
             statusTimeout = setTimeout(() => {
                 statusDiv.textContent = '';
@@ -5509,22 +5632,22 @@
             const overlay = document.createElement('div');
             overlay.className = 'celebration-overlay';
             document.body.appendChild(overlay);
-            
+
             // Show celebration message
             const message = document.createElement('div');
             message.className = 'celebration-message';
             message.textContent = '🎉 CORRECT! 🎉';
             document.body.appendChild(message);
-            
+
             // Create fireworks
             createFireworks(overlay);
-            
+
             // Create falling flowers
             createFlowers(overlay);
-            
+
             // Create stars
             createStars(overlay);
-            
+
             // Remove elements after animation
             setTimeout(() => {
                 if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
@@ -5534,7 +5657,7 @@
 
         function createFireworks(container) {
             const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ffa500'];
-            
+
             for (let i = 0; i < 20; i++) {
                 setTimeout(() => {
                     const firework = document.createElement('div');
@@ -5543,7 +5666,7 @@
                     firework.style.left = Math.random() * 100 + '%';
                     firework.style.top = Math.random() * 100 + '%';
                     container.appendChild(firework);
-                    
+
                     setTimeout(() => {
                         if (firework.parentNode) firework.parentNode.removeChild(firework);
                     }, 1500);
@@ -5553,7 +5676,7 @@
 
         function createFlowers(container) {
             const flowers = ['🌸', '🌺', '🌻', '🌹', '🌼', '🌷', '🌿', '🍀'];
-            
+
             for (let i = 0; i < 15; i++) {
                 setTimeout(() => {
                     const flower = document.createElement('div');
@@ -5562,7 +5685,7 @@
                     flower.style.left = Math.random() * 100 + '%';
                     flower.style.animationDelay = Math.random() * 0.5 + 's';
                     container.appendChild(flower);
-                    
+
                     setTimeout(() => {
                         if (flower.parentNode) flower.parentNode.removeChild(flower);
                     }, 2000);
@@ -5572,7 +5695,7 @@
 
         function createStars(container) {
             const stars = ['⭐', '✨', '🌟', '💫'];
-            
+
             for (let i = 0; i < 10; i++) {
                 setTimeout(() => {
                     const star = document.createElement('div');
@@ -5582,7 +5705,7 @@
                     star.style.top = Math.random() * 100 + '%';
                     star.style.animationDelay = Math.random() * 0.3 + 's';
                     container.appendChild(star);
-                    
+
                     setTimeout(() => {
                         if (star.parentNode) star.parentNode.removeChild(star);
                     }, 2000);
@@ -5594,34 +5717,34 @@
             const sound = document.getElementById(soundId);
             if (sound && typeof sound.play === 'function') {
                 sound.currentTime = 0;
-                sound.play().catch(e => {});
+                sound.play().catch(e => { });
             }
         }
-        
+
         // Timer management functions
         function startTimer(timeLimit) {
             if (timeLimit === null || timeLimit === undefined) {
                 hidePopupClock();
                 return;
             }
-            
+
             currentTimeLimit = timeLimit;
             turnStartTime = Date.now();
-            
+
             // Ensure global timer updates are running when starting individual timer
             ensureTimerUpdatesActive();
-            
+
             // No need to show timer here - it's handled by updateSimpleTimer
-            
+
             // Clear any existing timer
             if (timerInterval) {
                 clearInterval(timerInterval);
             }
-            
+
             // Update timer every second
             timerInterval = setInterval(updateTimerDisplay, 1000);
         }
-        
+
         function stopTimer() {
             if (timerInterval) {
                 clearInterval(timerInterval);
@@ -5629,23 +5752,23 @@
             }
             // Timer hiding is handled by updateSimpleTimer when there's no active timer
         }
-        
+
         function showTimer() {
             // Legacy function - timer display is now handled by showPopupClock
         }
-        
+
         function hideTimer() {
             // Legacy function - timer hiding is now handled by hidePopupClock
         }
-        
+
         function updateTimerDisplay() {
             // Legacy function - timer updates are now handled by the all_timers_update socket event
             // and updateSimpleTimer function
         }
-        
+
         function formatTimeLimit(seconds) {
             if (!seconds) return 'Unlimited';
-            
+
             if (seconds < 60) {
                 return `${seconds} seconds`;
             } else {
@@ -5659,13 +5782,13 @@
             }
         }
 
-        socket.on('disconnect', function() {
+        socket.on('disconnect', function () {
             console.log('Disconnected from server');
             showStatus('Connection lost. Attempting to reconnect...', 'warning');
         });
-        
+
         // Socket event for player reordering
-        socket.on('players_reordered', function(data) {
+        socket.on('players_reordered', function (data) {
             console.log('Players reordered:', data);
             const allReady = getAllPlayersReady(data.players, data.players.length);
             updatePlayersList(data.players, data.players.length, allReady);
@@ -5674,22 +5797,22 @@
             exitReorderMode();
             showStatus(data.message, 'success');
         });
-        
+
         // Reorder functionality
         function enterReorderMode() {
             if (!gameState.isHost) {
                 showStatus('Only the host can reorder players', 'error');
                 return;
             }
-            
+
             reorderMode = true;
-            
+
             // Store original order and current player data
             const playersList = document.getElementById('playersList');
             const playerItems = Array.from(playersList.querySelectorAll('.player-item:not(.player-count)'));
             originalPlayerOrder = playerItems.map(item => item.dataset.playerId);
             currentPlayerOrder = [...originalPlayerOrder];
-            
+
             // Store current player data for rebuilding
             gameState.currentPlayerData = playerItems.map(item => ({
                 id: item.dataset.playerId,
@@ -5699,49 +5822,49 @@
                 score: parseInt(item.dataset.playerScore || '0', 10),
                 element: item
             }));
-            
+
             // Show reorder controls
             document.getElementById('reorderControls').style.display = 'block';
             document.getElementById('hostControls').style.display = 'none';
-            
+
             // Add reorder mode class and setup arrow buttons
             playersList.classList.add('reorder-mode');
             setupArrowButtons();
-            
+
             // Add order numbers
             updateOrderNumbers();
         }
-        
+
         function exitReorderMode() {
             reorderMode = false;
-            
+
             // Hide reorder controls
             document.getElementById('reorderControls').style.display = 'none';
             if (gameState.isHost) {
                 document.getElementById('hostControls').style.display = 'block';
             }
-            
+
             // Remove reorder mode class
             document.getElementById('playersList').classList.remove('reorder-mode');
-            
+
             // Remove drag and drop
             removeDragAndDrop();
-            
+
             // Remove order numbers
             document.querySelectorAll('.player-order-number').forEach(el => el.remove());
         }
-        
+
         function setupArrowButtons() {
             const playerItems = document.querySelectorAll('.player-item:not(.player-count)');
-            
+
             playerItems.forEach((item, index) => {
                 // Store the player ID
                 item.dataset.playerId = currentPlayerOrder[index];
-                
+
                 // Create arrow buttons container
                 const arrowsContainer = document.createElement('div');
                 arrowsContainer.className = 'reorder-arrows';
-                
+
                 // Create up arrow button
                 const upBtn = document.createElement('button');
                 upBtn.className = 'arrow-btn up';
@@ -5749,7 +5872,7 @@
                 upBtn.setAttribute('aria-label', 'Move player up');
                 upBtn.disabled = index === 0; // Disable if first item
                 upBtn.addEventListener('click', () => movePlayerUp(index));
-                
+
                 // Create down arrow button
                 const downBtn = document.createElement('button');
                 downBtn.className = 'arrow-btn down';
@@ -5757,57 +5880,57 @@
                 downBtn.setAttribute('aria-label', 'Move player down');
                 downBtn.disabled = index === playerItems.length - 1; // Disable if last item
                 downBtn.addEventListener('click', () => movePlayerDown(index));
-                
+
                 arrowsContainer.appendChild(upBtn);
                 arrowsContainer.appendChild(downBtn);
                 item.appendChild(arrowsContainer);
             });
         }
-        
+
         function removeArrowButtons() {
             document.querySelectorAll('.reorder-arrows').forEach(container => {
                 container.remove();
             });
         }
-        
+
         function movePlayerUp(currentIndex) {
             if (currentIndex === 0) return; // Already at top
-            
+
             // Swap in the order array
-            [currentPlayerOrder[currentIndex], currentPlayerOrder[currentIndex - 1]] = 
-            [currentPlayerOrder[currentIndex - 1], currentPlayerOrder[currentIndex]];
-            
+            [currentPlayerOrder[currentIndex], currentPlayerOrder[currentIndex - 1]] =
+                [currentPlayerOrder[currentIndex - 1], currentPlayerOrder[currentIndex]];
+
             // Update the UI
             updatePlayerListOrder();
         }
-        
+
         function movePlayerDown(currentIndex) {
             if (currentIndex === currentPlayerOrder.length - 1) return; // Already at bottom
-            
+
             // Swap in the order array
-            [currentPlayerOrder[currentIndex], currentPlayerOrder[currentIndex + 1]] = 
-            [currentPlayerOrder[currentIndex + 1], currentPlayerOrder[currentIndex]];
-            
+            [currentPlayerOrder[currentIndex], currentPlayerOrder[currentIndex + 1]] =
+                [currentPlayerOrder[currentIndex + 1], currentPlayerOrder[currentIndex]];
+
             // Update the UI
             updatePlayerListOrder();
         }
-        
+
         function updatePlayerListOrder() {
             const playersList = document.getElementById('playersList');
             const playerCountElement = playersList.querySelector('.player-count');
-            
+
             // Remove all existing player items (but keep player-count)
             const existingPlayers = playersList.querySelectorAll('.player-item:not(.player-count)');
             existingPlayers.forEach(item => item.remove());
-            
+
             // Rebuild the player list in the new order using stored data
             currentPlayerOrder.forEach((playerId, index) => {
                 // Find player data from stored data
                 const playerData = gameState.currentPlayerData.find(p => p.id === playerId);
-                
+
                 if (playerData) {
                     const playerDiv = createPlayerItem(playerData);
-                    
+
                     // Insert before player-count element
                     if (playerCountElement) {
                         playersList.insertBefore(playerDiv, playerCountElement);
@@ -5816,23 +5939,23 @@
                     }
                 }
             });
-            
+
             // Re-setup arrow buttons and order numbers
             setupArrowButtons();
             updateOrderNumbers();
         }
-        
+
         // Replace the old drag and drop functions
         function setupDragAndDrop() {
             // This function is replaced by setupArrowButtons
             setupArrowButtons();
         }
-        
+
         function removeDragAndDrop() {
             // This function is replaced by removeArrowButtons
             removeArrowButtons();
         }
-        
+
         // Remove all the old drag and drop event handlers (keep as empty functions for compatibility)
         function handleDragStart(e) { }
         function handleDragEnd(e) { }
@@ -5842,52 +5965,52 @@
         function handleDragOver(e) { }
         function handleDrop(e) { }
         function getDragAfterElement(container, y) { }
-        
+
         function updateOrderNumbers() {
             const playerItems = document.querySelectorAll('.player-item:not(.player-count)');
-            
+
             // Remove existing order numbers
             document.querySelectorAll('.player-order-number').forEach(el => el.remove());
-            
+
             // Add new order numbers
             playerItems.forEach((item, index) => {
                 const orderNumber = document.createElement('div');
                 orderNumber.className = 'player-order-number';
                 orderNumber.textContent = index + 1;
                 item.appendChild(orderNumber);
-                
+
                 // Update the dataset for consistency
                 item.dataset.originalIndex = index;
             });
         }
-        
+
         function savePlayerOrder() {
             if (!gameState.isHost) {
                 showStatus('Only the host can reorder players', 'error');
                 return;
             }
-            
+
             if (JSON.stringify(currentPlayerOrder) === JSON.stringify(originalPlayerOrder)) {
                 showStatus('No changes to save', 'info');
                 exitReorderMode();
                 return;
             }
-            
+
             // Send new order to server
             socket.emit('reorder_players', {
                 new_order: currentPlayerOrder
             });
         }
-        
+
         // Game Settings Display Functions
         function updateGameSettings(settings) {
             const gameSettingsDisplay = document.getElementById('gameSettingsDisplay');
-            
+
             if (!settings) {
                 gameSettingsDisplay.innerHTML = '<p>Game settings not available</p>';
                 return;
             }
-            
+
             // Format time limit display
             let timeLimitText = 'Unlimited';
             if (settings.time_limit) {
@@ -5899,10 +6022,10 @@
                     timeLimitText = `${Math.floor(settings.time_limit / 60)} minutes`;
                 }
             }
-            
+
             // Format penalty mode display
             let penaltyModeText = settings.penalty_mode === 'for_fun' ? 'For Fun (Alerts only)' : 'Competitive (Score penalty)';
-            
+
             gameSettingsDisplay.innerHTML = `
                 <div class="setting-item">
                     <span class="setting-label">Max Players:</span>
@@ -5922,27 +6045,27 @@
                 </div>
             `;
         }
-        
+
         // Score History Display Functions
         function updateScoreHistory(scoreHistory) {
             const scoreHistoryDisplay = document.getElementById('scoreHistoryDisplay');
-            
+
             if (!scoreHistory || scoreHistory.length === 0) {
                 scoreHistoryDisplay.innerHTML = '<p class="no-history">No games completed yet. Start playing to see score history!</p>';
                 return;
             }
-            
+
             // Display rounds in reverse order (most recent first)
             const historyHTML = scoreHistory.slice().reverse().map(round => {
                 const roundTypeClass = round.is_draw ? 'draw' : 'win';
-                
+
                 // Handle both old format (winners) and new format (players)
                 const playersData = round.players || round.winners || [];
-                
+
                 const playersHTML = playersData.map(player => {
                     const resultClass = player.result ? player.result.toLowerCase() : (player.points_awarded > 0 ? 'win' : 'loss');
                     const resultText = player.result || (player.points_awarded > 0 ? 'Win' : 'Loss');
-                    
+
                     return `
                         <div class="player-result-item ${resultClass}">
                             <span class="player-name">${player.player_name}</span>
@@ -5952,7 +6075,7 @@
                         </div>
                     `;
                 }).join('');
-                
+
                 return `
                     <div class="round-history">
                         <div class="round-header">
@@ -5964,10 +6087,10 @@
                     </div>
                 `;
             }).join('');
-            
+
             scoreHistoryDisplay.innerHTML = historyHTML;
         }
-        
+
         // Timer Display Functions
         function updateSimpleTimer(timerData) {
             if (!timerData || !timerData.timers) {
@@ -5975,12 +6098,12 @@
                 hidePopupClock();
                 return;
             }
-            
+
             // Show the timer during game
             if (document.getElementById('gameInterface').style.display !== 'none') {
                 // Find the current turn player
                 const currentTurnTimer = Object.entries(timerData.timers).find(([playerId, timer]) => timer.is_current_turn);
-                
+
                 if (currentTurnTimer) {
                     const [playerId, timer] = currentTurnTimer;
                     console.log(`updateSimpleTimer: Showing timer for player ${timer.player_name} (Final round: ${gameState.finalRound})`);
@@ -5994,34 +6117,34 @@
                 hidePopupClock();
             }
         }
-        
+
         function showPopupClock(timerData) {
             const popup = document.getElementById('timerClockPopup');
             const playerName = document.getElementById('clockPlayerName');
             const timerDisplay = document.getElementById('clockTimerDisplay');
             const progressCircle = document.getElementById('progressCircle');
             const progressPercentage = document.getElementById('progressPercentage');
-            
+
             // Show popup
             popup.style.display = 'block';
-            
+
             // Update player name
             playerName.textContent = timerData.player_name;
-            
+
             // Update timer display
             const hasTimeLimit = timerData.time_limit !== null;
             let timerDisplayClass = '';
             let progressValue = 100;
-            
+
             if (hasTimeLimit && timerData.remaining_time !== null) {
                 const remainingSeconds = Math.max(0, timerData.remaining_time);
                 const minutes = Math.floor(remainingSeconds / 60);
                 const seconds = Math.floor(remainingSeconds % 60);
                 timerDisplay.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                
+
                 // Calculate progress percentage
                 progressValue = (remainingSeconds / timerData.time_limit) * 100;
-                
+
                 if (remainingSeconds <= 10) {
                     timerDisplayClass = 'critical';
                 } else if (remainingSeconds <= 30) {
@@ -6030,71 +6153,71 @@
             } else {
                 timerDisplay.textContent = '∞';
             }
-            
+
             // Update display classes
             timerDisplay.className = `time-display ${timerDisplayClass}`;
-            
+
             // Update progress ring
             updateProgressRing(progressValue, timerDisplayClass);
             progressPercentage.textContent = `${Math.round(progressValue)}%`;
         }
-        
+
         function hidePopupClock() {
             const popup = document.getElementById('timerClockPopup');
             popup.style.display = 'none';
         }
-        
+
         function updateProgressRing(percentage, statusClass = '') {
             const progressCircle = document.getElementById('progressCircle');
             const circumference = 2 * Math.PI * 20; // radius = 20 for the smaller ring
             const offset = circumference - (percentage / 100) * circumference;
-            
+
             progressCircle.style.strokeDashoffset = offset;
-            
+
             // Update color based on status
             progressCircle.className = `ring-progress ${statusClass}`;
         }
-        
+
         function updateClockHands() {
             const now = new Date();
             const hours = now.getHours() % 12;
             const minutes = now.getMinutes();
             const seconds = now.getSeconds();
-            
+
             // Calculate angles (360 degrees = 12 hours, 60 minutes, 60 seconds)
             const hourAngle = (hours * 30) + (minutes * 0.5); // 30 degrees per hour + minute adjustment
             const minuteAngle = minutes * 6; // 6 degrees per minute
             const secondAngle = seconds * 6; // 6 degrees per second
-            
+
             // Apply rotations
             const hourHand = document.getElementById('hourHand');
             const minuteHand = document.getElementById('minuteHand');
             const secondHand = document.getElementById('secondHand');
-            
+
             if (hourHand) hourHand.style.transform = `rotate(${hourAngle}deg)`;
             if (minuteHand) minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
             if (secondHand) secondHand.style.transform = `rotate(${secondAngle}deg)`;
         }
-        
+
         // Add event listener for close button
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const closeBtn = document.getElementById('closeTimerBtn');
             if (closeBtn) {
-                closeBtn.addEventListener('click', function() {
+                closeBtn.addEventListener('click', function () {
                     hidePopupClock();
                 });
             }
         });
-        
+
         // Socket event handlers for new features
-        socket.on('game_reset_to_waiting', function(data) {
+        socket.on('game_reset_to_waiting', function (data) {
             console.log('Game reset to waiting:', data);
-            
+
             // Switch to waiting room
             document.getElementById('gameInterface').style.display = 'none';
             document.getElementById('waitingRoom').style.display = 'block';
             setWaitingPanel('lobby');
-            
+
             // Update player list and game info
             const allReady = getAllPlayersReady(data.players, data.players.length);
             updatePlayersList(data.players, data.players.length, allReady);
@@ -6102,23 +6225,23 @@
             updateWaitingRoomButtons();
             updateGameSettings(data.game_settings);
             updateScoreHistory(data.score_history);
-            
+
             // Clear timers
             clearInterval(timerInterval);
             timerInterval = null;
             stopTimerUpdates();
             hidePopupClock();
-            
+
             showStatus('Game completed! Ready for next round.', 'success');
         });
-        
-        socket.on('all_timers_update', function(data) {
+
+        socket.on('all_timers_update', function (data) {
             updateSimpleTimer(data);
             // Ensure timer updates stay active during game
             ensureTimerUpdatesActive();
         });
-        
-        socket.on('game_info_update', function(data) {
+
+        socket.on('game_info_update', function (data) {
             if (data.game_settings) {
                 updateGameSettings(data.game_settings);
             }
@@ -6126,13 +6249,13 @@
                 updateScoreHistory(data.score_history);
             }
         });
-        
+
         // Request game info when page loads
         socket.emit('get_game_info');
-        
+
         // Request timer updates periodically during game
         let timerUpdateInterval = null;
-        
+
         function startTimerUpdates() {
             if (timerUpdateInterval) {
                 clearInterval(timerUpdateInterval);
@@ -6144,7 +6267,7 @@
             }, 1000);
             console.log('Timer updates started');
         }
-        
+
         function stopTimerUpdates() {
             if (timerUpdateInterval) {
                 clearInterval(timerUpdateInterval);
@@ -6153,7 +6276,7 @@
             hidePopupClock();
             console.log('Timer updates stopped');
         }
-        
+
         // Ensure timer updates are running during active game
         function ensureTimerUpdatesActive() {
             if (document.getElementById('gameInterface').style.display !== 'none' && !timerUpdateInterval) {
@@ -6163,4 +6286,5 @@
         }
     </script>
 </body>
-</html> 
+
+</html>
