@@ -872,7 +872,6 @@ body {
 /* Tile button selected state */
 .tile-button[data-selected="true"] {
     background-color: #4299e1 !important;
-    color: white !important;
     border: 2px solid #2b77cb !important;
     transform: scale(0.95);
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);

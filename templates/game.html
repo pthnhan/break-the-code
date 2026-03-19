@@ -3225,10 +3225,9 @@
         .number-button {
             --tile-piece-width: 64px;
             --tile-piece-height: 76px;
-            --tile-piece-font-size: 1.22rem;
-            --tile-piece-radius: 20px 20px 16px 16px;
+            --tile-piece-font-size: 2.82rem;
+            --tile-piece-radius: 18px;
             position: relative;
-            overflow: hidden;
             width: var(--tile-piece-width);
             min-width: var(--tile-piece-width);
             height: var(--tile-piece-height);
@@ -3236,68 +3235,64 @@
             align-items: center;
             justify-content: center;
             border-radius: var(--tile-piece-radius);
-            border: 1px solid rgba(170, 152, 120, 0.34);
-            background:
-                radial-gradient(circle at top left, rgba(255, 255, 255, 0.88) 0%, transparent 30%),
-                linear-gradient(180deg, #fffef9 0%, #efe6d5 60%, #d8cbb2 100%);
-            color: #1e3447;
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+            border: 4px solid #cfe89d;
+            background: linear-gradient(180deg, #fffefa 0%, #ffffff 55%, #f3f2eb 100%);
+            color: #263849;
             box-shadow:
-                0 16px 26px rgba(3, 10, 18, 0.22),
-                0 4px 0 rgba(7, 15, 22, 0.18),
-                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+                0 14px 22px rgba(4, 11, 18, 0.16),
+                0 3px 0 rgba(112, 132, 72, 0.22),
+                inset 0 2px 0 rgba(255, 255, 255, 0.9),
+                inset 0 -3px 0 rgba(155, 177, 110, 0.16);
             font-size: var(--tile-piece-font-size);
             font-weight: 900;
-            letter-spacing: -0.05em;
+            letter-spacing: -0.08em;
+            line-height: 1;
             cursor: pointer;
             transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, border-color 0.18s ease;
+            text-shadow:
+                -2px 0 #cfe89d,
+                0 2px #cfe89d,
+                2px 0 #cfe89d,
+                0 -2px #cfe89d,
+                0 2px 0 rgba(255, 255, 255, 0.88),
+                0 5px 7px rgba(35, 50, 28, 0.18);
+            -webkit-text-stroke: 1.4px #cfe89d;
         }
 
         .number-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 10%;
-            width: 80%;
-            height: 44%;
-            border-radius: 0 0 18px 18px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.38), transparent);
-            pointer-events: none;
+            content: none;
         }
 
         .number-button::after {
-            content: '';
-            position: absolute;
-            left: 10px;
-            right: 10px;
-            bottom: 8px;
-            height: 9px;
-            border-radius: 999px;
-            background: rgba(0, 0, 0, 0.14);
-            opacity: 0.55;
-            pointer-events: none;
+            content: none;
         }
 
         .number-button:hover {
             transform: translateY(-2px);
             box-shadow:
-                0 20px 30px rgba(3, 10, 18, 0.26),
-                0 5px 0 rgba(7, 15, 22, 0.18),
-                inset 0 1px 0 rgba(255, 255, 255, 0.34);
+                0 18px 28px rgba(4, 11, 18, 0.18),
+                0 4px 0 rgba(112, 132, 72, 0.22),
+                inset 0 2px 0 rgba(255, 255, 255, 0.92),
+                inset 0 -3px 0 rgba(155, 177, 110, 0.18);
         }
 
         .number-button.selected {
-            background:
-                radial-gradient(circle at top left, rgba(236, 255, 226, 0.42) 0%, transparent 28%),
-                linear-gradient(180deg, #8ddf74 0%, #43a25d 55%, #1f5c43 100%);
-            color: #f7fff7;
-            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.26);
-            border-color: rgba(203, 246, 177, 0.42);
-            transform: translateY(2px) scale(0.98);
+            background: linear-gradient(180deg, #fffefa 0%, #ffffff 55%, #f3f2eb 100%);
+            color: #2f9656;
+            border-color: #b8d97e;
+            transform: translateY(1px) scale(0.985);
             box-shadow:
-                0 10px 18px rgba(3, 10, 18, 0.24),
-                inset 0 1px 0 rgba(255, 255, 255, 0.18),
-                0 0 0 3px rgba(116, 220, 132, 0.22);
+                0 8px 14px rgba(4, 11, 18, 0.12),
+                inset 0 0 0 2px rgba(143, 194, 95, 0.14),
+                0 0 0 3px rgba(143, 194, 95, 0.14);
+            text-shadow:
+                -1px 0 rgba(31, 39, 33, 0.72),
+                0 1px rgba(31, 39, 33, 0.72),
+                1px 0 rgba(31, 39, 33, 0.72),
+                0 -1px rgba(31, 39, 33, 0.72),
+                0 1px 0 rgba(255, 255, 255, 0.82),
+                0 3px 6px rgba(23, 39, 19, 0.12);
+            -webkit-text-stroke: 1px rgba(31, 39, 33, 0.72);
         }
 
         .number-button:disabled {
@@ -3326,15 +3321,15 @@
         .guess-tile {
             --tile-piece-width: 64px;
             --tile-piece-height: 76px;
-            --tile-piece-font-size: 1.28rem;
-            --tile-piece-radius: 20px 20px 16px 16px;
+            --tile-piece-font-size: 3.02rem;
+            --tile-piece-radius: 18px;
         }
 
         .actual-tile {
             --tile-piece-width: 40px;
             --tile-piece-height: 50px;
-            --tile-piece-font-size: 0.96rem;
-            --tile-piece-radius: 16px 16px 13px 13px;
+            --tile-piece-font-size: 1.82rem;
+            --tile-piece-radius: 14px;
         }
 
         .tile,
@@ -3342,7 +3337,6 @@
         .guess-tile,
         .actual-tile {
             position: relative;
-            overflow: hidden;
             width: var(--tile-piece-width);
             min-width: var(--tile-piece-width);
             height: var(--tile-piece-height);
@@ -3350,14 +3344,16 @@
             align-items: center;
             justify-content: center;
             border-radius: var(--tile-piece-radius);
-            border: 1px solid rgba(156, 176, 196, 0.26);
+            border: 5px solid #cfe89d;
+            background: linear-gradient(180deg, #fffefa 0%, #ffffff 55%, #f3f2eb 100%);
             box-shadow:
-                0 16px 26px rgba(3, 10, 18, 0.24),
-                0 4px 0 rgba(7, 15, 22, 0.18),
-                inset 0 1px 0 rgba(255, 255, 255, 0.28);
+                0 14px 22px rgba(4, 11, 18, 0.16),
+                0 3px 0 rgba(112, 132, 72, 0.22),
+                inset 0 2px 0 rgba(255, 255, 255, 0.9),
+                inset 0 -3px 0 rgba(155, 177, 110, 0.16);
             font-size: var(--tile-piece-font-size);
             font-weight: 900;
-            letter-spacing: -0.05em;
+            letter-spacing: -0.08em;
             line-height: 1;
             transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, border-color 0.18s ease;
         }
@@ -3366,31 +3362,14 @@
         .tile-button::before,
         .guess-tile::before,
         .actual-tile::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 10%;
-            width: 80%;
-            height: 44%;
-            border-radius: 0 0 18px 18px;
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.38), transparent);
-            pointer-events: none;
+            content: none;
         }
 
         .tile::after,
         .tile-button::after,
         .guess-tile::after,
         .actual-tile::after {
-            content: '';
-            position: absolute;
-            left: 10px;
-            right: 10px;
-            bottom: 8px;
-            height: 9px;
-            border-radius: 999px;
-            background: rgba(0, 0, 0, 0.14);
-            opacity: 0.55;
-            pointer-events: none;
+            content: none;
         }
 
         .tile:hover,
@@ -3399,99 +3378,96 @@
         .actual-tile:hover {
             transform: translateY(-2px);
             box-shadow:
-                0 20px 30px rgba(3, 10, 18, 0.28),
-                0 5px 0 rgba(7, 15, 22, 0.18),
-                inset 0 1px 0 rgba(255, 255, 255, 0.34);
+                0 18px 28px rgba(4, 11, 18, 0.18),
+                0 4px 0 rgba(112, 132, 72, 0.22),
+                inset 0 2px 0 rgba(255, 255, 255, 0.92),
+                inset 0 -3px 0 rgba(155, 177, 110, 0.18);
         }
 
         .tile.tile-white,
         .guess-tile.tile-white,
         .tile-button.white,
         .actual-tile.white {
-            background:
-                radial-gradient(circle at top left, rgba(255, 255, 255, 0.85) 0%, transparent 30%),
-                linear-gradient(180deg, #fffef9 0%, #efe6d5 60%, #d8cbb2 100%);
-            color: #1e3447;
-            border-color: rgba(170, 152, 120, 0.34);
-            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+            border: 5px solid #cfe89d;
+            color: #fffdfa;
+            -webkit-text-stroke: 1.65px #cfe89d;
+            text-shadow:
+                -2px 0 #cfe89d,
+                0 2px #cfe89d,
+                2px 0 #cfe89d,
+                0 -2px #cfe89d,
+                0 2px 0 rgba(255, 255, 255, 0.98),
+                0 5px 7px rgba(30, 45, 26, 0.16);
         }
 
         .tile.tile-black,
         .guess-tile.tile-black,
         .tile-button.black,
         .actual-tile.black {
-            background:
-                radial-gradient(circle at top left, rgba(255, 255, 255, 0.18) 0%, transparent 26%),
-                linear-gradient(180deg, #4a5d73 0%, #1a2735 58%, #0b1219 100%);
-            color: #f6fbff;
-            border-color: rgba(172, 194, 216, 0.24);
-            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+            color: #263849;
+            -webkit-text-stroke: 1.45px #cfe89d;
+            text-shadow:
+                -2px 0 #cfe89d,
+                0 2px #cfe89d,
+                2px 0 #cfe89d,
+                0 -2px #cfe89d,
+                0 2px 0 rgba(255, 255, 255, 0.42),
+                0 5px 7px rgba(30, 45, 26, 0.16);
         }
 
         .tile.tile-green,
         .guess-tile.tile-green,
         .tile-button.green,
         .actual-tile.green {
-            background:
-                radial-gradient(circle at top left, rgba(236, 255, 226, 0.4) 0%, transparent 28%),
-                linear-gradient(180deg, #8ddf74 0%, #43a25d 55%, #1f5c43 100%);
-            color: #f7fff7;
-            border-color: rgba(203, 246, 177, 0.32);
-            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.26);
+            color: #2f9656;
+            -webkit-text-stroke: 1.45px rgba(31, 39, 33, 0.72);
+            text-shadow:
+                -2px 0 rgba(31, 39, 33, 0.72),
+                0 2px rgba(31, 39, 33, 0.72),
+                2px 0 rgba(31, 39, 33, 0.72),
+                0 -2px rgba(31, 39, 33, 0.72),
+                0 2px 0 rgba(255, 255, 255, 0.48),
+                0 5px 7px rgba(17, 33, 20, 0.16);
         }
 
         .tile-hidden {
             background:
-                radial-gradient(circle at top left, rgba(255, 255, 255, 0.18) 0%, transparent 24%),
-                linear-gradient(180deg, rgba(151, 171, 193, 0.95) 0%, rgba(95, 114, 132, 0.98) 58%, rgba(58, 70, 82, 0.98) 100%);
+                linear-gradient(180deg, rgba(171, 182, 194, 0.96) 0%, rgba(114, 129, 144, 0.98) 100%);
             color: #eef6ff;
-            border: 1px dashed rgba(240, 246, 252, 0.4);
-            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.36);
-        }
-
-        .game-page .tile-button[data-selected="true"] {
-            transform: translateY(2px) scale(0.98);
+            border: 5px solid rgba(207, 232, 157, 0.55);
             box-shadow:
-                0 9px 16px rgba(3, 10, 18, 0.24),
-                inset 0 1px 0 rgba(255, 255, 255, 0.22),
-                0 0 0 3px rgba(121, 176, 244, 0.28) !important;
-            filter: saturate(1.08);
+                0 14px 22px rgba(4, 11, 18, 0.18),
+                0 3px 0 rgba(84, 97, 112, 0.22),
+                inset 0 2px 0 rgba(255, 255, 255, 0.24),
+                inset 0 -3px 0 rgba(54, 67, 81, 0.22);
+            text-shadow: none;
         }
 
-        .game-page .tile-button.white[data-selected="true"] {
-            background:
-                radial-gradient(circle at top left, rgba(255, 255, 255, 0.9) 0%, transparent 30%),
-                linear-gradient(180deg, #fffef9 0%, #efe6d5 60%, #d8cbb2 100%) !important;
-            color: #1e3447 !important;
-            border-color: rgba(170, 152, 120, 0.44) !important;
+        #availableTiles .tile-button[data-selected="true"] {
+            transform: translateY(-6px) scale(1.035);
+            border: 5px solid #e0f2b6 !important;
+            box-shadow:
+                0 18px 30px rgba(4, 11, 18, 0.2),
+                0 0 0 4px rgba(214, 238, 165, 0.22),
+                0 0 26px rgba(214, 238, 165, 0.26),
+                inset 0 1px 0 rgba(255, 255, 255, 0.9),
+                inset 0 -1px 0 rgba(155, 177, 110, 0.08) !important;
+            filter: brightness(1.03) saturate(1.1);
+            z-index: 2;
         }
 
-        .game-page .tile-button.black[data-selected="true"] {
-            background:
-                radial-gradient(circle at top left, rgba(255, 255, 255, 0.18) 0%, transparent 26%),
-                linear-gradient(180deg, #4a5d73 0%, #1a2735 58%, #0b1219 100%) !important;
-            color: #f6fbff !important;
-            border-color: rgba(172, 194, 216, 0.36) !important;
-        }
-
-        .game-page .tile-button.green[data-selected="true"] {
-            background:
-                radial-gradient(circle at top left, rgba(236, 255, 226, 0.42) 0%, transparent 28%),
-                linear-gradient(180deg, #8ddf74 0%, #43a25d 55%, #1f5c43 100%) !important;
-            color: #f7fff7 !important;
-            border-color: rgba(203, 246, 177, 0.42) !important;
+        #availableTiles .tile-button[data-selected="true"]:hover {
+            transform: translateY(-7px) scale(1.04);
+            box-shadow:
+                0 22px 34px rgba(4, 11, 18, 0.22),
+                0 0 0 4px rgba(214, 238, 165, 0.24),
+                0 0 30px rgba(214, 238, 165, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.92),
+                inset 0 -1px 0 rgba(155, 177, 110, 0.08) !important;
         }
 
         .guess-tile:hover::after {
-            content: '';
-            left: 10px;
-            right: 10px;
-            top: auto;
-            bottom: 8px;
-            width: auto;
-            height: 9px;
-            border-radius: 999px;
-            background: rgba(0, 0, 0, 0.14);
+            content: none;
         }
 
         .tile-button:disabled {
@@ -3611,7 +3587,9 @@
             justify-content: flex-start;
         }
 
-        .opponent-code-rack .tile {
+        .opponent-code-rack .tile,
+        .opponent-code-rack .guess-tile,
+        .opponent-code-rack .tile-button {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -3622,6 +3600,30 @@
             min-width: var(--tile-piece-width);
             height: var(--tile-piece-height);
             font-size: 1.15rem;
+        }
+
+        .table-tile {
+            cursor: default;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .table-tile:hover {
+            transform: none;
+        }
+
+        .table-tile:focus-visible {
+            outline: none;
+        }
+
+        .guess-display-tile {
+            cursor: default;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .guess-builder .guess-display-tile:hover {
+            transform: none;
         }
 
         .opponent-code-note {
@@ -4161,19 +4163,19 @@
             .guess-tile {
                 --tile-piece-width: 52px;
                 --tile-piece-height: 62px;
-                --tile-piece-font-size: 1.05rem;
+                --tile-piece-font-size: 2.36rem;
             }
 
             .number-button {
                 --tile-piece-width: 54px;
                 --tile-piece-height: 64px;
-                --tile-piece-font-size: 1.04rem;
+                --tile-piece-font-size: 2.32rem;
             }
 
             .actual-tile {
                 --tile-piece-width: 34px;
                 --tile-piece-height: 42px;
-                --tile-piece-font-size: 0.85rem;
+                --tile-piece-font-size: 1.48rem;
             }
         }
     </style>
@@ -4887,7 +4889,7 @@
             if (clearBtn) clearBtn.disabled = false;
 
             // Re-enable tile buttons
-            document.querySelectorAll('.tile-button').forEach(btn => {
+            document.querySelectorAll('#availableTiles .tile-button').forEach(btn => {
                 btn.disabled = false;
             });
 
@@ -5139,7 +5141,7 @@
             if (clearBtn) clearBtn.disabled = true;
 
             // Disable tile buttons
-            document.querySelectorAll('.tile-button').forEach(btn => {
+            document.querySelectorAll('#availableTiles .tile-button').forEach(btn => {
                 btn.disabled = true;
             });
 
@@ -5367,8 +5369,10 @@
             container.innerHTML = '';
 
             tiles.forEach(tile => {
-                const tileElement = document.createElement('div');
-                tileElement.className = `tile tile-${tile.color}`;
+                const tileElement = document.createElement('button');
+                tileElement.type = 'button';
+                tileElement.tabIndex = -1;
+                tileElement.className = `tile-button table-tile ${tile.color}`;
                 tileElement.textContent = tile.number;
                 container.appendChild(tileElement);
             });
@@ -5591,7 +5595,7 @@
             const turnIndicator = document.getElementById('turnIndicator');
             const submitBtn = document.getElementById('submitGuess');
             const clearBtn = document.getElementById('clearGuess');
-            const tileButtons = document.querySelectorAll('.tile-button');
+            const tileButtons = document.querySelectorAll('#availableTiles .tile-button');
 
             // Remove all existing turn classes
             turnIndicator.classList.remove('your-turn', 'waiting-turn', 'final-round');
@@ -5674,8 +5678,10 @@
             container.innerHTML = '';
 
             for (let i = 0; i < count; i++) {
-                const tileElement = document.createElement('div');
-                tileElement.className = 'tile tile-hidden';
+                const tileElement = document.createElement('button');
+                tileElement.type = 'button';
+                tileElement.tabIndex = -1;
+                tileElement.className = 'tile-button table-tile tile-hidden';
                 tileElement.textContent = '?';
                 container.appendChild(tileElement);
             }
@@ -5713,8 +5719,10 @@
 
                     const rack = playerDiv.querySelector('.opponent-code-rack');
                     for (let i = 0; i < 5; i++) {
-                        const tileElement = document.createElement('div');
-                        tileElement.className = 'tile tile-hidden';
+                        const tileElement = document.createElement('button');
+                        tileElement.type = 'button';
+                        tileElement.tabIndex = -1;
+                        tileElement.className = 'tile-button table-tile tile-hidden';
                         tileElement.textContent = '?';
                         rack.appendChild(tileElement);
                     }
@@ -5912,8 +5920,10 @@
             const sortedGuess = [...currentGuess].sort((a, b) => a.buttonIndex - b.buttonIndex);
 
             sortedGuess.forEach((tile, index) => {
-                const tileElement = document.createElement('div');
-                tileElement.className = `guess-tile tile-${tile.color}`;
+                const tileElement = document.createElement('button');
+                tileElement.type = 'button';
+                tileElement.tabIndex = -1;
+                tileElement.className = `tile-button guess-display-tile ${tile.color}`;
                 tileElement.textContent = tile.number;
                 guessBuilder.appendChild(tileElement);
             });
@@ -5935,7 +5945,7 @@
 
         function clearGuess() {
             // Reset all button states
-            document.querySelectorAll('.tile-button').forEach(button => {
+            document.querySelectorAll('#availableTiles .tile-button').forEach(button => {
                 button.dataset.selected = 'false';
             });
 
