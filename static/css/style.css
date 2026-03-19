@@ -1515,9 +1515,19 @@ body.setup-page::before {
 
 .setup-page .form-group input,
 .setup-page .form-group select {
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.1);
     color: #f6fbff;
     border-color: rgba(138, 191, 255, 0.18);
+}
+
+.setup-page .form-group input::placeholder {
+    color: rgba(220, 233, 246, 0.72);
+}
+
+.setup-page .form-group select option,
+.setup-page .form-group select optgroup {
+    color: #17324a;
+    background: #f7fbff;
 }
 
 .setup-page .form-group input:focus,

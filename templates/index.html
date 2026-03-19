@@ -205,6 +205,27 @@
     <script>
         const socket = io();
         let statusTimeout = null;
+        let pendingJoinRoomId = null;
+        let pendingReconnectAttempt = false;
+
+        function getStoredPlayerData(roomId) {
+            if (!roomId) {
+                return null;
+            }
+
+            const rawData = localStorage.getItem(`playerData_${roomId}`);
+            if (!rawData) {
+                return null;
+            }
+
+            try {
+                return JSON.parse(rawData);
+            } catch (error) {
+                console.log('Error parsing stored player data:', error);
+                localStorage.removeItem(`playerData_${roomId}`);
+                return null;
+            }
+        }
 
         function setSetupTab(tabName) {
             document.querySelectorAll('[data-setup-tab-target]').forEach(button => {
@@ -285,8 +306,31 @@
 
         document.getElementById('joinGameForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const playerName = document.getElementById('joinPlayerName').value;
-            const roomId = document.getElementById('roomId').value;
+            const playerName = document.getElementById('joinPlayerName').value.trim();
+            const roomId = document.getElementById('roomId').value.trim();
+            const storedData = getStoredPlayerData(roomId);
+
+            pendingJoinRoomId = roomId;
+            pendingReconnectAttempt = false;
+
+            if (
+                storedData &&
+                storedData.player_id &&
+                storedData.session_key &&
+                typeof storedData.player_name === 'string' &&
+                storedData.player_name.trim().toLowerCase() === playerName.toLowerCase()
+            ) {
+                pendingReconnectAttempt = true;
+                showStatus('Restoring your saved seat...', 'info');
+                socket.emit('join_room', {
+                    room_id: roomId,
+                    reconnect: {
+                        player_id: storedData.player_id,
+                        session_key: storedData.session_key
+                    }
+                });
+                return;
+            }
             
             socket.emit('join_room', {
                 player_name: playerName,
@@ -296,6 +340,8 @@
 
         socket.on('room_created', function(data) {
             console.log('Room created:', data);
+            pendingJoinRoomId = data.room_id;
+            pendingReconnectAttempt = false;
             
             // Store the player data in localStorage before redirecting
             localStorage.setItem(`playerData_${data.room_id}`, JSON.stringify({
@@ -311,6 +357,8 @@
 
         socket.on('room_joined', function(data) {
             console.log('Room joined:', data);
+            pendingJoinRoomId = data.room_id;
+            pendingReconnectAttempt = false;
             
             // Store the player data in localStorage before redirecting
             localStorage.setItem(`playerData_${data.room_id}`, JSON.stringify({
@@ -328,6 +376,17 @@
         });
 
         socket.on('error', function(data) {
+            if (
+                pendingReconnectAttempt &&
+                pendingJoinRoomId &&
+                (data.message.includes('Reconnection failed') || data.message.includes('Invalid session key'))
+            ) {
+                localStorage.removeItem(`playerData_${pendingJoinRoomId}`);
+                pendingReconnectAttempt = false;
+                showStatus('Your saved seat is no longer valid. Enter your name again to join as a new player.', 'error');
+                return;
+            }
+
             showStatus(data.message, 'error');
         });
 

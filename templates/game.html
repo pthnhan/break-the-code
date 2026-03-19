@@ -2407,6 +2407,12 @@
             margin-top: 0;
             gap: 10px;
             flex-wrap: wrap;
+            justify-content: center;
+            padding: 10px 12px;
+            border-radius: 22px;
+            background: rgba(8, 18, 28, 0.48);
+            border: 1px solid rgba(138, 191, 255, 0.16);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
         }
 
         .game-page .room-id,
@@ -2421,9 +2427,41 @@
 
         .game-page .room-id,
         .room-id-pill {
-            color: #f8fbff;
-            background: rgba(76, 137, 202, 0.22);
-            border: 1px solid rgba(140, 190, 255, 0.22);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 48px;
+            color: #fdfefe;
+            background: linear-gradient(135deg, rgba(78, 161, 255, 0.42) 0%, rgba(47, 122, 214, 0.32) 100%);
+            border: 1px solid rgba(160, 208, 255, 0.44);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 18px rgba(3, 10, 18, 0.18);
+            padding: 8px 14px;
+        }
+
+        .room-id-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px 9px;
+            border-radius: 999px;
+            background: rgba(5, 16, 27, 0.34);
+            color: #d4e8fb;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .room-id-code {
+            display: inline-block;
+            color: #ffffff;
+            font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-shadow: none;
+            white-space: nowrap;
         }
 
         .meta-badge {
@@ -2657,7 +2695,8 @@
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            width: 100%;
+            flex: 1;
+            min-width: 0;
         }
 
         .player-name {
@@ -2706,6 +2745,32 @@
             background: rgba(255, 255, 255, 0.08);
         }
 
+        .player-action-strip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .player-remove-btn {
+            border: 1px solid rgba(255, 132, 151, 0.28);
+            background: rgba(255, 99, 132, 0.14);
+            color: #ffd7df;
+            padding: 8px 10px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+        }
+
+        .player-remove-btn:hover {
+            background: rgba(255, 99, 132, 0.22);
+            border-color: rgba(255, 153, 171, 0.4);
+            transform: translateY(-1px);
+        }
+
         .player-item.is-ready {
             border-color: rgba(57, 188, 131, 0.3);
             background: rgba(57, 188, 131, 0.1);
@@ -2717,12 +2782,124 @@
             opacity: 0.72;
         }
 
+        .reorder-controls {
+            background: linear-gradient(180deg, rgba(10, 24, 37, 0.86) 0%, rgba(8, 18, 28, 0.94) 100%);
+            border: 1px dashed rgba(132, 189, 250, 0.3);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .reorder-instructions {
+            color: #d7e8f8;
+        }
+
+        .players-list.reorder-mode {
+            padding: 10px 0 10px 28px;
+            background: rgba(5, 16, 27, 0.34);
+            border: 1px dashed rgba(138, 191, 255, 0.22);
+            border-radius: 20px;
+        }
+
+        .players-list.reorder-mode .player-item {
+            padding: 15px 82px 15px 20px;
+            margin: 12px 0;
+            border-radius: 18px;
+            border-left: 0;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(155, 200, 255, 0.16);
+            color: #f4f8fc;
+            box-shadow: 0 10px 18px rgba(5, 16, 27, 0.12);
+        }
+
+        .players-list.reorder-mode .player-item:hover {
+            border-color: rgba(138, 191, 255, 0.34);
+            background: rgba(78, 161, 255, 0.12);
+            transform: translateX(4px);
+            box-shadow: 0 14px 24px rgba(5, 16, 27, 0.16);
+        }
+
+        .players-list.reorder-mode .player-name {
+            color: #f8fbff;
+        }
+
+        .reorder-arrows {
+            z-index: 3;
+        }
+
+        .player-order-number {
+            border: 2px solid rgba(8, 18, 28, 0.96);
+            box-shadow: 0 4px 12px rgba(56, 178, 172, 0.26);
+        }
+
+        .arrow-btn {
+            width: 32px;
+            height: 26px;
+            border-radius: 8px;
+            border: 1px solid rgba(149, 203, 255, 0.2);
+            background: linear-gradient(135deg, #4ea1ff 0%, #2f7ad6 100%);
+            box-shadow: 0 6px 14px rgba(7, 18, 29, 0.18);
+            color: #ffffff;
+            font-size: 15px;
+            line-height: 1;
+            font-weight: 900;
+        }
+
+        .arrow-btn:hover {
+            background: linear-gradient(135deg, #67b0ff 0%, #3b89e7 100%);
+            box-shadow: 0 8px 16px rgba(7, 18, 29, 0.22);
+        }
+
+        .arrow-btn:disabled {
+            background: rgba(116, 140, 164, 0.42);
+            border-color: rgba(116, 140, 164, 0.18);
+            color: rgba(240, 246, 252, 0.72);
+        }
+
         .player-count,
         .no-history,
         .guess-placeholder,
         .question-sheet-note {
             color: #98aec2;
             line-height: 1.6;
+        }
+
+        .score-history-section .no-history {
+            color: #e6f2ff;
+            background: rgba(8, 18, 28, 0.6);
+            border: 1px dashed rgba(148, 196, 255, 0.32);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .score-history-section {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(242, 248, 255, 0.035) 100%);
+            border-color: rgba(170, 206, 245, 0.14);
+        }
+
+        .score-history-section .round-history {
+            background: linear-gradient(180deg, rgba(248, 251, 255, 0.96) 0%, rgba(240, 246, 252, 0.92) 100%);
+            border: 1px solid rgba(182, 203, 226, 0.7);
+            box-shadow: 0 10px 22px rgba(5, 16, 27, 0.08);
+        }
+
+        .score-history-section .round-header {
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(136, 162, 192, 0.26);
+        }
+
+        .score-history-section .round-title {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: rgba(27, 74, 122, 0.08);
+            color: #17324a;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+        }
+
+        .score-history-section .player-result-item {
+            color: #17324a;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
         }
 
         .info-card {
@@ -2847,6 +3024,23 @@
             text-align: left;
         }
 
+        .table-stage .your-tiles-section h3,
+        .table-stage .center-tiles-section h3,
+        .table-stage .other-players-section h3,
+        .guess-section h4 {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: #f8fbff;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(7, 18, 29, 0.72);
+            border: 1px solid rgba(138, 191, 255, 0.2);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            text-shadow: none;
+            letter-spacing: 0.01em;
+        }
+
         .table-stage .your-tiles-section,
         .table-stage .center-tiles-section,
         .table-stage .other-players-section,
@@ -2871,6 +3065,12 @@
         .table-stage .center-tiles-section h3,
         .table-stage .other-players-section h3 {
             margin-bottom: 12px;
+        }
+
+        .guess-section h4 {
+            margin-bottom: 12px;
+            font-size: 0.98rem;
+            font-weight: 800;
         }
 
         .tiles-container {
@@ -3304,8 +3504,11 @@
                 <h1>🔍 BREAK <span class="the-small">THE</span> CODE</h1>
             </a>
             <div class="room-info">
-                <span class="room-id">Room: {{ room_id }}</span>
-                <button id="copyRoomId" class="btn btn-small">Copy Room ID</button>
+                <span class="room-id" aria-label="Room ID">
+                    <span class="room-id-label">Room ID</span>
+                    <strong class="room-id-code">{{ room_id }}</strong>
+                </span>
+                <button id="copyRoomId" class="btn btn-small">Copy ID</button>
             </div>
         </header>
 
@@ -3336,7 +3539,10 @@
                     <p class="waiting-subtitle">Keep the lobby compact, get everyone ready, then deal the table.</p>
                 </div>
                 <div class="waiting-room-meta">
-                    <span class="room-id room-id-pill">Room {{ room_id }}</span>
+                    <span class="room-id room-id-pill" aria-label="Room ID">
+                        <span class="room-id-label">Room ID</span>
+                        <strong class="room-id-code">{{ room_id }}</strong>
+                    </span>
                     <span class="meta-badge">2-4 players</span>
                 </div>
             </div>
@@ -3670,6 +3876,31 @@
             return `<span class="player-pill ${className}">${label}</span>`;
         }
 
+        function canHostRemovePlayer(player) {
+            const waitingRoomVisible = document.getElementById('waitingRoom').style.display !== 'none';
+            return (
+                waitingRoomVisible &&
+                gameState.isHost &&
+                !reorderMode &&
+                player &&
+                player.id &&
+                player.id !== gameState.yourPlayerId
+            );
+        }
+
+        function requestPlayerRemoval(playerId, playerName) {
+            if (!gameState.isHost || !playerId) {
+                return;
+            }
+
+            const confirmed = window.confirm(`Remove ${playerName} from this room?`);
+            if (!confirmed) {
+                return;
+            }
+
+            socket.emit('remove_player', { target_player_id: playerId });
+        }
+
         function createPlayerItem(player) {
             const playerDiv = document.createElement('div');
             playerDiv.className = 'player-item';
@@ -3700,15 +3931,92 @@
                 </div>
             `;
 
+            if (canHostRemovePlayer(player)) {
+                const actionStrip = document.createElement('div');
+                actionStrip.className = 'player-action-strip';
+
+                const removeButton = document.createElement('button');
+                removeButton.type = 'button';
+                removeButton.className = 'player-remove-btn';
+                removeButton.textContent = 'Remove';
+                removeButton.setAttribute('aria-label', `Remove ${player.name} from the room`);
+                removeButton.addEventListener('click', event => {
+                    event.stopPropagation();
+                    requestPlayerRemoval(player.id, player.name);
+                });
+
+                actionStrip.appendChild(removeButton);
+                playerDiv.appendChild(actionStrip);
+            }
+
             return playerDiv;
+        }
+
+        function getStoredPlayerData() {
+            const rawData = localStorage.getItem(`playerData_${roomId}`);
+            if (!rawData) {
+                return null;
+            }
+
+            try {
+                return JSON.parse(rawData);
+            } catch (error) {
+                console.log('Error parsing stored player data:', error);
+                localStorage.removeItem(`playerData_${roomId}`);
+                return null;
+            }
+        }
+
+        function getKnownPlayerId() {
+            if (gameState.yourPlayerId) {
+                return gameState.yourPlayerId;
+            }
+
+            const storedData = getStoredPlayerData();
+            if (storedData && storedData.player_id) {
+                return storedData.player_id;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('player_id');
+        }
+
+        function getAllPlayersReady(players, count = 0) {
+            if (!Array.isArray(players) || count < 2) {
+                return false;
+            }
+
+            return players.every(player => Boolean(player.ready));
+        }
+
+        function syncLocalPlayerState(players) {
+            if (!Array.isArray(players)) {
+                return;
+            }
+
+            const localPlayerId = getKnownPlayerId();
+            if (!localPlayerId) {
+                return;
+            }
+
+            const localPlayer = players.find(player => player.id === localPlayerId);
+            if (!localPlayer) {
+                return;
+            }
+
+            gameState.yourPlayerId = localPlayer.id;
+            gameState.isReady = Boolean(localPlayer.ready);
         }
 
         // Socket event handlers
         socket.on('player_joined', function(data) {
             console.log('Player joined event received:', data);
-            updatePlayersList(data.players, data.player_count);
+            const allReady = getAllPlayersReady(data.players, data.player_count);
+            updatePlayersList(data.players, data.player_count, allReady);
             updateScoreboard(data.players);
             gameState.playerCount = data.player_count;
+            syncLocalPlayerState(data.players);
+            updateWaitingRoomButtons();
             
             // Update game settings and score history
             if (data.game_settings) {
@@ -3716,29 +4024,6 @@
             }
             if (data.score_history) {
                 updateScoreHistory(data.score_history);
-            }
-            
-            // Enable start button if enough players
-            const startBtn = document.getElementById('startGameBtn');
-            console.log('Start button current state:', startBtn.disabled, 'Player count:', data.player_count);
-            if (data.player_count >= 2) {
-                startBtn.disabled = false;
-                console.log('Start button enabled - enough players:', data.player_count);
-            } else {
-                console.log('Start button remains disabled - not enough players:', data.player_count);
-            }
-        });
-
-        socket.on('room_state', function(data) {
-            // Handle room state for creators/reconnecting players
-            updatePlayersList(data.players, data.player_count);
-            gameState.playerCount = data.player_count;
-            
-            // Enable start button if enough players
-            const startBtn = document.getElementById('startGameBtn');
-            if (data.player_count >= 2) {
-                startBtn.disabled = false;
-                console.log('Start button enabled from room_state - enough players:', data.player_count);
             }
         });
 
@@ -3769,6 +4054,20 @@
             showStatus(`${data.player_name} has disconnected`, 'warning');
         });
 
+        socket.on('player_removed', function(data) {
+            console.log('Player removed from room:', data);
+            localStorage.removeItem(`playerData_${roomId}`);
+            showStatus(data.message || 'You were removed from the room.', 'warning');
+            window.setTimeout(() => {
+                window.location.href = '/';
+            }, 1200);
+        });
+
+        socket.on('player_removed_notice', function(data) {
+            console.log('Player removed notice:', data);
+            showStatus(data.message || `${data.player_name} was removed from the room.`, 'info');
+        });
+
         socket.on('game_reconnected', function(data) {
             console.log('Game reconnected, restoring state:', data);
             
@@ -3779,6 +4078,10 @@
             gameState.playerCount = data.player_count;
             gameState.yourPlayerId = data.your_player_id;
             gameState.allPlayers = data.all_players;
+            gameState.timeLimit = data.time_limit;
+            gameState.penaltyMode = data.penalty_mode;
+            gameState.finalRound = Boolean(data.final_round);
+            gameState.finalRoundPlayer = data.final_round_player || null;
             
             // Show game interface
             document.getElementById('waitingRoom').style.display = 'none';
@@ -3820,6 +4123,7 @@
             window.history.replaceState({}, '', newUrl);
             
             // Set local game state
+            gameState.yourPlayerId = data.player_id;
             gameState.isHost = data.is_host || false;
             gameState.isReady = data.is_host || false; // Host is auto-ready
             
@@ -3846,6 +4150,8 @@
             gameState.playerCount = data.player_count;
             gameState.timeLimit = data.time_limit;
             gameState.penaltyMode = data.penalty_mode;
+            gameState.finalRound = false;
+            gameState.finalRoundPlayer = null;
             
             // Start timer updates for all players
             startTimerUpdates();
@@ -3870,71 +4176,63 @@
 
         socket.on('player_game_data', function(data) {
             console.log('Player game data received:', data);
-            
-            // Check if this data is for the current player
-            const urlParams = new URLSearchParams(window.location.search);
-            const myPlayerId = urlParams.get('player_id');
-            
-            if (data.your_player_id === myPlayerId) {
-                console.log('This game data is for me, setting up game interface');
-                
-                gameState.playerData = data;
-                gameState.availableQuestions = data.available_questions;
-                gameState.currentTurn = data.current_turn;
-                gameState.playerCount = data.player_count;
-                gameState.yourPlayerId = data.your_player_id;
-                gameState.allPlayers = data.all_players;
-                gameState.timeLimit = data.time_limit;
-                gameState.penaltyMode = data.penalty_mode;
-                
-                console.log('Hiding waiting room, showing game interface');
-                
-                // Hide waiting room, show game interface
-                document.getElementById('waitingRoom').style.display = 'none';
-                document.getElementById('gameInterface').style.display = 'block';
-                hideJoinSheet();
-                setGamePanel('table');
-                
-                // Re-enable guess buttons for new game
-                const submitBtn = document.getElementById('submitGuess');
-                const clearBtn = document.getElementById('clearGuess');
-                if (submitBtn) submitBtn.disabled = false;
-                if (clearBtn) clearBtn.disabled = false;
-                
-                // Re-enable tile buttons
-                document.querySelectorAll('.tile-button').forEach(btn => {
-                    btn.disabled = false;
-                });
-                
-                // Clear any previous guess
-                currentGuess = [];
-                
-                // Setup game interface
-                displayYourTiles(data.tiles);
-                displayAvailableQuestions(data.available_questions);
-                updateTurnIndicator(data.current_turn);
-                
-                // Start timer if it's my turn and there's a time limit
-                if (data.current_turn === data.your_player_id && data.time_limit) {
-                    startTimer(data.time_limit);
-                } else {
-                    stopTimer();
-                }
-                
-                if (data.center_tiles_count) {
-                    setupCenterTiles(data.center_tiles_count);
-                }
-                
-                setupOtherPlayers();
-                
-                // Update guess display to show empty state
-                updateGuessDisplay();
-                ensureTimerUpdatesActive();
-                
-                console.log('Game interface setup complete');
+
+            gameState.playerData = data;
+            gameState.availableQuestions = data.available_questions;
+            gameState.currentTurn = data.current_turn;
+            gameState.playerCount = data.player_count;
+            gameState.yourPlayerId = data.your_player_id;
+            gameState.allPlayers = data.all_players;
+            gameState.timeLimit = data.time_limit;
+            gameState.penaltyMode = data.penalty_mode;
+            gameState.finalRound = Boolean(data.final_round);
+            gameState.finalRoundPlayer = data.final_round_player || null;
+
+            console.log('Hiding waiting room, showing game interface');
+
+            // Hide waiting room, show game interface
+            document.getElementById('waitingRoom').style.display = 'none';
+            document.getElementById('gameInterface').style.display = 'block';
+            hideJoinSheet();
+            setGamePanel('table');
+
+            // Re-enable guess buttons for new game
+            const submitBtn = document.getElementById('submitGuess');
+            const clearBtn = document.getElementById('clearGuess');
+            if (submitBtn) submitBtn.disabled = false;
+            if (clearBtn) clearBtn.disabled = false;
+
+            // Re-enable tile buttons
+            document.querySelectorAll('.tile-button').forEach(btn => {
+                btn.disabled = false;
+            });
+
+            // Clear any previous guess
+            currentGuess = [];
+
+            // Setup game interface
+            displayYourTiles(data.tiles);
+            displayAvailableQuestions(data.available_questions);
+            updateTurnIndicator(data.current_turn);
+
+            // Start timer if it's my turn and there's a time limit
+            if (data.current_turn === data.your_player_id && data.time_limit) {
+                startTimer(data.time_limit);
             } else {
-                console.log('This game data is for another player, ignoring');
+                stopTimer();
             }
+
+            if (data.center_tiles_count) {
+                setupCenterTiles(data.center_tiles_count);
+            }
+
+            setupOtherPlayers();
+
+            // Update guess display to show empty state
+            updateGuessDisplay();
+            ensureTimerUpdatesActive();
+
+            console.log('Game interface setup complete');
         });
 
         socket.on('question_asked', function(data) {
@@ -3975,12 +4273,8 @@
 
         socket.on('turn_changed', function(data) {
             gameState.currentTurn = data.current_turn;
-            if (data.final_round) {
-                gameState.finalRound = true;
-                if (data.final_round_player) {
-                    gameState.finalRoundPlayer = data.final_round_player;
-                }
-            }
+            gameState.finalRound = Boolean(data.final_round);
+            gameState.finalRoundPlayer = data.final_round_player || null;
             updateTurnIndicator(data.current_turn);
             
             // Ensure timer updates are running during active game
@@ -4021,48 +4315,32 @@
             console.log('Connected to server');
             
             // Check if we have stored player data for this room
-            const storedData = localStorage.getItem(`playerData_${roomId}`);
+            const storedData = getStoredPlayerData();
             const urlParams = new URLSearchParams(window.location.search);
             const urlPlayerId = urlParams.get('player_id');
             
-            if (storedData && urlPlayerId) {
-                try {
-                    const playerData = JSON.parse(storedData);
+            if (storedData && storedData.player_id && storedData.session_key) {
+                if (!urlPlayerId || storedData.player_id === urlPlayerId) {
+                    console.log('Attempting to reconnect with stored credentials');
+                    socket.emit('join_room', {
+                        room_id: roomId,
+                        reconnect: {
+                            player_id: storedData.player_id,
+                            session_key: storedData.session_key
+                        }
+                    });
                     
-                    // Verify URL player_id matches stored data
-                    if (playerData.player_id === urlPlayerId) {
-                        console.log('Attempting to reconnect with stored credentials');
-                        
-                        // Try to reconnect with session key
-                        socket.emit('join_room', {
-                            room_id: roomId,
-                            reconnect: {
-                                player_id: playerData.player_id,
-                                session_key: playerData.session_key
-                            }
-                        });
-                        
-                        // Set local state
-                        gameState.isHost = playerData.is_host || false;
-                        gameState.isReady = playerData.is_host || false; // Host is auto-ready
-                        return;
-                    }
-                } catch (e) {
-                    console.log('Error parsing stored player data:', e);
-                    localStorage.removeItem(`playerData_${roomId}`);
+                    gameState.yourPlayerId = storedData.player_id;
+                    gameState.isHost = storedData.is_host || false;
+                    gameState.isReady = storedData.is_host || false;
+                    return;
                 }
+
+                console.log('Stored player data does not match URL player_id, skipping auto-reconnect');
             }
             
             console.log('New player joining');
             openJoinSheet(`Choose a player name to join room ${roomId}.`);
-        });
-        
-        // Socket event for player reordering
-        socket.on('players_reordered', function(data) {
-            console.log('Players reordered:', data);
-            updatePlayersList(data.players, data.players.length);
-            exitReorderMode();
-            showStatus(data.message, 'success');
         });
 
         // Event listeners for reorder functionality  
@@ -4215,6 +4493,8 @@
         socket.on('player_ready_update', function(data) {
             console.log('Player ready update:', data);
             updatePlayersList(data.players, data.players.length, data.all_ready);
+            syncLocalPlayerState(data.players);
+            updateWaitingRoomButtons();
             
             // Update scoreboard with proper player data
             const playersForScoreboard = data.players.map(player => ({
@@ -4303,9 +4583,13 @@
             }
         }
 
-        function updatePlayersList(players, count, allReady = false) {
+        function updatePlayersList(players, count, allReady = null) {
             const listElement = document.getElementById('playersList');
             listElement.innerHTML = '';
+
+            if (allReady === null && Array.isArray(players)) {
+                allReady = getAllPlayersReady(players, count);
+            }
             
             if (Array.isArray(players)) {
                 // Handle array format (with ready status, scores, and connection status)
@@ -5153,7 +5437,10 @@
         // Socket event for player reordering
         socket.on('players_reordered', function(data) {
             console.log('Players reordered:', data);
-            updatePlayersList(data.players, data.players.length);
+            const allReady = getAllPlayersReady(data.players, data.players.length);
+            updatePlayersList(data.players, data.players.length, allReady);
+            syncLocalPlayerState(data.players);
+            updateWaitingRoomButtons();
             exitReorderMode();
             showStatus(data.message, 'success');
         });
@@ -5228,14 +5515,16 @@
                 // Create up arrow button
                 const upBtn = document.createElement('button');
                 upBtn.className = 'arrow-btn up';
-                upBtn.innerHTML = '▲';
+                upBtn.textContent = '↑';
+                upBtn.setAttribute('aria-label', 'Move player up');
                 upBtn.disabled = index === 0; // Disable if first item
                 upBtn.addEventListener('click', () => movePlayerUp(index));
                 
                 // Create down arrow button
                 const downBtn = document.createElement('button');
                 downBtn.className = 'arrow-btn down';
-                downBtn.innerHTML = '▼';
+                downBtn.textContent = '↓';
+                downBtn.setAttribute('aria-label', 'Move player down');
                 downBtn.disabled = index === playerItems.length - 1; // Disable if last item
                 downBtn.addEventListener('click', () => movePlayerDown(index));
                 
@@ -5577,7 +5866,10 @@
             setWaitingPanel('lobby');
             
             // Update player list and game info
-            updatePlayersList(data.players, data.players.length);
+            const allReady = getAllPlayersReady(data.players, data.players.length);
+            updatePlayersList(data.players, data.players.length, allReady);
+            syncLocalPlayerState(data.players);
+            updateWaitingRoomButtons();
             updateGameSettings(data.game_settings);
             updateScoreHistory(data.score_history);
             
