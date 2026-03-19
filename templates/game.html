@@ -20,49 +20,26 @@
         /* Styling for actual tiles display in game log */
         .guessed-tiles-display {
             display: inline-flex;
-            gap: 6px;
-            margin-left: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-left: 10px;
             align-items: center;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 4px 8px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
+            padding: 10px 12px;
+            border-radius: 22px;
+            border: 1px solid rgba(146, 189, 216, 0.18);
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.14) 0%, transparent 28%),
+                linear-gradient(155deg, rgba(12, 27, 39, 0.95) 0%, rgba(7, 16, 24, 0.98) 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.06),
+                0 16px 28px rgba(5, 15, 22, 0.2);
         }
 
         .actual-tile {
-            display: inline-block;
-            min-width: 28px;
-            height: 28px;
-            line-height: 28px;
-            text-align: center;
-            border-radius: 6px;
-            font-weight: bold;
-            font-size: 13px;
-            border: 2px solid;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            transition: all 0.2s ease;
-        }
-
-        .actual-tile:hover {
-            transform: scale(1.1);
-        }
-
-        .actual-tile.black {
-            background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
-            color: white;
-            border-color: #4a5568;
-        }
-
-        .actual-tile.white {
-            background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
-            color: #2d3748;
-            border-color: #cbd5e0;
-        }
-
-        .actual-tile.green {
-            background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
-            color: white;
-            border-color: #48bb78;
+            --tile-piece-width: 40px;
+            --tile-piece-height: 50px;
+            font-size: 0.96rem;
+            border-radius: 16px 16px 13px 13px;
         }
 
         /* Game log message formatting */
@@ -3230,13 +3207,180 @@
         .tile,
         .tile-button,
         .guess-tile {
-            border-radius: 18px;
-            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
+            --tile-piece-width: 64px;
+            --tile-piece-height: 76px;
+            --tile-piece-font-size: 1.28rem;
+            --tile-piece-radius: 20px 20px 16px 16px;
+        }
+
+        .actual-tile {
+            --tile-piece-width: 40px;
+            --tile-piece-height: 50px;
+            --tile-piece-font-size: 0.96rem;
+            --tile-piece-radius: 16px 16px 13px 13px;
+        }
+
+        .tile,
+        .tile-button,
+        .guess-tile,
+        .actual-tile {
+            position: relative;
+            overflow: hidden;
+            width: var(--tile-piece-width);
+            min-width: var(--tile-piece-width);
+            height: var(--tile-piece-height);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--tile-piece-radius);
+            border: 1px solid rgba(156, 176, 196, 0.26);
+            box-shadow:
+                0 16px 26px rgba(3, 10, 18, 0.24),
+                0 4px 0 rgba(7, 15, 22, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.28);
+            font-size: var(--tile-piece-font-size);
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            line-height: 1;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, border-color 0.18s ease;
+        }
+
+        .tile::before,
+        .tile-button::before,
+        .guess-tile::before,
+        .actual-tile::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            width: 80%;
+            height: 44%;
+            border-radius: 0 0 18px 18px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.38), transparent);
+            pointer-events: none;
+        }
+
+        .tile::after,
+        .tile-button::after,
+        .guess-tile::after,
+        .actual-tile::after {
+            content: '';
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            bottom: 8px;
+            height: 9px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.14);
+            opacity: 0.55;
+            pointer-events: none;
+        }
+
+        .tile:hover,
+        .tile-button:hover,
+        .guess-tile:hover,
+        .actual-tile:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 20px 30px rgba(3, 10, 18, 0.28),
+                0 5px 0 rgba(7, 15, 22, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.34);
+        }
+
+        .tile.tile-white,
+        .guess-tile.tile-white,
+        .tile-button.white,
+        .actual-tile.white {
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.85) 0%, transparent 30%),
+                linear-gradient(180deg, #fffef9 0%, #efe6d5 60%, #d8cbb2 100%);
+            color: #1e3447;
+            border-color: rgba(170, 152, 120, 0.34);
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+        }
+
+        .tile.tile-black,
+        .guess-tile.tile-black,
+        .tile-button.black,
+        .actual-tile.black {
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.18) 0%, transparent 26%),
+                linear-gradient(180deg, #4a5d73 0%, #1a2735 58%, #0b1219 100%);
+            color: #f6fbff;
+            border-color: rgba(172, 194, 216, 0.24);
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+        }
+
+        .tile.tile-green,
+        .guess-tile.tile-green,
+        .tile-button.green,
+        .actual-tile.green {
+            background:
+                radial-gradient(circle at top left, rgba(236, 255, 226, 0.4) 0%, transparent 28%),
+                linear-gradient(180deg, #8ddf74 0%, #43a25d 55%, #1f5c43 100%);
+            color: #f7fff7;
+            border-color: rgba(203, 246, 177, 0.32);
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.26);
         }
 
         .tile-hidden {
-            background: linear-gradient(135deg, rgba(129, 150, 170, 0.76) 0%, rgba(89, 106, 124, 0.82) 100%);
-            border: 1px dashed rgba(240, 246, 252, 0.35);
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.18) 0%, transparent 24%),
+                linear-gradient(180deg, rgba(151, 171, 193, 0.95) 0%, rgba(95, 114, 132, 0.98) 58%, rgba(58, 70, 82, 0.98) 100%);
+            color: #eef6ff;
+            border: 1px dashed rgba(240, 246, 252, 0.4);
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.36);
+        }
+
+        .game-page .tile-button[data-selected="true"] {
+            transform: translateY(2px) scale(0.98);
+            box-shadow:
+                0 9px 16px rgba(3, 10, 18, 0.24),
+                inset 0 1px 0 rgba(255, 255, 255, 0.22),
+                0 0 0 3px rgba(121, 176, 244, 0.28) !important;
+            filter: saturate(1.08);
+        }
+
+        .game-page .tile-button.white[data-selected="true"] {
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.9) 0%, transparent 30%),
+                linear-gradient(180deg, #fffef9 0%, #efe6d5 60%, #d8cbb2 100%) !important;
+            color: #1e3447 !important;
+            border-color: rgba(170, 152, 120, 0.44) !important;
+        }
+
+        .game-page .tile-button.black[data-selected="true"] {
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.18) 0%, transparent 26%),
+                linear-gradient(180deg, #4a5d73 0%, #1a2735 58%, #0b1219 100%) !important;
+            color: #f6fbff !important;
+            border-color: rgba(172, 194, 216, 0.36) !important;
+        }
+
+        .game-page .tile-button.green[data-selected="true"] {
+            background:
+                radial-gradient(circle at top left, rgba(236, 255, 226, 0.42) 0%, transparent 28%),
+                linear-gradient(180deg, #8ddf74 0%, #43a25d 55%, #1f5c43 100%) !important;
+            color: #f7fff7 !important;
+            border-color: rgba(203, 246, 177, 0.42) !important;
+        }
+
+        .guess-tile:hover::after {
+            content: '';
+            left: 10px;
+            right: 10px;
+            top: auto;
+            bottom: 8px;
+            width: auto;
+            height: 9px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.14);
+        }
+
+        .tile-button:disabled {
+            opacity: 0.58;
+            filter: saturate(0.72) brightness(0.92);
+            transform: none;
         }
 
         .other-players-grid {
@@ -3357,16 +3501,10 @@
         }
 
         .opponent-code-rack .tile-hidden {
-            background: linear-gradient(135deg, rgba(129, 150, 170, 0.92) 0%, rgba(89, 106, 124, 0.96) 100%);
-            color: #f7fbff;
-            border: 1px dashed rgba(240, 246, 252, 0.42);
-            min-width: 46px;
-            min-height: 62px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
+            width: var(--tile-piece-width);
+            min-width: var(--tile-piece-width);
+            height: var(--tile-piece-height);
             font-size: 1.15rem;
-            font-weight: 900;
         }
 
         .opponent-code-note {
@@ -3904,9 +4042,15 @@
             .tile,
             .tile-button,
             .guess-tile {
-                width: 54px;
-                height: 54px;
-                font-size: 1.05rem;
+                --tile-piece-width: 52px;
+                --tile-piece-height: 62px;
+                --tile-piece-font-size: 1.05rem;
+            }
+
+            .actual-tile {
+                --tile-piece-width: 34px;
+                --tile-piece-height: 42px;
+                --tile-piece-font-size: 0.85rem;
             }
         }
     </style>
