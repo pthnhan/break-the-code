@@ -172,7 +172,8 @@ class BreakTheCodeGame:
             'score': 0,  # Add scoring system
             'ready': False,
             'connected': True,  # Track connection status
-            'session_key': str(uuid.uuid4())  # Unique session key for security
+            'session_key': str(uuid.uuid4()),  # Unique session key for security
+            'socket_sid': None  # Track the latest active socket for this player
         }
         
         # Add player to the order list
@@ -180,7 +181,7 @@ class BreakTheCodeGame:
         
         return True, "Joined successfully"
     
-    def reconnect_player(self, room_id, player_id, session_key):
+    def reconnect_player(self, room_id, player_id, session_key, socket_sid=None):
         """Reconnect a player using their session key"""
         if room_id not in self.rooms:
             return False, "Room not found"
@@ -195,7 +196,23 @@ class BreakTheCodeGame:
             
         # Mark player as connected
         player['connected'] = True
+        if socket_sid is not None:
+            player['socket_sid'] = socket_sid
         return True, "Reconnected successfully"
+
+    def set_player_socket(self, room_id, player_id, socket_sid):
+        """Associate the current active socket with a player"""
+        if room_id not in self.rooms:
+            return False
+
+        room = self.rooms[room_id]
+        if player_id not in room['players']:
+            return False
+
+        player = room['players'][player_id]
+        player['connected'] = True
+        player['socket_sid'] = socket_sid
+        return True
     
     def find_disconnected_player_by_name(self, room_id, player_name):
         """Find a disconnected player by name in a room"""
@@ -215,14 +232,25 @@ class BreakTheCodeGame:
                 }
         return None
     
-    def disconnect_player(self, room_id, player_id):
+    def disconnect_player(self, room_id, player_id, socket_sid=None):
         """Mark a player as disconnected"""
         if room_id not in self.rooms:
             return False
             
         room = self.rooms[room_id]
         if player_id in room['players']:
-            room['players'][player_id]['connected'] = False
+            player = room['players'][player_id]
+            active_sid = player.get('socket_sid')
+
+            # Ignore disconnects from stale sockets. This happens during fast
+            # reconnects or page transitions where an old socket closes after a
+            # new one is already active for the same player.
+            if socket_sid is not None and active_sid is not None and active_sid != socket_sid:
+                return False
+
+            player['connected'] = False
+            if socket_sid is None or active_sid == socket_sid:
+                player['socket_sid'] = None
             return True
         return False
     
@@ -493,6 +521,32 @@ class BreakTheCodeGame:
 # Global game instance
 game_manager = BreakTheCodeGame()
 
+
+def build_room_players(room):
+    """Serialize players in room order for client updates."""
+    return [{
+        'id': pid,
+        'name': room['players'][pid]['name'],
+        'ready': room['players'][pid]['ready'],
+        'score': room['players'][pid]['score'],
+        'connected': room['players'][pid]['connected']
+    } for pid in room['player_order']]
+
+
+def emit_room_player_update(room_id):
+    """Broadcast the latest ordered room/player state."""
+    if room_id not in game_manager.rooms:
+        return
+
+    room = game_manager.rooms[room_id]
+    emit('player_joined', {
+        'players': build_room_players(room),
+        'player_count': len(room['players']),
+        'game_settings': room['game_settings'],
+        'score_history': room['score_history'],
+        'round_number': room['round_number']
+    }, room=room_id)
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -517,6 +571,8 @@ def handle_create_room(data):
     success, message = game_manager.join_room(room_id, player_id, player_name)
     
     if success:
+        game_manager.set_player_socket(room_id, player_id, request.sid)
+
         # Set this player as the host
         game_manager.rooms[room_id]['host'] = player_id
         
@@ -561,7 +617,7 @@ def handle_join_room(data):
         session_key = reconnect_data['session_key']
         
         print(f"Attempting reconnection for player {player_id}")
-        success, message = game_manager.reconnect_player(room_id, player_id, session_key)
+        success, message = game_manager.reconnect_player(room_id, player_id, session_key, request.sid)
         
         if success:
             print(f"Player {player_id} successfully reconnected")
@@ -585,6 +641,8 @@ def handle_join_room(data):
                 'player_name': player_data['name'],
                 'player_id': player_id
             }, room=room_id)
+
+            emit_room_player_update(room_id)
             
             # Send current game state if game is active
             if room['game_state'] == 'playing':
@@ -605,22 +663,6 @@ def handle_join_room(data):
                     player_game_data['center_tiles_count'] = room['center_tiles_count']
                 
                 emit('game_reconnected', player_game_data)
-            else:
-                # Send updated player list for waiting room
-                emit('player_joined', {
-                    'players': [{
-                        'id': pid,
-                        'name': room['players'][pid]['name'],
-                        'ready': room['players'][pid]['ready'],
-                        'score': room['players'][pid]['score'],
-                        'connected': room['players'][pid]['connected']
-                    } for pid in room['player_order']],
-                    'player_count': len(room['players']),
-                    'game_settings': room['game_settings'],
-                    'score_history': room['score_history'],
-                    'round_number': room['round_number']
-                }, room=room_id)
-            
             return
         else:
             print(f"Reconnection failed: {message}")
@@ -643,7 +685,8 @@ def handle_join_room(data):
         success, message = game_manager.reconnect_player(
             room_id, 
             disconnected_player['player_id'], 
-            disconnected_player['session_key']
+            disconnected_player['session_key'],
+            request.sid
         )
         
         if success:
@@ -668,6 +711,8 @@ def handle_join_room(data):
                 'player_name': player_data['name'],
                 'player_id': disconnected_player['player_id']
             }, room=room_id)
+
+            emit_room_player_update(room_id)
             
             # Send current game state if game is active
             if room['game_state'] == 'playing':
@@ -688,22 +733,6 @@ def handle_join_room(data):
                     player_game_data['center_tiles_count'] = room['center_tiles_count']
                 
                 emit('game_reconnected', player_game_data)
-            else:
-                # Send updated player list for waiting room
-                emit('player_joined', {
-                    'players': [{
-                        'id': pid,
-                        'name': room['players'][pid]['name'],
-                        'ready': room['players'][pid]['ready'],
-                        'score': room['players'][pid]['score'],
-                        'connected': room['players'][pid]['connected']
-                    } for pid in room['player_order']],
-                    'player_count': len(room['players']),
-                    'game_settings': room['game_settings'],
-                    'score_history': room['score_history'],
-                    'round_number': room['round_number']
-                }, room=room_id)
-            
             return
         else:
             print(f"Failed to reconnect disconnected player: {message}")
@@ -717,6 +746,8 @@ def handle_join_room(data):
     print(f"Join result: success={success}, message={message}")
     
     if success:
+        game_manager.set_player_socket(room_id, player_id, request.sid)
+
         join_room(room_id)
         session['player_id'] = player_id
         session['room_id'] = room_id
@@ -734,19 +765,7 @@ def handle_join_room(data):
             'message': message
         })
         
-        emit('player_joined', {
-            'players': [{
-                'id': pid,
-                'name': room['players'][pid]['name'],
-                'ready': room['players'][pid]['ready'],
-                'score': room['players'][pid]['score'],
-                'connected': room['players'][pid]['connected']
-            } for pid in room['player_order']],
-            'player_count': len(game_manager.rooms[room_id]['players']),
-            'game_settings': room['game_settings'],
-            'score_history': room['score_history'],
-            'round_number': room['round_number']
-        }, room=room_id)
+        emit_room_player_update(room_id)
     else:
         print(f"Failed to join room: {message}")
         emit('error', {'message': message})
@@ -1718,6 +1737,7 @@ def handle_get_room_state(data):
     if player_id and player_id in room['players']:
         # Existing player (room creator) reconnecting
         print(f"Player {player_id} ({room['players'][player_id]['name']}) reconnecting to room")
+        game_manager.set_player_socket(room_id, player_id, request.sid)
         join_room(room_id)
         session['player_id'] = player_id
         session['room_id'] = room_id
@@ -1728,19 +1748,7 @@ def handle_get_room_state(data):
             'message': 'Connected to room successfully'
         })
         
-        emit('player_joined', {
-            'players': [{
-                'id': pid,
-                'name': room['players'][pid]['name'],
-                'ready': room['players'][pid]['ready'],
-                'score': room['players'][pid]['score'],
-                'connected': room['players'][pid]['connected']
-            } for pid in room['player_order']],
-            'player_count': len(game_manager.rooms[room_id]['players']),
-            'game_settings': room['game_settings'],
-            'score_history': room['score_history'],
-            'round_number': room['round_number']
-        }, room=room_id)
+        emit_room_player_update(room_id)
     else:
         # Player not found in session or room
         print(f"Player {player_id} not found in room {room_id}")
@@ -1757,7 +1765,7 @@ def handle_disconnect():
         print(f"Player {player_id} disconnected from room {room_id}")
         
         # Mark player as disconnected
-        success = game_manager.disconnect_player(room_id, player_id)
+        success = game_manager.disconnect_player(room_id, player_id, request.sid)
         
         if success and room_id in game_manager.rooms:
             room = game_manager.rooms[room_id]
@@ -1771,19 +1779,7 @@ def handle_disconnect():
             }, room=room_id)
             
             # Update player list with connection status
-            emit('player_joined', {
-                'players': [{
-                    'id': pid,
-                    'name': room['players'][pid]['name'],
-                    'ready': room['players'][pid]['ready'],
-                    'score': room['players'][pid]['score'],
-                    'connected': room['players'][pid]['connected']
-                } for pid in room['player_order']],
-                'player_count': len(room['players']),
-                'game_settings': room['game_settings'],
-                'score_history': room['score_history'],
-                'round_number': room['round_number']
-            }, room=room_id)
+            emit_room_player_update(room_id)
 
 @socketio.on('get_game_info')
 def handle_get_game_info():

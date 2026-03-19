@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BREAK THE CODE - Game Room</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%94%8D%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
     <style>
-        .game-header a:hover {
+        .game-header .brand-link:hover {
             opacity: 0.8;
             cursor: pointer;
             transform: scale(1.02);
@@ -2338,12 +2339,968 @@
                 font-size: 0.95rem;
             }
         }
+
+        /* Board-first refresh */
+        body.game-page {
+            min-height: 100vh;
+            color: #e8f0f6;
+            background:
+                radial-gradient(circle at top, rgba(98, 194, 255, 0.16), transparent 34%),
+                radial-gradient(circle at 20% 20%, rgba(255, 176, 94, 0.16), transparent 28%),
+                linear-gradient(180deg, #08131d 0%, #0d1d2c 50%, #11283d 100%);
+        }
+
+        body.game-page::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 32px 32px;
+            mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.9), transparent 88%);
+        }
+
+        .game-page .game-container {
+            max-width: 1500px;
+            padding: 20px 20px 112px;
+            position: relative;
+        }
+
+        .game-page .game-header {
+            position: sticky;
+            top: 16px;
+            z-index: 40;
+            margin-bottom: 18px;
+            padding: 18px 24px;
+            border-radius: 26px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            text-align: left;
+            border: 1px solid rgba(148, 204, 255, 0.18);
+            background: rgba(10, 25, 39, 0.82);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 24px 50px rgba(0, 0, 0, 0.28);
+        }
+
+        .game-page .game-header h1,
+        .game-page .game-header .author,
+        .game-page .game-header .tagline {
+            color: #f5f9fc;
+            text-shadow: none;
+        }
+
+        .game-page .game-header h1 {
+            font-size: clamp(2rem, 3vw, 2.7rem);
+            letter-spacing: 0.04em;
+            margin-bottom: 0;
+        }
+
+        .game-page .the-small {
+            color: #9dd1ff;
+        }
+
+        .game-page .room-info {
+            margin-top: 0;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .game-page .room-id,
+        .room-id-pill,
+        .meta-badge {
+            border-radius: 999px;
+            padding: 10px 14px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+
+        .game-page .room-id,
+        .room-id-pill {
+            color: #f8fbff;
+            background: rgba(76, 137, 202, 0.22);
+            border: 1px solid rgba(140, 190, 255, 0.22);
+        }
+
+        .meta-badge {
+            color: #ffd19a;
+            background: rgba(255, 188, 112, 0.14);
+            border: 1px solid rgba(255, 188, 112, 0.2);
+        }
+
+        .game-page .btn,
+        .join-sheet .btn {
+            border-radius: 16px;
+            font-weight: 700;
+            box-shadow: none;
+        }
+
+        .game-page .btn-primary,
+        .join-sheet .btn-primary {
+            background: linear-gradient(135deg, #4ea1ff 0%, #2f7ad6 100%);
+        }
+
+        .game-page .btn-secondary,
+        .join-sheet .btn-secondary {
+            background: rgba(225, 235, 245, 0.12);
+            color: #f0f5fb;
+            border: 1px solid rgba(225, 235, 245, 0.16);
+        }
+
+        .game-page .btn-success {
+            background: linear-gradient(135deg, #39bc83 0%, #1f8c60 100%);
+        }
+
+        .game-page .btn-warning {
+            background: linear-gradient(135deg, #f0aa44 0%, #d77c1d 100%);
+        }
+
+        .game-page .btn-small {
+            padding: 10px 14px;
+        }
+
+        .waiting-room,
+        .game-stage-card,
+        .ask-question-interface {
+            border: 1px solid rgba(155, 200, 255, 0.16);
+            background: linear-gradient(180deg, rgba(15, 31, 46, 0.95) 0%, rgba(11, 25, 37, 0.98) 100%);
+            box-shadow: 0 20px 45px rgba(0, 0, 0, 0.28);
+        }
+
+        .waiting-room {
+            text-align: left;
+            display: grid;
+            grid-template-columns: minmax(360px, 1.35fr) minmax(280px, 1fr);
+            gap: 18px;
+            padding: 24px;
+            border-radius: 30px;
+        }
+
+        .waiting-room::before,
+        .waiting-room::after {
+            display: none;
+        }
+
+        .waiting-header {
+            grid-column: 1 / -1;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 18px;
+        }
+
+        .waiting-kicker,
+        .stage-kicker,
+        .join-sheet-kicker {
+            margin-bottom: 8px;
+            color: #82baf2;
+            font-size: 0.78rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .waiting-room h2 {
+            margin-bottom: 10px;
+            color: #f7fbff;
+            font-size: clamp(2.1rem, 4vw, 3rem);
+            background: none;
+            -webkit-text-fill-color: initial;
+        }
+
+        .waiting-room h2::after {
+            display: none;
+        }
+
+        .waiting-subtitle {
+            max-width: 42rem;
+            margin-top: 0;
+            color: #9eb3c7;
+            font-style: normal;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .waiting-room-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .waiting-panel-tabs {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, max-content));
+            gap: 10px;
+            justify-content: flex-start;
+        }
+
+        .game-panel-dock {
+            display: none;
+        }
+
+        .panel-tab,
+        .dock-button {
+            border: 1px solid rgba(155, 200, 255, 0.16);
+            background: rgba(255, 255, 255, 0.04);
+            color: #bcd1e5;
+            padding: 12px 14px;
+            border-radius: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .panel-tab.is-active,
+        .dock-button.is-active {
+            color: #f8fbff;
+            background: linear-gradient(135deg, rgba(78, 161, 255, 0.28) 0%, rgba(47, 122, 214, 0.38) 100%);
+            border-color: rgba(138, 191, 255, 0.42);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+        }
+
+        .players-section,
+        .game-settings-section,
+        .score-history-section,
+        .game-info {
+            margin: 0;
+            border-radius: 24px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(155, 200, 255, 0.12);
+        }
+
+        .players-section {
+            grid-column: 1;
+            grid-row: span 2;
+        }
+
+        .game-info {
+            grid-column: 2;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            align-content: start;
+        }
+
+        .game-settings-section {
+            grid-column: 2;
+        }
+
+        .score-history-section {
+            grid-column: 1 / -1;
+        }
+
+        .waiting-view {
+            display: none;
+        }
+
+        .waiting-view.is-active {
+            display: block;
+        }
+
+        .waiting-view[data-waiting-panel="settings"],
+        .waiting-view[data-waiting-panel="history"] {
+            grid-column: 1 / -1;
+        }
+
+        .section-title,
+        .stage-meta h3 {
+            margin-bottom: 14px;
+            font-size: 1.12rem;
+            color: #f6fbff;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+        }
+
+        .players-list {
+            margin: 0 0 18px;
+            padding: 0;
+            background: transparent;
+            border: 0;
+        }
+
+        .player-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px 16px;
+            margin: 10px 0;
+            border-radius: 18px;
+            color: #f4f8fc;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            box-shadow: none;
+            transform: none;
+        }
+
+        .player-item:hover {
+            transform: translateX(0);
+            border-left-color: transparent;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .player-item::before {
+            display: none;
+        }
+
+        .player-item-main {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .player-name {
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+        .player-pills {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .player-pill {
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            background: rgba(255, 255, 255, 0.08);
+            color: #d8e4ef;
+        }
+
+        .player-pill.ready {
+            background: rgba(66, 185, 120, 0.18);
+            color: #8bf0b5;
+        }
+
+        .player-pill.pending {
+            background: rgba(240, 170, 68, 0.16);
+            color: #ffd39d;
+        }
+
+        .player-pill.online {
+            background: rgba(78, 161, 255, 0.16);
+            color: #a7d3ff;
+        }
+
+        .player-pill.offline {
+            background: rgba(229, 102, 124, 0.16);
+            color: #ffb3c1;
+        }
+
+        .player-pill.score {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .player-item.is-ready {
+            border-color: rgba(57, 188, 131, 0.3);
+            background: rgba(57, 188, 131, 0.1);
+        }
+
+        .player-item.is-disconnected {
+            border-color: rgba(229, 102, 124, 0.28);
+            background: rgba(229, 102, 124, 0.08);
+            opacity: 0.72;
+        }
+
+        .player-count,
+        .no-history,
+        .guess-placeholder,
+        .question-sheet-note {
+            color: #98aec2;
+            line-height: 1.6;
+        }
+
+        .info-card {
+            border: 1px solid rgba(155, 200, 255, 0.12);
+            border-left: 0;
+            padding: 18px;
+            border-radius: 20px;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.04);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .info-card:hover {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        .info-card h4 {
+            margin-bottom: 8px;
+            color: #f8fbff;
+            font-size: 1rem;
+        }
+
+        .info-card p,
+        .setting-item,
+        .player-result-item,
+        .round-title {
+            color: #bfd0df;
+        }
+
+        .game-interface {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .turn-indicator {
+            grid-row: 1;
+            position: sticky;
+            top: 110px;
+            z-index: 30;
+            margin-bottom: 0;
+            border-radius: 24px;
+            background: linear-gradient(135deg, rgba(14, 35, 53, 0.96) 0%, rgba(20, 49, 73, 0.96) 100%);
+            border: 1px solid rgba(155, 200, 255, 0.16);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+        }
+
+        .turn-indicator.your-turn {
+            background: linear-gradient(135deg, rgba(29, 129, 93, 0.95) 0%, rgba(23, 99, 71, 0.95) 100%);
+        }
+
+        .turn-indicator.waiting-turn {
+            background: linear-gradient(135deg, rgba(33, 67, 97, 0.95) 0%, rgba(18, 43, 64, 0.95) 100%);
+        }
+
+        .turn-indicator.final-round {
+            background: linear-gradient(135deg, rgba(183, 56, 77, 0.95) 0%, rgba(128, 34, 49, 0.95) 100%);
+        }
+
+        .game-board-shell {
+            grid-row: 3;
+            display: block;
+            min-height: 0;
+        }
+
+        .game-stage-card {
+            display: none;
+            padding: 18px;
+            border-radius: 26px;
+            overflow: auto;
+            max-width: 1240px;
+            width: 100%;
+            margin: 0 auto;
+            max-height: min(70vh, 780px);
+        }
+
+        .game-stage-card.is-active {
+            display: block;
+        }
+
+        .table-stage {
+            min-height: min(70vh, 780px);
+            max-height: none;
+        }
+
+        .table-stage.is-active {
+            display: grid;
+            align-content: start;
+            gap: 16px;
+        }
+
+        .questions-section[data-game-panel="questions"] {
+            min-height: 420px;
+        }
+
+        .guess-section[data-game-panel="guess"] {
+            min-height: 420px;
+        }
+
+        .scoreboard-section[data-game-panel="score"] {
+            min-height: 360px;
+        }
+
+        .game-log-section[data-game-panel="log"] {
+            min-height: 420px;
+        }
+
+        .stage-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+
+        .stage-meta h3,
+        .table-stage h3,
+        .game-stage-card h3 {
+            text-align: left;
+        }
+
+        .table-stage .your-tiles-section,
+        .table-stage .center-tiles-section,
+        .table-stage .other-players-section,
+        .questions-section,
+        .game-log-section,
+        .guess-section,
+        .scoreboard-section {
+            margin-bottom: 0;
+            border-radius: 22px;
+            border: 1px solid rgba(155, 200, 255, 0.12);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: none;
+        }
+
+        .table-stage .your-tiles-section,
+        .table-stage .center-tiles-section,
+        .table-stage .other-players-section {
+            padding: 18px;
+        }
+
+        .table-stage .your-tiles-section h3,
+        .table-stage .center-tiles-section h3,
+        .table-stage .other-players-section h3 {
+            margin-bottom: 12px;
+        }
+
+        .tiles-container {
+            gap: 12px;
+            justify-content: flex-start;
+        }
+
+        .tile,
+        .tile-button,
+        .guess-tile {
+            border-radius: 18px;
+            box-shadow: 0 10px 18px rgba(0, 0, 0, 0.22);
+        }
+
+        .tile-hidden {
+            background: linear-gradient(135deg, rgba(129, 150, 170, 0.76) 0%, rgba(89, 106, 124, 0.82) 100%);
+            border: 1px dashed rgba(240, 246, 252, 0.35);
+        }
+
+        .other-players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .other-player-item {
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(155, 200, 255, 0.12);
+            color: #f5f9fc;
+        }
+
+        .other-player-item strong {
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .opponent-meta {
+            color: #96afc5;
+            font-size: 0.9rem;
+        }
+
+        .questions-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .question-card {
+            width: 100%;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(155, 200, 255, 0.12);
+            border-left: 0;
+            padding: 14px 16px;
+            border-radius: 18px;
+            color: #ecf4fb;
+            transform: none;
+        }
+
+        .question-card:hover {
+            transform: translateY(-1px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .question-card.selected {
+            background: rgba(78, 161, 255, 0.12);
+            border-color: rgba(138, 191, 255, 0.34);
+        }
+
+        .question-card-index {
+            flex: 0 0 34px;
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: rgba(78, 161, 255, 0.16);
+            color: #bfe0ff;
+            font-weight: 800;
+        }
+
+        .question-card-text {
+            flex: 1;
+            line-height: 1.55;
+        }
+
+        .ask-question-interface {
+            width: min(560px, calc(100vw - 32px));
+            color: #e9f1f8;
+        }
+
+        .selected-question {
+            border-left: 0;
+            border: 1px solid rgba(138, 191, 255, 0.22);
+            background: rgba(78, 161, 255, 0.1);
+            color: #ecf4fb;
+        }
+
+        .question-actions {
+            justify-content: flex-end;
+        }
+
+        .available-tiles-grid {
+            justify-content: flex-start;
+            gap: 10px;
+        }
+
+        .tile-spacer {
+            width: 10px;
+        }
+
+        .guess-builder {
+            min-height: 116px;
+            align-items: flex-start;
+            justify-content: flex-start;
+            border-style: solid;
+            border-color: rgba(138, 191, 255, 0.18);
+            background: rgba(4, 12, 20, 0.22);
+        }
+
+        .guess-builder.empty {
+            align-items: center;
+            justify-content: center;
+        }
+
+        .guess-count {
+            width: 100%;
+            margin-top: 10px;
+            color: #98aec2;
+            font-weight: 700;
+        }
+
+        .game-log {
+            max-height: none;
+            min-height: 220px;
+            background: rgba(4, 12, 20, 0.22);
+            border-radius: 18px;
+            border: 1px solid rgba(138, 191, 255, 0.1);
+        }
+
+        .scoreboard {
+            grid-template-columns: 1fr;
+        }
+
+        .score-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-left: 0;
+            border: 1px solid rgba(155, 200, 255, 0.12);
+        }
+
+        .score-name,
+        .score-rank,
+        .score-points {
+            color: #f1f6fb;
+        }
+
+        .score-points {
+            background: rgba(78, 161, 255, 0.18);
+            border-color: rgba(138, 191, 255, 0.28);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        }
+
+        .game-panel-dock {
+            grid-row: 2;
+            position: sticky;
+            top: 212px;
+            z-index: 29;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 10px;
+            padding: 10px;
+            border-radius: 22px;
+            background: rgba(8, 18, 28, 0.88);
+            border: 1px solid rgba(155, 200, 255, 0.16);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.24);
+        }
+
+        .join-sheet-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 70;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            background: rgba(4, 10, 16, 0.72);
+            backdrop-filter: blur(14px);
+        }
+
+        .join-sheet {
+            width: min(440px, 100%);
+            padding: 24px;
+            border-radius: 26px;
+            border: 1px solid rgba(138, 191, 255, 0.2);
+            background: linear-gradient(180deg, rgba(11, 26, 39, 0.98) 0%, rgba(9, 19, 29, 1) 100%);
+            box-shadow: 0 28px 64px rgba(0, 0, 0, 0.34);
+        }
+
+        .join-sheet h3 {
+            color: #f7fbff;
+            margin-bottom: 10px;
+            font-size: 1.7rem;
+        }
+
+        .join-sheet-message {
+            color: #9bb1c5;
+            margin-bottom: 18px;
+            line-height: 1.6;
+        }
+
+        .join-sheet-form .form-group label {
+            color: #dbe7f3;
+        }
+
+        .join-sheet-form input {
+            background: rgba(255, 255, 255, 0.06);
+            color: #f6fbff;
+            border-color: rgba(138, 191, 255, 0.18);
+        }
+
+        .join-sheet-actions {
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .status-message {
+            top: 24px;
+            background: rgba(8, 18, 28, 0.88);
+            border-left-width: 0;
+            border: 1px solid rgba(155, 200, 255, 0.16);
+        }
+
+        .status-message.success {
+            background: rgba(24, 86, 59, 0.94);
+        }
+
+        .status-message.error {
+            background: rgba(122, 35, 46, 0.96);
+        }
+
+        .status-message.info {
+            background: rgba(24, 62, 102, 0.96);
+        }
+
+        .status-message.warning {
+            background: rgba(118, 72, 16, 0.96);
+        }
+
+        @media (min-width: 901px) and (max-width: 1180px) {
+            .table-stage.is-active {
+                grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.9fr);
+            }
+
+            .table-stage .stage-meta {
+                grid-column: 1 / -1;
+            }
+
+            .table-stage .your-tiles-section,
+            .table-stage #centerTilesSection {
+                grid-column: 1;
+            }
+
+            .table-stage #otherPlayersSection {
+                grid-column: 2;
+                grid-row: 2 / span 2;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .game-page .game-container {
+                padding: 14px 14px 112px;
+            }
+
+            .game-page .game-header {
+                position: static;
+                padding: 16px 18px;
+                border-radius: 22px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .waiting-room {
+                grid-template-columns: 1fr;
+                padding: 18px;
+                border-radius: 24px;
+            }
+
+            .waiting-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .waiting-panel-tabs {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .players-section,
+            .game-info,
+            .game-settings-section,
+            .score-history-section {
+                grid-column: auto;
+            }
+
+            .game-info {
+                grid-template-columns: 1fr;
+            }
+
+            .turn-indicator {
+                position: static;
+            }
+
+            .game-stage-card {
+                display: none;
+                max-height: calc(100dvh - 290px);
+                overflow: auto;
+            }
+
+            .game-stage-card.is-active {
+                display: block;
+            }
+
+            .game-panel-dock {
+                position: fixed;
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+                top: auto;
+                z-index: 55;
+                display: grid;
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
+                padding: 10px;
+                border-radius: 22px;
+                background: rgba(8, 18, 28, 0.88);
+                border: 1px solid rgba(155, 200, 255, 0.16);
+                backdrop-filter: blur(18px);
+                box-shadow: 0 18px 40px rgba(0, 0, 0, 0.28);
+            }
+
+            .dock-button {
+                min-height: 52px;
+                font-size: 0.78rem;
+                padding: 10px 8px;
+            }
+
+            .ask-question-interface {
+                width: calc(100vw - 24px);
+                max-height: calc(100dvh - 110px);
+                overflow: auto;
+            }
+
+            .status-message {
+                top: auto;
+                bottom: 88px;
+                max-width: calc(100% - 20px);
+                transform: translateX(-50%);
+            }
+
+            .status-message:not(:empty) {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            .floating-timer-display {
+                top: auto;
+                right: 12px;
+                bottom: 86px;
+            }
+
+            .join-sheet {
+                padding: 20px;
+            }
+        }
+
+        @media (min-width: 1181px) {
+            .table-stage.is-active {
+                grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.95fr);
+            }
+
+            .table-stage .stage-meta {
+                grid-column: 1 / -1;
+            }
+
+            .table-stage .your-tiles-section,
+            .table-stage #centerTilesSection {
+                grid-column: 1;
+            }
+
+            .table-stage #otherPlayersSection {
+                grid-column: 2;
+                grid-row: 2 / span 2;
+            }
+        }
+
+        @media (max-width: 560px) {
+            .player-item-main {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .player-pills {
+                justify-content: flex-start;
+            }
+
+            .waiting-room h2 {
+                font-size: 1.9rem;
+            }
+
+            .tile,
+            .tile-button,
+            .guess-tile {
+                width: 54px;
+                height: 54px;
+                font-size: 1.05rem;
+            }
+        }
     </style>
 </head>
-<body>
+<body class="game-page">
     <div class="game-container">
         <header class="game-header">
-            <a href="/" style="text-decoration: none; color: inherit; display: inline-block;">
+            <a href="/" class="brand-link" aria-label="Break the Code homepage">
                 <h1>🔍 BREAK <span class="the-small">THE</span> CODE</h1>
             </a>
             <div class="room-info">
@@ -2352,15 +3309,46 @@
             </div>
         </header>
 
+        <div id="roomJoinSheet" class="join-sheet-backdrop" style="display: none;">
+            <div class="join-sheet">
+                <p class="join-sheet-kicker">Seat at the table</p>
+                <h3>Join room {{ room_id }}</h3>
+                <p id="joinSheetMessage" class="join-sheet-message">Pick a player name to enter the room.</p>
+                <form id="directJoinForm" class="join-sheet-form">
+                    <div class="form-group">
+                        <label for="directJoinName">Player name</label>
+                        <input type="text" id="directJoinName" name="directJoinName" maxlength="24" placeholder="Your name" autocomplete="nickname" required>
+                    </div>
+                    <div class="join-sheet-actions">
+                        <button id="joinSheetBack" type="button" class="btn btn-secondary">Back</button>
+                        <button type="submit" class="btn btn-primary">Join Room</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Waiting Room -->
         <div id="waitingRoom" class="waiting-room">
             <div class="waiting-header">
-                <h2>🎮 Waiting for Players...</h2>
-                <p class="waiting-subtitle">Get ready for an exciting game of deduction and strategy!</p>
+                <div>
+                    <p class="waiting-kicker">Room setup</p>
+                    <h2>Waiting for players</h2>
+                    <p class="waiting-subtitle">Keep the lobby compact, get everyone ready, then deal the table.</p>
+                </div>
+                <div class="waiting-room-meta">
+                    <span class="room-id room-id-pill">Room {{ room_id }}</span>
+                    <span class="meta-badge">2-4 players</span>
+                </div>
+            </div>
+
+            <div class="waiting-panel-tabs" aria-label="Waiting room views">
+                <button type="button" class="panel-tab is-active" data-waiting-panel-target="lobby">Lobby</button>
+                <button type="button" class="panel-tab" data-waiting-panel-target="settings">Settings</button>
+                <button type="button" class="panel-tab" data-waiting-panel-target="history">History</button>
             </div>
             
-            <div class="players-section">
-                <h3 class="section-title">👥 Players in Room</h3>
+            <div class="players-section waiting-view is-active" data-waiting-panel="lobby">
+                <h3 class="section-title">Lobby</h3>
                 <div id="reorderControls" class="reorder-controls" style="display: none;">
                     <p class="reorder-instructions">Use the arrow buttons to move players up or down. The first player will go first in the game.</p>
                     <div class="reorder-actions">
@@ -2391,26 +3379,26 @@
                 </div>
             </div>
             
-            <div class="game-info">
+            <div class="game-info waiting-view is-active" data-waiting-panel="lobby">
                 <div class="info-card">
-                    <h4>🎯 Game Mode</h4>
-                    <p>2 Players: Guess opponent's tiles<br>3-4 Players: Guess center tiles</p>
+                    <h4>Game modes</h4>
+                    <p>2 players: break the rival's code. 3-4 players: race to solve the center row.</p>
                 </div>
                 <div class="info-card">
-                    <h4>⚡ Quick Tip</h4>
-                    <p>Use strategic questions to gather information before making your final guess!</p>
+                    <h4>Quick tip</h4>
+                    <p>Good turns stay short: ask once, learn something, then move back to the board.</p>
                 </div>
             </div>
             
             <!-- Game Settings Section -->
-            <div class="game-settings-section">
-                <h3 class="section-title">⚙️ Game Settings</h3>
+            <div class="game-settings-section waiting-view" data-waiting-panel="settings">
+                <h3 class="section-title">Game settings</h3>
                 <div id="gameSettingsDisplay" class="game-settings-display"></div>
             </div>
             
             <!-- Score History Section -->
-            <div class="score-history-section">
-                <h3 class="section-title">📊 Score History</h3>
+            <div class="score-history-section waiting-view" data-waiting-panel="history">
+                <h3 class="section-title">Score history</h3>
                 <div id="scoreHistoryDisplay" class="score-history-display">
                     <p class="no-history">No games completed yet. Start playing to see score history!</p>
                 </div>
@@ -2430,46 +3418,112 @@
                 </div> -->
             </div>
 
-            <!-- Scoreboard -->
-            <div class="scoreboard-section">
-                <h3>Score Board</h3>
-                <div id="gameScoreboard" class="scoreboard"></div>
-            </div>
-            
-            <!-- Your Tiles -->
-            <div class="your-tiles-section">
-                <h3>Your Tiles</h3>
-                <div id="yourTiles" class="tiles-container"></div>
-            </div>
+            <div class="game-board-shell">
+                <div class="table-stage game-stage-card is-active" data-game-panel="table">
+                    <div class="stage-meta">
+                        <div>
+                            <p class="stage-kicker">Board</p>
+                            <h3>Table view</h3>
+                        </div>
+                        <span class="meta-badge">Deduce, ask, guess</span>
+                    </div>
 
-            <!-- Center Tiles (for 3-4 players) -->
-            <div id="centerTilesSection" class="center-tiles-section" style="display: none;">
-                <h3>Center Tiles (Hidden)</h3>
-                <div id="centerTiles" class="tiles-container"></div>
-            </div>
+                    <!-- Your Tiles -->
+                    <div class="your-tiles-section">
+                        <h3>Your tiles</h3>
+                        <div id="yourTiles" class="tiles-container"></div>
+                    </div>
 
-            <!-- Other Players -->
-            <div id="otherPlayersSection" class="other-players-section">
-                <h3>Other Players</h3>
-                <div id="otherPlayers" class="other-players"></div>
-            </div>
+                    <!-- Center Tiles (for 3-4 players) -->
+                    <div id="centerTilesSection" class="center-tiles-section" style="display: none;">
+                        <h3>Center tiles</h3>
+                        <div id="centerTiles" class="tiles-container"></div>
+                    </div>
 
-            <!-- Available Questions -->
-            <div class="questions-section">
-                <h3>Available Questions</h3>
-                <div id="availableQuestions" class="questions-container"></div>
+                    <!-- Other Players -->
+                    <div id="otherPlayersSection" class="other-players-section">
+                        <h3>Rivals</h3>
+                        <div id="otherPlayers" class="other-players"></div>
+                    </div>
+                </div>
+
+                <!-- Available Questions -->
+                <div class="questions-section game-stage-card" data-game-panel="questions">
+                    <div class="stage-meta">
+                        <div>
+                            <p class="stage-kicker">Ask</p>
+                            <h3>Question deck</h3>
+                        </div>
+                        <span class="meta-badge">Choose one clue</span>
+                    </div>
+                    <div id="availableQuestions" class="questions-container"></div>
+                </div>
+
+                <!-- Make Guess Interface -->
+                <div class="guess-section game-stage-card" data-game-panel="guess">
+                    <div class="stage-meta">
+                        <div>
+                            <p class="stage-kicker">Guess</p>
+                            <h3>Break the code</h3>
+                        </div>
+                        <span class="meta-badge">Final answer builder</span>
+                    </div>
+                    <div id="guessInterface" class="guess-interface">
+                        <div class="guess-instructions">
+                            <p>Build your answer from left to right.</p>
+                        </div>
+                        
+                        <div class="available-tiles-section">
+                            <h4>Available tiles</h4>
+                            <div id="availableTiles" class="available-tiles-grid"></div>
+                        </div>
+                        
+                        <div class="current-guess-section">
+                            <h4>Your guess</h4>
+                            <div id="guessBuilder" class="guess-builder"></div>
+                        </div>
+                        
+                        <div class="guess-actions">
+                            <button id="submitGuess" class="btn btn-success">Submit Guess</button>
+                            <button id="clearGuess" class="btn btn-secondary">Clear</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Log -->
+                <div class="game-log-section game-stage-card" data-game-panel="log">
+                    <div class="stage-meta">
+                        <div>
+                            <p class="stage-kicker">Log</p>
+                            <h3>Round feed</h3>
+                        </div>
+                        <span class="meta-badge">Questions and reveals</span>
+                    </div>
+                    <div id="gameLog" class="game-log"></div>
+                </div>
+
+                <!-- Scoreboard -->
+                <div class="scoreboard-section game-stage-card" data-game-panel="score">
+                    <div class="stage-meta">
+                        <div>
+                            <p class="stage-kicker">Score</p>
+                            <h3>Leader board</h3>
+                        </div>
+                        <span class="meta-badge">Current standings</span>
+                    </div>
+                    <div id="gameScoreboard" class="scoreboard"></div>
+                </div>
             </div>
 
             <!-- Ask Question Interface -->
             <div id="askQuestionInterface" class="ask-question-interface" style="display: none;">
-                <h3>Ask a Question</h3>
+                <h3>Ask a question</h3>
                 <div class="question-form">
                     <div id="selectedQuestion" class="selected-question"></div>
-                    <p style="color: #666; font-style: italic; margin: 15px 0;">
-                        This question will be asked to all other players
+                    <p class="question-sheet-note">
+                        This question will be asked to all other players.
                     </p>
                     
-                    <!-- Number Selection Interface (only shown for questions that require it) -->
                     <div id="numberSelectionSection" style="display: none; margin: 20px 0;">
                         <h4 style="color: #4a5568; margin-bottom: 10px;">Choose a number for this question:</h4>
                         <div id="numberButtons" class="number-buttons-container" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
@@ -2485,37 +3539,12 @@
                 </div>
             </div>
 
-            <!-- Game Log -->
-            <div class="game-log-section">
-                <h3>Game Log</h3>
-                <div id="gameLog" class="game-log"></div>
-            </div>
-
-            <!-- Make Guess Interface -->
-            <div class="guess-section">
-                <h3>Make Your Final Guess</h3>
-                <div id="guessInterface" class="guess-interface">
-                    <div class="guess-instructions">
-                        <p>Click the tiles below to build your guess (left to right order):</p>
-                    </div>
-                    
-                    <!-- Available tiles to choose from -->
-                    <div class="available-tiles-section">
-                        <h4>Available Tiles:</h4>
-                        <div id="availableTiles" class="available-tiles-grid"></div>
-                    </div>
-                    
-                    <!-- Current guess display -->
-                    <div class="current-guess-section">
-                        <h4>Your Guess:</h4>
-                        <div id="guessBuilder" class="guess-builder"></div>
-                    </div>
-                    
-                    <div class="guess-actions">
-                        <button id="submitGuess" class="btn btn-success">Submit Guess</button>
-                        <button id="clearGuess" class="btn btn-secondary">Clear</button>
-                    </div>
-                </div>
+            <div class="game-panel-dock" aria-label="Game views">
+                <button type="button" class="dock-button is-active" data-game-panel-target="table">Table</button>
+                <button type="button" class="dock-button" data-game-panel-target="questions">Ask</button>
+                <button type="button" class="dock-button" data-game-panel-target="guess">Guess</button>
+                <button type="button" class="dock-button" data-game-panel-target="log">Log</button>
+                <button type="button" class="dock-button" data-game-panel-target="score">Score</button>
             </div>
         </div>
 
@@ -2570,6 +3599,109 @@
         let timerInterval = null;
         let currentTimeLimit = null;
         let turnStartTime = null;
+        let statusTimeout = null;
+
+        function setWaitingPanel(panelName) {
+            document.querySelectorAll('[data-waiting-panel-target]').forEach(button => {
+                button.classList.toggle('is-active', button.dataset.waitingPanelTarget === panelName);
+            });
+
+            document.querySelectorAll('[data-waiting-panel]').forEach(panel => {
+                panel.classList.toggle('is-active', panel.dataset.waitingPanel === panelName);
+            });
+        }
+
+        function setGamePanel(panelName) {
+            document.querySelectorAll('[data-game-panel-target]').forEach(button => {
+                button.classList.toggle('is-active', button.dataset.gamePanelTarget === panelName);
+            });
+
+            document.querySelectorAll('[data-game-panel]').forEach(panel => {
+                panel.classList.toggle('is-active', panel.dataset.gamePanel === panelName);
+            });
+        }
+
+        function openJoinSheet(message = 'Pick a player name to enter the room.', suggestedName = '') {
+            const joinSheet = document.getElementById('roomJoinSheet');
+            const messageElement = document.getElementById('joinSheetMessage');
+            const input = document.getElementById('directJoinName');
+
+            if (!joinSheet || !messageElement || !input) {
+                return;
+            }
+
+            messageElement.textContent = message;
+            input.value = suggestedName || input.value || '';
+            joinSheet.style.display = 'flex';
+
+            window.setTimeout(() => {
+                input.focus();
+                input.select();
+            }, 30);
+        }
+
+        function hideJoinSheet() {
+            const joinSheet = document.getElementById('roomJoinSheet');
+            if (joinSheet) {
+                joinSheet.style.display = 'none';
+            }
+        }
+
+        function submitDirectJoin() {
+            const input = document.getElementById('directJoinName');
+            if (!input) {
+                return;
+            }
+
+            const playerName = input.value.trim();
+            if (!playerName) {
+                showStatus('Enter a player name before joining.', 'error');
+                input.focus();
+                return;
+            }
+
+            socket.emit('join_room', {
+                room_id: roomId,
+                player_name: playerName
+            });
+        }
+
+        function createPlayerBadge(label, className) {
+            return `<span class="player-pill ${className}">${label}</span>`;
+        }
+
+        function createPlayerItem(player) {
+            const playerDiv = document.createElement('div');
+            playerDiv.className = 'player-item';
+            playerDiv.dataset.playerId = player.id;
+            playerDiv.dataset.playerName = player.name;
+            playerDiv.dataset.playerReady = player.ready ? 'true' : 'false';
+            playerDiv.dataset.playerConnected = player.connected === false ? 'false' : 'true';
+            playerDiv.dataset.playerScore = String(player.score || 0);
+
+            if (player.ready) {
+                playerDiv.classList.add('is-ready');
+            }
+
+            if (player.connected === false) {
+                playerDiv.classList.add('is-disconnected');
+            }
+
+            const badges = [
+                createPlayerBadge(`${player.score || 0} pts`, 'score'),
+                createPlayerBadge(player.ready ? 'Ready' : 'Waiting', player.ready ? 'ready' : 'pending'),
+                createPlayerBadge(player.connected === false ? 'Offline' : 'Connected', player.connected === false ? 'offline' : 'online')
+            ];
+
+            playerDiv.innerHTML = `
+                <div class="player-item-main">
+                    <span class="player-name">${player.name}</span>
+                    <div class="player-pills">${badges.join('')}</div>
+                </div>
+            `;
+
+            return playerDiv;
+        }
 
         // Socket event handlers
         socket.on('player_joined', function(data) {
@@ -2651,6 +3783,8 @@
             // Show game interface
             document.getElementById('waitingRoom').style.display = 'none';
             document.getElementById('gameInterface').style.display = 'block';
+            hideJoinSheet();
+            setGamePanel('table');
             
             // Restore UI
             displayYourTiles(data.tiles);
@@ -2663,6 +3797,7 @@
             
             setupOtherPlayers();
             updateGuessDisplay();
+            ensureTimerUpdatesActive();
             
             showStatus('Game state restored successfully!', 'success');
         });
@@ -2670,6 +3805,7 @@
         socket.on('room_joined', function(data) {
             console.log('Successfully joined room:', data);
             showStatus(data.message, 'success');
+            hideJoinSheet();
             
             // Store player information securely
             localStorage.setItem(`playerData_${roomId}`, JSON.stringify({
@@ -2689,6 +3825,7 @@
             
             // Update waiting room buttons for all players
             updateWaitingRoomButtons();
+            setWaitingPanel('lobby');
             
             // If this is a host, automatically emit ready status
             if (data.is_host) {
@@ -2701,6 +3838,7 @@
         socket.on('game_started', function(data) {
             console.log('Game started event received:', data);
             showStatus('Game has started!', 'success');
+            hideJoinSheet();
             
             // Update basic game state
             gameState.availableQuestions = data.available_questions;
@@ -2754,6 +3892,8 @@
                 // Hide waiting room, show game interface
                 document.getElementById('waitingRoom').style.display = 'none';
                 document.getElementById('gameInterface').style.display = 'block';
+                hideJoinSheet();
+                setGamePanel('table');
                 
                 // Re-enable guess buttons for new game
                 const submitBtn = document.getElementById('submitGuess');
@@ -2789,6 +3929,7 @@
                 
                 // Update guess display to show empty state
                 updateGuessDisplay();
+                ensureTimerUpdatesActive();
                 
                 console.log('Game interface setup complete');
             } else {
@@ -2863,30 +4004,15 @@
         socket.on('error', function(data) {
             console.log('Error received:', data);
             if (data.message.includes('name already exists')) {
-                showStatus(`${data.message}. Please choose a different name.`, 'error');
-                
-                // If this is a duplicate name error, prompt for a new name
-                setTimeout(() => {
-                    const newName = prompt('A player with this name already exists. Please enter a different name:');
-                    if (newName && newName.trim()) {
-                        socket.emit('join_room', {
-                            room_id: roomId,
-                            player_name: newName.trim()
-                        });
-                    } else {
-                        // If user cancels, redirect to lobby
-                        window.location.href = '/';
-                    }
-                }, 2000);
+                showStatus(`${data.message}. Choose a different name.`, 'error');
+                openJoinSheet('That name is already taken in this room. Choose a different one.');
             } else {
                 showStatus(data.message, 'error');
                 
                 // If connection failed, clear stored data and redirect
                 if (data.message.includes('Reconnection failed') || data.message.includes('Invalid session key')) {
                     localStorage.removeItem(`playerData_${roomId}`);
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 3000);
+                    openJoinSheet('Your saved session is no longer valid. Enter a name to join again.');
                 }
             }
         });
@@ -2927,14 +4053,8 @@
                 }
             }
             
-            // New player - prompt for name
             console.log('New player joining');
-            const playerName = prompt('Enter your name:') || 'Anonymous';
-            
-            socket.emit('join_room', {
-                room_id: roomId,
-                player_name: playerName
-            });
+            openJoinSheet(`Choose a player name to join room ${roomId}.`);
         });
         
         // Socket event for player reordering
@@ -2958,6 +4078,30 @@
             document.getElementById('cancelOrderBtn').addEventListener('click', function() {
                 exitReorderMode();
             });
+
+            document.getElementById('directJoinForm').addEventListener('submit', function(event) {
+                event.preventDefault();
+                submitDirectJoin();
+            });
+
+            document.getElementById('joinSheetBack').addEventListener('click', function() {
+                window.location.href = '/';
+            });
+
+            document.querySelectorAll('[data-waiting-panel-target]').forEach(button => {
+                button.addEventListener('click', function() {
+                    setWaitingPanel(button.dataset.waitingPanelTarget);
+                });
+            });
+
+            document.querySelectorAll('[data-game-panel-target]').forEach(button => {
+                button.addEventListener('click', function() {
+                    setGamePanel(button.dataset.gamePanelTarget);
+                });
+            });
+
+            setWaitingPanel('lobby');
+            setGamePanel('table');
         });
 
         socket.on('guess_made', function(data) {
@@ -3043,6 +4187,7 @@
                     // Hide game interface, show waiting room
                     document.getElementById('gameInterface').style.display = 'none';
                     document.getElementById('waitingRoom').style.display = 'block';
+                    setWaitingPanel('lobby');
                     
                     // Reset game state
                     gameState.finalRound = false;
@@ -3165,35 +4310,24 @@
             if (Array.isArray(players)) {
                 // Handle array format (with ready status, scores, and connection status)
                 players.forEach(player => {
-                    const playerDiv = document.createElement('div');
-                    playerDiv.className = 'player-item';
-                    playerDiv.dataset.playerId = player.id; // Add player ID as data attribute
-                    
-                    const readyStatus = player.ready ? ' ✅' : ' ⏳';
-                    const connectionStatus = player.connected === false ? ' 🔴 (Disconnected)' : '';
-                    const score = player.score !== undefined ? ` (${player.score} pts)` : '';
-                    
-                    playerDiv.textContent = player.name + score + readyStatus + connectionStatus;
-                    
-                    if (player.ready) {
-                        playerDiv.style.backgroundColor = '#c6f6d5';
-                    }
-                    if (player.connected === false) {
-                        playerDiv.style.backgroundColor = '#fed7d7';
-                        playerDiv.style.opacity = '0.7';
-                    }
-                    
-                    listElement.appendChild(playerDiv);
+                    listElement.appendChild(createPlayerItem({
+                        id: player.id,
+                        name: player.name,
+                        ready: Boolean(player.ready),
+                        connected: player.connected !== false,
+                        score: player.score || 0
+                    }));
                 });
             } else {
                 // Handle old format (just player objects)
                 players.forEach((player, index) => {
-                    const playerDiv = document.createElement('div');
-                    playerDiv.className = 'player-item';
-                    playerDiv.dataset.playerId = player.id || `player_${index}`; // Fallback ID
-                    const score = player.score !== undefined ? ` (${player.score} pts)` : '';
-                    playerDiv.textContent = player.name + score;
-                    listElement.appendChild(playerDiv);
+                    listElement.appendChild(createPlayerItem({
+                        id: player.id || `player_${index}`,
+                        name: player.name,
+                        ready: Boolean(player.ready),
+                        connected: player.connected !== false,
+                        score: player.score || 0
+                    }));
                 });
             }
             
@@ -3277,14 +4411,23 @@
             container.innerHTML = '';
             
             questions.forEach((question, index) => {
-                const questionElement = document.createElement('div');
+                const questionElement = document.createElement('button');
+                questionElement.type = 'button';
                 questionElement.className = 'question-card';
                 
                 // Format text between ** ** as bold and green
                 const formattedText = question.replace(/\*\*(.*?)\*\*/g, '<span class="question-highlight">$1</span>');
-                questionElement.innerHTML = formattedText;
+                questionElement.innerHTML = `
+                    <span class="question-card-index">${index + 1}</span>
+                    <span class="question-card-text">${formattedText}</span>
+                `;
                 
-                questionElement.addEventListener('click', () => selectQuestion(index, question));
+                questionElement.addEventListener('click', () => {
+                    container.querySelectorAll('.question-card').forEach(card => card.classList.remove('selected'));
+                    if (selectQuestion(index, question)) {
+                        questionElement.classList.add('selected');
+                    }
+                });
                 container.appendChild(questionElement);
             });
         }
@@ -3293,7 +4436,7 @@
             // Check if it's player's turn
             if (gameState.currentTurn !== gameState.yourPlayerId) {
                 showStatus("It's not your turn!", 'error');
-                return;
+                return false;
             }
             
             // Check if in final round
@@ -3303,7 +4446,7 @@
                 } else {
                     showStatus("Final round in progress - you cannot ask questions!", 'error');
                 }
-                return;
+                return false;
             }
             
             gameState.selectedQuestionIndex = index;
@@ -3322,6 +4465,7 @@
             }
             
             showQuestionInterface();
+            return true;
         }
 
         function setupNumberSelection(question) {
@@ -3403,11 +4547,15 @@
         }
 
         function showQuestionInterface() {
+            setGamePanel('questions');
             document.getElementById('askQuestionInterface').style.display = 'block';
         }
 
         function hideQuestionInterface() {
             document.getElementById('askQuestionInterface').style.display = 'none';
+            document.querySelectorAll('.question-card.selected').forEach(card => {
+                card.classList.remove('selected');
+            });
             hideNumberSelection();
             gameState.selectedQuestionIndex = null;
             gameState.selectedQuestion = null;
@@ -3428,6 +4576,7 @@
                     // In final round and you are the final player - can only guess
                     turnIndicator.classList.add('final-round');
                     indicator.innerHTML = '<span class="turn-icon">⚡</span>Final Round - Make your guess!';
+                    setGamePanel('guess');
                     
                     // Enable guess interface
                     if (submitBtn) submitBtn.disabled = false;
@@ -3506,30 +4655,42 @@
         function setupOtherPlayers() {
             // Setup other players display based on game mode
             const container = document.getElementById('otherPlayers');
+            const rivals = Object.entries(gameState.allPlayers || {}).filter(([playerId]) => playerId !== gameState.yourPlayerId);
             
             if (gameState.playerCount === 2) {
                 // 2-player mode: show other player for targeting
                 container.innerHTML = '';
-                const heading = document.createElement('h4');
-                heading.textContent = 'Other Player:';
-                heading.style.textAlign = 'center';
-                heading.style.marginBottom = '10px';
-                container.appendChild(heading);
+                const grid = document.createElement('div');
+                grid.className = 'other-players-grid';
                 
-                for (const playerId in gameState.allPlayers) {
+                rivals.forEach(([playerId, player]) => {
                     const playerDiv = document.createElement('div');
                     playerDiv.className = 'other-player-item';
-                    playerDiv.style.background = '#f7fafc';
-                    playerDiv.style.padding = '10px';
-                    playerDiv.style.margin = '5px 0';
-                    playerDiv.style.borderRadius = '8px';
-                    playerDiv.style.textAlign = 'center';
-                    playerDiv.textContent = `${gameState.allPlayers[playerId].name} (${5} tiles)`;
-                    container.appendChild(playerDiv);
-                }
+                    playerDiv.innerHTML = `
+                        <strong>${player.name}</strong>
+                        <span class="opponent-meta">Target player · 5 hidden tiles</span>
+                    `;
+                    grid.appendChild(playerDiv);
+                });
+
+                container.appendChild(grid);
             } else {
                 // 3-4 player mode: standard message
-                container.innerHTML = '<p>Other players\' tiles are hidden behind their screens</p>';
+                container.innerHTML = '';
+                const grid = document.createElement('div');
+                grid.className = 'other-players-grid';
+
+                rivals.forEach(([, player]) => {
+                    const playerDiv = document.createElement('div');
+                    playerDiv.className = 'other-player-item';
+                    playerDiv.innerHTML = `
+                        <strong>${player.name}</strong>
+                        <span class="opponent-meta">Watching the same center row</span>
+                    `;
+                    grid.appendChild(playerDiv);
+                });
+
+                container.appendChild(grid);
             }
             
             // Setup guess interface when game starts
@@ -3670,14 +4831,10 @@
                 }
                 // Select the tile
                 button.dataset.selected = 'true';
-                button.style.backgroundColor = '#4299e1'; // Blue background for selected
-                button.style.color = 'white';
                 currentGuess.push({...tile, buttonIndex: index});
             } else {
                 // Deselecting a tile
                 button.dataset.selected = 'false';
-                button.style.backgroundColor = ''; // Reset to original color
-                button.style.color = '';
                 // Remove from currentGuess
                 currentGuess = currentGuess.filter(guessedTile => 
                     !(guessedTile.buttonIndex === index && 
@@ -3692,9 +4849,10 @@
         function updateGuessDisplay() {
             const guessBuilder = document.getElementById('guessBuilder');
             guessBuilder.innerHTML = '';
+            guessBuilder.classList.toggle('empty', currentGuess.length === 0);
 
             if (currentGuess.length === 0) {
-                guessBuilder.innerHTML = '<p style="color: #718096;">Select tiles above to build your guess...</p>';
+                guessBuilder.innerHTML = '<p class="guess-placeholder">Select tiles above to build your guess.</p>';
                 return;
             }
 
@@ -3713,8 +4871,7 @@
                            gameState.playerCount === 3 ? 5 :
                            gameState.playerCount === 4 ? 4 : 5;
             const countElement = document.createElement('p');
-            countElement.style.color = '#718096';
-            countElement.style.marginTop = '10px';
+            countElement.className = 'guess-count';
             countElement.textContent = `Selected: ${currentGuess.length}/${maxTiles} tiles`;
             guessBuilder.appendChild(countElement);
         }
@@ -3728,8 +4885,6 @@
             // Reset all button states
             document.querySelectorAll('.tile-button').forEach(button => {
                 button.dataset.selected = 'false';
-                button.style.backgroundColor = '';
-                button.style.color = '';
             });
 
             currentGuess = [];
@@ -3827,7 +4982,8 @@
             statusDiv.textContent = message;
             statusDiv.className = `status-message ${type}`;
             
-            setTimeout(() => {
+            clearTimeout(statusTimeout);
+            statusTimeout = setTimeout(() => {
                 statusDiv.textContent = '';
                 statusDiv.className = 'status-message';
             }, 5000);
@@ -3990,49 +5146,8 @@
         }
 
         socket.on('disconnect', function() {
-            console.log('Connected to server');
-            
-            // Check if we have stored player data for this room
-            const storedData = localStorage.getItem(`playerData_${roomId}`);
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlPlayerId = urlParams.get('player_id');
-            
-            if (storedData && urlPlayerId) {
-                try {
-                    const playerData = JSON.parse(storedData);
-                    
-                    // Verify URL player_id matches stored data
-                    if (playerData.player_id === urlPlayerId) {
-                        console.log('Attempting to reconnect with stored credentials');
-                        
-                        // Try to reconnect with session key
-                        socket.emit('join_room', {
-                            room_id: roomId,
-                            reconnect: {
-                                player_id: playerData.player_id,
-                                session_key: playerData.session_key
-                            }
-                        });
-                        
-                        // Set local state
-                        gameState.isHost = playerData.is_host || false;
-                        gameState.isReady = playerData.is_host || false; // Host is auto-ready
-                        return;
-                    }
-                } catch (e) {
-                    console.log('Error parsing stored player data:', e);
-                    localStorage.removeItem(`playerData_${roomId}`);
-                }
-            }
-            
-            // New player - prompt for name
-            console.log('New player joining');
-            const playerName = prompt('Enter your name:') || 'Anonymous';
-            
-            socket.emit('join_room', {
-                room_id: roomId,
-                player_name: playerName
-            });
+            console.log('Disconnected from server');
+            showStatus('Connection lost. Attempting to reconnect...', 'warning');
         });
         
         // Socket event for player reordering
@@ -4061,13 +5176,10 @@
             // Store current player data for rebuilding
             gameState.currentPlayerData = playerItems.map(item => ({
                 id: item.dataset.playerId,
-                name: item.textContent.split(' (')[0].split(' ✅')[0].split(' ⏳')[0].split(' 🔴')[0],
-                ready: item.textContent.includes('✅'),
-                connected: !item.textContent.includes('🔴'),
-                score: (() => {
-                    const scoreMatch = item.textContent.match(/\((\d+) pts\)/);
-                    return scoreMatch ? parseInt(scoreMatch[1]) : 0;
-                })(),
+                name: item.dataset.playerName || '',
+                ready: item.dataset.playerReady === 'true',
+                connected: item.dataset.playerConnected !== 'false',
+                score: parseInt(item.dataset.playerScore || '0', 10),
                 element: item
             }));
             
@@ -4175,23 +5287,7 @@
                 const playerData = gameState.currentPlayerData.find(p => p.id === playerId);
                 
                 if (playerData) {
-                    const playerDiv = document.createElement('div');
-                    playerDiv.className = 'player-item';
-                    playerDiv.dataset.playerId = playerData.id;
-                    
-                    const readyStatus = playerData.ready ? ' ✅' : ' ⏳';
-                    const connectionStatus = !playerData.connected ? ' 🔴 (Disconnected)' : '';
-                    const score = playerData.score ? ` (${playerData.score} pts)` : '';
-                    
-                    playerDiv.textContent = playerData.name + score + readyStatus + connectionStatus;
-                    
-                    if (playerData.ready) {
-                        playerDiv.style.backgroundColor = '#c6f6d5';
-                    }
-                    if (!playerData.connected) {
-                        playerDiv.style.backgroundColor = '#fed7d7';
-                        playerDiv.style.opacity = '0.7';
-                    }
+                    const playerDiv = createPlayerItem(playerData);
                     
                     // Insert before player-count element
                     if (playerCountElement) {
@@ -4478,6 +5574,7 @@
             // Switch to waiting room
             document.getElementById('gameInterface').style.display = 'none';
             document.getElementById('waitingRoom').style.display = 'block';
+            setWaitingPanel('lobby');
             
             // Update player list and game info
             updatePlayersList(data.players, data.players.length);
@@ -4487,6 +5584,7 @@
             // Clear timers
             clearInterval(timerInterval);
             timerInterval = null;
+            stopTimerUpdates();
             hidePopupClock();
             
             showStatus('Game completed! Ready for next round.', 'success');

@@ -4,147 +4,195 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BREAK THE CODE - by pthnhan</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='0.9em' font-size='90'%3E%F0%9F%94%8D%3C/text%3E%3C/svg%3E">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
 </head>
-<body>
-    <div class="container">
+<body class="setup-page">
+    <div class="container setup-container">
         <header class="game-header">
-            <h1>🔍 BREAK <span class="the-small">THE</span> CODE</h1>
-            <p class="author">By pthnhan</p>
-            <p class="tagline">Put on your thinking cap and deduce the hidden tiles!</p>
+            <div class="setup-hero-copy">
+                <p class="hero-kicker">Board game</p>
+                <a href="/" class="brand-link" aria-label="Break the Code homepage">
+                    <h1>🔍 BREAK <span class="the-small">THE</span> CODE</h1>
+                </a>
+                <p class="author">By pthnhan</p>
+                <p class="tagline">Ask tight questions, read the answers fast, and break the hidden code before everyone else.</p>
+            </div>
+            <div class="setup-hero-notes">
+                <span class="setup-chip">2-4 players</span>
+                <span class="setup-chip">Realtime room</span>
+                <span class="setup-chip">Mobile ready</span>
+            </div>
         </header>
 
-        <div class="game-actions">
-            <div class="action-card">
-                <h3>Create New Game</h3>
-                <form id="createGameForm">
-                    <div class="form-group">
-                        <label for="playerName">Your Name:</label>
-                        <input type="text" id="playerName" name="playerName" required placeholder="Enter your name">
-                    </div>
-                    <div class="form-group">
-                        <label for="maxPlayers">Max Players:</label>
-                        <select id="maxPlayers" name="maxPlayers">
-                            <option value="2">2 Players</option>
-                            <option value="3">3 Players</option>
-                            <option value="4" selected>4 Players</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="numQuestionCards">Number of Question Cards (2-8):</label>
-                        <input type="number" id="numQuestionCards" name="numQuestionCards" min="2" max="8" value="4" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="timeLimit">Time Limit per Turn:</label>
-                        <select id="timeLimit" name="timeLimit">
-                            <option value="unlimited">Unlimited</option>
-                            <option value="15">15 seconds</option>
-                            <option value="60">1 minute</option>
-                            <option value="120">2 minutes</option>
-                            <option value="180">3 minutes</option>
-                            <option value="300">5 minutes</option>
-                            <option value="custom">Custom...</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="customTimeGroup" style="display: none;">
-                        <label for="customTime">Custom Time (minutes):</label>
-                        <input type="number" id="customTime" name="customTime" min="1" max="60" placeholder="Enter minutes">
-                    </div>
-                    <div class="form-group">
-                        <label for="penaltyMode">Time Penalty Mode:</label>
-                        <select id="penaltyMode" name="penaltyMode">
-                            <option value="for_fun">For Fun (Alert only)</option>
-                            <option value="manual">Competitive (Score penalty)</option>
-                        </select>
-                        <small style="color: #666; font-style: italic; margin-top: 5px; display: block;">
-                            • For Fun: Shows alerts when time is exceeded but no penalties<br>
-                            • Competitive: Deducts points based on how much time was exceeded (up to 50 points)
-                        </small>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Create Game Room</button>
-                </form>
-            </div>
-
-            <div class="action-card">
-                <h3>Join Existing Game</h3>
-                <form id="joinGameForm">
-                    <div class="form-group">
-                        <label for="joinPlayerName">Your Name:</label>
-                        <input type="text" id="joinPlayerName" name="joinPlayerName" required placeholder="Enter your name">
-                    </div>
-                    <div class="form-group">
-                        <label for="roomId">Room ID:</label>
-                        <input type="text" id="roomId" name="roomId" required placeholder="Enter room ID">
-                    </div>
-                    <button type="submit" class="btn btn-secondary">Join Game</button>
-                </form>
-            </div>
+        <div class="setup-tabs" aria-label="Homepage views">
+            <button type="button" class="setup-tab is-active" data-setup-tab-target="play">Play</button>
+            <button type="button" class="setup-tab" data-setup-tab-target="brief">Quick Brief</button>
+            <button type="button" class="setup-tab" data-setup-tab-target="guide">Guide</button>
         </div>
 
-        <div class="game-description">
-            <h2>How to Play</h2>
-            <div class="rules">
-                <div class="rule-section">
-                    <h3>🎯 Objective</h3>
-                    <p><strong>2 Players:</strong> Guess all of your opponent's tiles</p>
-                    <p><strong>3-4 Players:</strong> Guess the face-down tiles in the center</p>
+        <div class="setup-shell">
+            <section class="setup-view is-active" data-setup-tab="play">
+                <div class="setup-main play-hub">
+                    <div class="setup-toolbar">
+                        <div class="setup-toolbar-card">
+                            <strong>Deduction first</strong>
+                            <p>Read answers carefully, track the tile order, and turn small clues into a full solution.</p>
+                        </div>
+                        <div class="setup-toolbar-card">
+                            <strong>Short turns, sharp clues</strong>
+                            <p>Ask one precise question, cut away impossible tiles, and move quickly toward the winning guess.</p>
+                        </div>
+                    </div>
+
+                    <div class="play-launcher">
+                        <div class="play-launcher-copy">
+                            <p class="setup-panel-kicker">Play</p>
+                            <h2>Open a table</h2>
+                            <p>Choose how you want to enter. The form opens only when you need it.</p>
+                        </div>
+                        <div class="play-mode-grid">
+                            <button type="button" class="play-mode-card" data-action-mode="create">
+                                <span class="play-mode-label">Create New Game</span>
+                                <span class="play-mode-text">Set player count, question deck, and timer rules.</span>
+                            </button>
+                            <button type="button" class="play-mode-card" data-action-mode="join">
+                                <span class="play-mode-label">Join Existing Game</span>
+                                <span class="play-mode-text">Enter your player name and room code to sit down fast.</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="rule-section">
-                    <h3>🎲 Setup</h3>
-                    <ul>
-                        <li>Each player gets 4-5 tiles placed behind their screen</li>
-                        <li>Tiles are arranged in numerical order (black tiles before white for same numbers)</li>
-                        <li>4 question cards are available in the center for strategic questioning</li>
-                        <li>Players take turns asking questions to gather information about other players' tiles</li>
-                    </ul>
-                </div>
-                
-                <div class="rule-section">
-                    <h3>🧩 Tiles</h3>
-                    <p>Numbers 0, 1, 2, 3, 4, 6, 7, 8, 9 (both white and black) + Two green 5s</p>
-                    <p>Total: 20 tiles (18 regular + 2 special green 5s)</p>
-                </div>
-                
-                <div class="rule-section">
-                    <h3>🎯 Gameplay</h3>
-                    <ul>
-                        <li><strong>Ask Questions:</strong> Use strategic questions to gather information about opponents' tiles</li>
-                        <li><strong>Deduce Patterns:</strong> Analyze answers to determine tile positions and numbers</li>
-                        <li><strong>Make Your Guess:</strong> When confident, arrange tiles in the order you think they are</li>
-                        <li><strong>Win Conditions:</strong> First to correctly guess wins, or everyone gets final chance in some scenarios</li>
-                    </ul>
-                </div>
-                
-                <div class="rule-section">
-                    <h3>🔍 Question Types</h3>
-                    <ul>
-                        <li><strong>Counting Questions:</strong> "How many white tiles do you have?"</li>
-                        <li><strong>Position Questions:</strong> "Where are your #5 tiles?"</li>
-                        <li><strong>Mathematical:</strong> "What is the sum of your tiles?"</li>
-                        <li><strong>Conditional:</strong> "Is your C tile greater than 4?"</li>
-                        <li><strong>Pattern-based:</strong> "Which neighboring tiles have consecutive numbers?"</li>
-                    </ul>
-                </div>
-            </div>
+            </section>
+
+            <section class="setup-view" data-setup-tab="brief">
+                <section class="setup-panel">
+                    <p class="setup-panel-kicker">Quick Brief</p>
+                    <h2>Read the table in one minute</h2>
+                    <div class="setup-brief-list">
+                        <div class="brief-item">
+                            <strong>Goal</strong>
+                            <span>2 players crack opponent tiles. 3-4 players crack the center row.</span>
+                        </div>
+                        <div class="brief-item">
+                            <strong>Turn loop</strong>
+                            <span>Ask one strong question, collect answers, then decide whether to guess.</span>
+                        </div>
+                        <div class="brief-item">
+                            <strong>Tile set</strong>
+                            <span>0, 1, 2, 3, 4, 6, 7, 8, 9 in black and white, plus two green 5 tiles.</span>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <section class="setup-view" data-setup-tab="guide">
+                <section class="setup-panel">
+                    <p class="setup-panel-kicker">Guide</p>
+                    <h2>Rules and question ideas</h2>
+                    <details class="setup-details" open>
+                        <summary>Game flow</summary>
+                        <ul>
+                            <li>Each player receives 4-5 hidden tiles arranged in order.</li>
+                            <li>The room shares a small deck of question cards for deduction.</li>
+                            <li>When you are confident, submit a full ordered guess.</li>
+                        </ul>
+                    </details>
+
+                    <details class="setup-details">
+                        <summary>Question ideas</summary>
+                        <ul>
+                            <li>Count colors or numbers.</li>
+                            <li>Ask about positions like where the 5 tiles are.</li>
+                            <li>Use sums, comparisons, and neighbor patterns to narrow possibilities.</li>
+                        </ul>
+                    </details>
+
+                    <details class="setup-details">
+                        <summary>Original rules</summary>
+                        <p><strong>Game Designer:</strong> Ryohei Kurahashi</p>
+                        <p><strong>Web Implementation:</strong> pthnhan</p>
+                        <a href="https://boardgame.bg/break%20the%20code%20rules.pdf" target="_blank" class="btn btn-secondary">
+                            Download Official Rules PDF
+                        </a>
+                    </details>
+                </section>
+            </section>
         </div>
 
-        <div class="game-resources">
-            <h2>Game Resources</h2>
-            <div class="resources">
-                <div class="resource-section">
-                    <h3>📚 Original Game</h3>
-                    <p><strong>Game Designer:</strong> Ryohei Kurahashi</p>
-                    <p><strong>Web Implementation:</strong> pthnhan</p>
+        <div id="actionModal" class="setup-modal-backdrop" style="display: none;">
+            <div class="setup-modal">
+                <div class="setup-modal-header">
+                    <div>
+                        <p id="actionModalKicker" class="setup-panel-kicker">Play</p>
+                        <h2 id="actionModalTitle">Create New Game</h2>
+                    </div>
+                    <button id="closeActionModal" type="button" class="modal-close-btn" aria-label="Close">
+                        ✕
+                    </button>
                 </div>
-                
-                <div class="resource-section">
-                    <h3>📖 Official Rules</h3>
-                    <p>For complete and detailed rules, refer to the official rulebook:</p>
-                    <a href="https://boardgame.bg/break%20the%20code%20rules.pdf" target="_blank" class="btn btn-secondary">
-                        📄 Download Official Rules PDF
-                    </a>
+
+                <div class="action-panel is-active" data-action-panel="create">
+                    <form id="createGameForm">
+                        <div class="form-group">
+                            <label for="playerName">Your Name</label>
+                            <input type="text" id="playerName" name="playerName" required placeholder="Enter your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="maxPlayers">Max Players</label>
+                            <select id="maxPlayers" name="maxPlayers">
+                                <option value="2">2 Players</option>
+                                <option value="3">3 Players</option>
+                                <option value="4" selected>4 Players</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="numQuestionCards">Question Cards (2-8)</label>
+                            <input type="number" id="numQuestionCards" name="numQuestionCards" min="2" max="8" value="4" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="timeLimit">Time Limit per Turn</label>
+                            <select id="timeLimit" name="timeLimit">
+                                <option value="unlimited">Unlimited</option>
+                                <option value="15">15 seconds</option>
+                                <option value="60">1 minute</option>
+                                <option value="120">2 minutes</option>
+                                <option value="180">3 minutes</option>
+                                <option value="300">5 minutes</option>
+                                <option value="custom">Custom...</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="customTimeGroup" style="display: none;">
+                            <label for="customTime">Custom Time (minutes)</label>
+                            <input type="number" id="customTime" name="customTime" min="1" max="60" placeholder="Enter minutes">
+                        </div>
+                        <div class="form-group">
+                            <label for="penaltyMode">Time Penalty Mode</label>
+                            <select id="penaltyMode" name="penaltyMode">
+                                <option value="for_fun">For Fun (Alert only)</option>
+                                <option value="manual">Competitive (Score penalty)</option>
+                            </select>
+                            <small class="setup-helper">
+                                For Fun only warns when time runs out. Competitive deducts score based on overtime.
+                            </small>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create Game Room</button>
+                    </form>
+                </div>
+
+                <div class="action-panel" data-action-panel="join">
+                    <form id="joinGameForm">
+                        <div class="form-group">
+                            <label for="joinPlayerName">Your Name</label>
+                            <input type="text" id="joinPlayerName" name="joinPlayerName" required placeholder="Enter your name">
+                        </div>
+                        <div class="form-group">
+                            <label for="roomId">Room ID</label>
+                            <input type="text" id="roomId" name="roomId" required placeholder="Enter room ID">
+                        </div>
+                        <button type="submit" class="btn btn-secondary">Join Game</button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -154,6 +202,47 @@
 
     <script>
         const socket = io();
+        let statusTimeout = null;
+
+        function setSetupTab(tabName) {
+            document.querySelectorAll('[data-setup-tab-target]').forEach(button => {
+                button.classList.toggle('is-active', button.dataset.setupTabTarget === tabName);
+            });
+
+            document.querySelectorAll('[data-setup-tab]').forEach(panel => {
+                panel.classList.toggle('is-active', panel.dataset.setupTab === tabName);
+            });
+        }
+
+        function openActionModal(mode) {
+            const modal = document.getElementById('actionModal');
+            const title = document.getElementById('actionModalTitle');
+            const kicker = document.getElementById('actionModalKicker');
+            const isCreate = mode === 'create';
+
+            document.querySelectorAll('[data-action-panel]').forEach(panel => {
+                panel.classList.toggle('is-active', panel.dataset.actionPanel === mode);
+            });
+
+            title.textContent = isCreate ? 'Create New Game' : 'Join Existing Game';
+            kicker.textContent = isCreate ? 'Create' : 'Join';
+            modal.style.display = 'flex';
+
+            const focusTarget = isCreate
+                ? document.getElementById('playerName')
+                : document.getElementById('joinPlayerName');
+
+            window.setTimeout(() => {
+                if (focusTarget) {
+                    focusTarget.focus();
+                    focusTarget.select();
+                }
+            }, 30);
+        }
+
+        function closeActionModal() {
+            document.getElementById('actionModal').style.display = 'none';
+        }
 
         // Handle custom time limit selection
         document.getElementById('timeLimit').addEventListener('change', function() {
@@ -245,11 +334,33 @@
             statusDiv.textContent = message;
             statusDiv.className = `status-message ${type}`;
             
-            setTimeout(() => {
+            clearTimeout(statusTimeout);
+            statusTimeout = setTimeout(() => {
                 statusDiv.textContent = '';
                 statusDiv.className = 'status-message';
             }, 5000);
         }
+
+        document.querySelectorAll('[data-setup-tab-target]').forEach(button => {
+            button.addEventListener('click', function() {
+                setSetupTab(button.dataset.setupTabTarget);
+            });
+        });
+
+        document.querySelectorAll('[data-action-mode]').forEach(button => {
+            button.addEventListener('click', function() {
+                openActionModal(button.dataset.actionMode);
+            });
+        });
+
+        document.getElementById('closeActionModal').addEventListener('click', closeActionModal);
+        document.getElementById('actionModal').addEventListener('click', function(event) {
+            if (event.target.id === 'actionModal') {
+                closeActionModal();
+            }
+        });
+
+        setSetupTab('play');
     </script>
 </body>
 </html> 
