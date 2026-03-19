@@ -1371,7 +1371,7 @@ def handle_make_guess(data):
         if guess_type == "center":
             target_tiles = room["center_tiles"]
             is_correct = check_guess_correctness(guess, target_tiles)
-            target_name = "center tiles"
+            target_name = "center code"
         else:
             emit("error", {"message": "Invalid guess type for this game mode"})
             return

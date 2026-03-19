@@ -3245,6 +3245,12 @@
             gap: 12px;
         }
 
+        .opponent-code-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
         .other-player-item {
             padding: 14px 16px;
             border-radius: 18px;
@@ -3261,6 +3267,113 @@
         .opponent-meta {
             color: #96afc5;
             font-size: 0.9rem;
+        }
+
+        .opponent-code-card {
+            position: relative;
+            overflow: hidden;
+            padding: 18px;
+            border-radius: 22px;
+            border: 1px solid rgba(161, 201, 255, 0.16);
+            background:
+                radial-gradient(circle at top left, rgba(126, 182, 255, 0.16) 0%, transparent 28%),
+                radial-gradient(circle at bottom right, rgba(255, 217, 130, 0.12) 0%, transparent 24%),
+                linear-gradient(165deg, rgba(17, 33, 48, 0.96) 0%, rgba(10, 20, 30, 0.98) 100%);
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.05),
+                0 18px 28px rgba(2, 8, 14, 0.22);
+        }
+
+        .opponent-code-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            border-radius: inherit;
+            background:
+                linear-gradient(120deg, rgba(255, 255, 255, 0.06), transparent 28%),
+                repeating-linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.024) 0,
+                    rgba(255, 255, 255, 0.024) 2px,
+                    transparent 2px,
+                    transparent 16px
+                );
+        }
+
+        .opponent-code-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .opponent-code-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .opponent-code-head strong {
+            margin-bottom: 6px;
+            color: #f5f9fc;
+            font-size: 1.04rem;
+            letter-spacing: 0.01em;
+        }
+
+        .opponent-code-label {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 11px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(155, 200, 255, 0.15);
+            color: #e3edf8;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+        }
+
+        .opponent-code-rack {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 14px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(155, 200, 255, 0.12);
+        }
+
+        .opponent-code-rack.tiles-container {
+            margin-top: 0;
+            justify-content: flex-start;
+        }
+
+        .opponent-code-rack .tile {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .opponent-code-rack .tile-hidden {
+            background: linear-gradient(135deg, rgba(129, 150, 170, 0.92) 0%, rgba(89, 106, 124, 0.96) 100%);
+            color: #f7fbff;
+            border: 1px dashed rgba(240, 246, 252, 0.42);
+            min-width: 46px;
+            min-height: 62px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            font-weight: 900;
+        }
+
+        .opponent-code-note {
+            margin-top: 12px;
+            color: #9eb3c9;
+            font-size: 0.9rem;
+            line-height: 1.55;
         }
 
         .questions-container {
@@ -3892,7 +4005,7 @@
             <div class="game-info waiting-view is-active" data-waiting-panel="lobby">
                 <div class="info-card">
                     <h4>Game modes</h4>
-                    <p>2 players: break the rival's code. 3-4 players: race to solve the center row.</p>
+                    <p>2 players: break the opponent's code. 3-4 players: race to solve the center code.</p>
                 </div>
                 <div class="info-card">
                     <h4>Quick tip</h4>
@@ -3946,13 +4059,13 @@
 
                     <!-- Center Tiles (for 3-4 players) -->
                     <div id="centerTilesSection" class="center-tiles-section" style="display: none;">
-                        <h3>Center tiles</h3>
+                        <h3>Center code</h3>
                         <div id="centerTiles" class="tiles-container"></div>
                     </div>
 
                     <!-- Other Players -->
                     <div id="otherPlayersSection" class="other-players-section">
-                        <h3>Rivals</h3>
+                        <h3>Opponent's code</h3>
                         <div id="otherPlayers" class="other-players"></div>
                     </div>
                 </div>
@@ -5183,6 +5296,15 @@
             }
         }
 
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function showQuestionInterface() {
             setGamePanel('questions');
             document.getElementById('askQuestionInterface').style.display = 'block';
@@ -5277,6 +5399,10 @@
         function setupCenterTiles(count) {
             const section = document.getElementById('centerTilesSection');
             section.style.display = 'block';
+            const title = section.querySelector('h3');
+            if (title) {
+                title.textContent = 'Center code';
+            }
 
             const container = document.getElementById('centerTiles');
             container.innerHTML = '';
@@ -5292,27 +5418,50 @@
         function setupOtherPlayers() {
             // Setup other players display based on game mode
             const container = document.getElementById('otherPlayers');
+            const sectionTitle = document.querySelector('#otherPlayersSection h3');
             const rivals = Object.entries(gameState.allPlayers || {}).filter(([playerId]) => playerId !== gameState.yourPlayerId);
 
             if (gameState.playerCount === 2) {
-                // 2-player mode: show other player for targeting
+                if (sectionTitle) {
+                    sectionTitle.textContent = "Opponent's code";
+                }
+
                 container.innerHTML = '';
                 const grid = document.createElement('div');
-                grid.className = 'other-players-grid';
+                grid.className = 'opponent-code-grid';
 
                 rivals.forEach(([playerId, player]) => {
                     const playerDiv = document.createElement('div');
-                    playerDiv.className = 'other-player-item';
+                    playerDiv.className = 'opponent-code-card';
                     playerDiv.innerHTML = `
-                        <strong>${player.name}</strong>
-                        <span class="opponent-meta">Target player · 5 hidden tiles</span>
+                        <div class="opponent-code-head">
+                            <div>
+                                <strong>${escapeHtml(player.name)}</strong>
+                                <span class="opponent-meta">Hidden code · 5 tiles</span>
+                            </div>
+                            <span class="opponent-code-label">Target</span>
+                        </div>
+                        <div class="tiles-container opponent-code-rack"></div>
+                        <p class="opponent-code-note">Read the clues, track the hidden order, then commit to the full code break.</p>
                     `;
+
+                    const rack = playerDiv.querySelector('.opponent-code-rack');
+                    for (let i = 0; i < 5; i++) {
+                        const tileElement = document.createElement('div');
+                        tileElement.className = 'tile tile-hidden';
+                        tileElement.textContent = '?';
+                        rack.appendChild(tileElement);
+                    }
+
                     grid.appendChild(playerDiv);
                 });
 
                 container.appendChild(grid);
             } else {
-                // 3-4 player mode: standard message
+                if (sectionTitle) {
+                    sectionTitle.textContent = 'Opponents';
+                }
+
                 container.innerHTML = '';
                 const grid = document.createElement('div');
                 grid.className = 'other-players-grid';
@@ -5321,8 +5470,8 @@
                     const playerDiv = document.createElement('div');
                     playerDiv.className = 'other-player-item';
                     playerDiv.innerHTML = `
-                        <strong>${player.name}</strong>
-                        <span class="opponent-meta">Watching the same center row</span>
+                        <strong>${escapeHtml(player.name)}</strong>
+                        <span class="opponent-meta">Racing with you to solve the center code</span>
                     `;
                     grid.appendChild(playerDiv);
                 });
