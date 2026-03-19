@@ -2995,7 +2995,37 @@
         }
 
         .questions-section[data-game-panel="questions"] {
-            min-height: 420px;
+            min-height: 520px;
+            position: relative;
+            background:
+                radial-gradient(circle at top left, rgba(226, 250, 237, 0.11) 0%, transparent 26%),
+                radial-gradient(circle at bottom right, rgba(218, 165, 99, 0.12) 0%, transparent 30%),
+                linear-gradient(160deg, rgba(15, 55, 48, 0.98) 0%, rgba(10, 34, 38, 0.98) 100%);
+            border: 1px solid rgba(160, 199, 171, 0.18);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+        }
+
+        .questions-section[data-game-panel="questions"]::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            border-radius: inherit;
+            background:
+                linear-gradient(120deg, rgba(255, 255, 255, 0.05), transparent 30%),
+                repeating-linear-gradient(
+                    135deg,
+                    rgba(255, 255, 255, 0.025) 0,
+                    rgba(255, 255, 255, 0.025) 2px,
+                    transparent 2px,
+                    transparent 14px
+                );
+            opacity: 0.75;
+        }
+
+        .questions-section[data-game-panel="questions"] > * {
+            position: relative;
+            z-index: 1;
         }
 
         .guess-section[data-game-panel="guess"] {
@@ -3115,52 +3145,187 @@
         }
 
         .questions-container {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            align-content: start;
         }
 
         .question-card {
+            --question-accent: #2a7d6c;
+            --question-accent-soft: rgba(42, 125, 108, 0.16);
+            --question-accent-deep: #17493f;
             width: 100%;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
+            min-height: 180px;
+            display: grid;
+            grid-template-columns: 74px minmax(0, 1fr);
+            align-items: stretch;
+            gap: 16px;
             text-align: left;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(155, 200, 255, 0.12);
-            border-left: 0;
-            padding: 14px 16px;
-            border-radius: 18px;
-            color: #ecf4fb;
-            transform: none;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            padding: 18px;
+            border-radius: 24px;
+            border: 1px solid rgba(147, 112, 67, 0.22);
+            background:
+                radial-gradient(circle at top right, rgba(255, 255, 255, 0.85) 0%, transparent 22%),
+                linear-gradient(180deg, rgba(255, 251, 244, 0.99) 0%, rgba(243, 235, 219, 0.97) 100%);
+            color: #17324a;
+            box-shadow:
+                0 18px 32px rgba(5, 16, 27, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.78);
+            transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+        }
+
+        .questions-container .question-card:nth-child(4n + 1) {
+            --question-accent: #287b68;
+            --question-accent-soft: rgba(40, 123, 104, 0.16);
+            --question-accent-deep: #15463b;
+        }
+
+        .questions-container .question-card:nth-child(4n + 2) {
+            --question-accent: #c47d2b;
+            --question-accent-soft: rgba(196, 125, 43, 0.16);
+            --question-accent-deep: #744713;
+        }
+
+        .questions-container .question-card:nth-child(4n + 3) {
+            --question-accent: #2e78b7;
+            --question-accent-soft: rgba(46, 120, 183, 0.15);
+            --question-accent-deep: #1a466d;
+        }
+
+        .questions-container .question-card:nth-child(4n + 4) {
+            --question-accent: #bb5e43;
+            --question-accent-soft: rgba(187, 94, 67, 0.14);
+            --question-accent-deep: #713525;
+        }
+
+        .question-card::before {
+            content: '';
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 100%;
+            height: 7px;
+            background: linear-gradient(90deg, var(--question-accent) 0%, rgba(255, 255, 255, 0) 78%);
+        }
+
+        .question-card::after {
+            content: '';
+            position: absolute;
+            right: 14px;
+            bottom: 14px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--question-accent-soft) 0%, rgba(255, 255, 255, 0) 72%);
+            opacity: 0.95;
         }
 
         .question-card:hover {
-            transform: translateY(-1px);
-            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-4px) rotate(-0.3deg);
+            border-color: rgba(155, 128, 91, 0.36);
+            box-shadow:
+                0 24px 40px rgba(5, 16, 27, 0.22),
+                inset 0 1px 0 rgba(255, 255, 255, 0.84);
         }
 
         .question-card.selected {
-            background: rgba(78, 161, 255, 0.12);
-            border-color: rgba(138, 191, 255, 0.34);
+            transform: translateY(-5px);
+            border-color: rgba(27, 74, 122, 0.3);
+            box-shadow:
+                0 26px 44px rgba(5, 16, 27, 0.24),
+                inset 0 0 0 1px var(--question-accent-soft),
+                inset 0 1px 0 rgba(255, 255, 255, 0.84);
         }
 
         .question-card-index {
-            flex: 0 0 34px;
-            width: 34px;
-            height: 34px;
+            width: 74px;
+            min-height: 74px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 12px;
-            background: rgba(78, 161, 255, 0.16);
-            color: #bfe0ff;
+            align-self: start;
+            border-radius: 22px;
+            background:
+                linear-gradient(160deg, rgba(255, 255, 255, 0.96) 0%, var(--question-accent-soft) 100%);
+            border: 1px solid rgba(117, 93, 62, 0.12);
+            color: var(--question-accent-deep);
             font-weight: 800;
+            font-size: 1.2rem;
+            letter-spacing: 0.08em;
+            box-shadow:
+                inset 0 1px 0 rgba(255, 255, 255, 0.7),
+                0 8px 16px rgba(10, 20, 30, 0.08);
+        }
+
+        .question-card-body {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            gap: 14px;
+        }
+
+        .question-card-topline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .question-card-label {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: var(--question-accent-soft);
+            color: var(--question-accent-deep);
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .question-card-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(33, 67, 97, 0.08);
+            color: #35526d;
+            font-size: 0.74rem;
+            font-weight: 700;
+        }
+
+        .question-card.requires-choice .question-card-badge {
+            background: rgba(196, 125, 43, 0.12);
+            color: #7b4a14;
         }
 
         .question-card-text {
             flex: 1;
-            line-height: 1.55;
+            line-height: 1.68;
+            color: #1b3146;
+            font-size: 1.02rem;
+            font-weight: 600;
+            text-wrap: pretty;
+        }
+
+        .question-card .question-highlight {
+            color: var(--question-accent-deep);
+            font-weight: 800;
+            text-decoration: underline;
+            text-decoration-color: rgba(0, 0, 0, 0.08);
+            text-underline-offset: 0.16em;
+        }
+
+        .question-card-footer {
+            margin-top: auto;
+            color: #5c7082;
+            font-size: 0.84rem;
+            line-height: 1.5;
         }
 
         .ask-question-interface {
@@ -3399,6 +3564,23 @@
 
             .game-stage-card.is-active {
                 display: block;
+            }
+
+            .questions-container {
+                grid-template-columns: 1fr;
+            }
+
+            .question-card {
+                min-height: 164px;
+                grid-template-columns: 62px minmax(0, 1fr);
+                padding: 16px;
+            }
+
+            .question-card-index {
+                width: 62px;
+                min-height: 62px;
+                border-radius: 18px;
+                font-size: 1.05rem;
             }
 
             .game-panel-dock {
@@ -4698,12 +4880,29 @@
                 const questionElement = document.createElement('button');
                 questionElement.type = 'button';
                 questionElement.className = 'question-card';
+
+                const questionLabel = getQuestionCardLabel(question);
+                const requiresNumber = question.includes("You must choose one number before asking that question");
+                const footerText = requiresNumber
+                    ? 'Pick one number first, then open the ask sheet.'
+                    : 'Tap to open the ask sheet and send this clue.';
+
+                if (requiresNumber) {
+                    questionElement.classList.add('requires-choice');
+                }
                 
                 // Format text between ** ** as bold and green
                 const formattedText = question.replace(/\*\*(.*?)\*\*/g, '<span class="question-highlight">$1</span>');
                 questionElement.innerHTML = `
                     <span class="question-card-index">${index + 1}</span>
-                    <span class="question-card-text">${formattedText}</span>
+                    <span class="question-card-body">
+                        <span class="question-card-topline">
+                            <span class="question-card-label">${questionLabel}</span>
+                            <span class="question-card-badge">${requiresNumber ? 'Pick a number' : 'Ready to ask'}</span>
+                        </span>
+                        <span class="question-card-text">${formattedText}</span>
+                        <span class="question-card-footer">${footerText}</span>
+                    </span>
                 `;
                 
                 questionElement.addEventListener('click', () => {
@@ -4714,6 +4913,37 @@
                 });
                 container.appendChild(questionElement);
             });
+        }
+
+        function getQuestionCardLabel(question) {
+            const normalizedQuestion = question.toLowerCase();
+
+            if (normalizedQuestion.includes('how many')) {
+                return 'Count clue';
+            }
+
+            if (normalizedQuestion.includes('where are')) {
+                return 'Locate clue';
+            }
+
+            if (normalizedQuestion.includes('sum')) {
+                return 'Sum clue';
+            }
+
+            if (normalizedQuestion.includes('difference') || normalizedQuestion.includes('greater than')) {
+                return 'Compare clue';
+            }
+
+            if (
+                normalizedQuestion.includes('neighbour') ||
+                normalizedQuestion.includes('same color') ||
+                normalizedQuestion.includes('same number') ||
+                normalizedQuestion.includes('consecutive')
+            ) {
+                return 'Pattern clue';
+            }
+
+            return 'Deduction clue';
         }
 
         function selectQuestion(index, question) {
