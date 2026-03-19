@@ -3199,6 +3199,123 @@
             font-weight: 800;
         }
 
+        .number-selection-section {
+            margin: 22px 0 18px;
+            padding: 16px;
+            border-radius: 20px;
+            background: rgba(4, 12, 20, 0.24);
+            border: 1px solid rgba(138, 191, 255, 0.14);
+        }
+
+        .number-selection-title {
+            margin-bottom: 12px;
+            color: #edf5fc;
+            font-size: 0.98rem;
+            font-weight: 800;
+            text-align: left;
+        }
+
+        .number-buttons-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .number-button {
+            --tile-piece-width: 64px;
+            --tile-piece-height: 76px;
+            --tile-piece-font-size: 1.22rem;
+            --tile-piece-radius: 20px 20px 16px 16px;
+            position: relative;
+            overflow: hidden;
+            width: var(--tile-piece-width);
+            min-width: var(--tile-piece-width);
+            height: var(--tile-piece-height);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--tile-piece-radius);
+            border: 1px solid rgba(170, 152, 120, 0.34);
+            background:
+                radial-gradient(circle at top left, rgba(255, 255, 255, 0.88) 0%, transparent 30%),
+                linear-gradient(180deg, #fffef9 0%, #efe6d5 60%, #d8cbb2 100%);
+            color: #1e3447;
+            text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+            box-shadow:
+                0 16px 26px rgba(3, 10, 18, 0.22),
+                0 4px 0 rgba(7, 15, 22, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            font-size: var(--tile-piece-font-size);
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, border-color 0.18s ease;
+        }
+
+        .number-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 10%;
+            width: 80%;
+            height: 44%;
+            border-radius: 0 0 18px 18px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.38), transparent);
+            pointer-events: none;
+        }
+
+        .number-button::after {
+            content: '';
+            position: absolute;
+            left: 10px;
+            right: 10px;
+            bottom: 8px;
+            height: 9px;
+            border-radius: 999px;
+            background: rgba(0, 0, 0, 0.14);
+            opacity: 0.55;
+            pointer-events: none;
+        }
+
+        .number-button:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 20px 30px rgba(3, 10, 18, 0.26),
+                0 5px 0 rgba(7, 15, 22, 0.18),
+                inset 0 1px 0 rgba(255, 255, 255, 0.34);
+        }
+
+        .number-button.selected {
+            background:
+                radial-gradient(circle at top left, rgba(236, 255, 226, 0.42) 0%, transparent 28%),
+                linear-gradient(180deg, #8ddf74 0%, #43a25d 55%, #1f5c43 100%);
+            color: #f7fff7;
+            text-shadow: 0 1px 0 rgba(0, 0, 0, 0.26);
+            border-color: rgba(203, 246, 177, 0.42);
+            transform: translateY(2px) scale(0.98);
+            box-shadow:
+                0 10px 18px rgba(3, 10, 18, 0.24),
+                inset 0 1px 0 rgba(255, 255, 255, 0.18),
+                0 0 0 3px rgba(116, 220, 132, 0.22);
+        }
+
+        .number-button:disabled {
+            opacity: 0.58;
+            filter: saturate(0.72) brightness(0.92);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .selected-number-display {
+            margin-top: 12px;
+            color: #9fe0a4;
+            font-size: 0.92rem;
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 0.02em;
+        }
+
         .tiles-container {
             gap: 12px;
             justify-content: flex-start;
@@ -4047,6 +4164,12 @@
                 --tile-piece-font-size: 1.05rem;
             }
 
+            .number-button {
+                --tile-piece-width: 54px;
+                --tile-piece-height: 64px;
+                --tile-piece-font-size: 1.04rem;
+            }
+
             .actual-tile {
                 --tile-piece-width: 34px;
                 --tile-piece-height: 42px;
@@ -4291,13 +4414,12 @@
                         This question will be asked to all other players.
                     </p>
 
-                    <div id="numberSelectionSection" style="display: none; margin: 20px 0;">
-                        <h4 style="color: #4a5568; margin-bottom: 10px;">Choose a number for this question:</h4>
-                        <div id="numberButtons" class="number-buttons-container"
-                            style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <div id="numberSelectionSection" class="number-selection-section" style="display: none;">
+                        <h4 class="number-selection-title">Choose a number for this question:</h4>
+                        <div id="numberButtons" class="number-buttons-container">
                             <!-- Number buttons will be dynamically added here -->
                         </div>
-                        <p id="selectedNumberDisplay" style="margin-top: 10px; font-weight: bold; color: #38a169;"></p>
+                        <p id="selectedNumberDisplay" class="selected-number-display"></p>
                     </div>
 
                     <div class="question-actions">
