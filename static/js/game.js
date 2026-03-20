@@ -1,3 +1,12 @@
+const console = {
+    ...(window.console || {}),
+    log() {},
+    debug() {},
+    info() {},
+    warn() {},
+    error() {}
+};
+
 const socket = io();
 const bootstrapData = window.BREAK_THE_CODE_BOOTSTRAP || {};
 const roomId = bootstrapData.roomId;

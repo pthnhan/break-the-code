@@ -203,6 +203,15 @@
     </div>
 
     <script>
+        const console = {
+            ...(window.console || {}),
+            log() {},
+            debug() {},
+            info() {},
+            warn() {},
+            error() {}
+        };
+
         const socket = io();
         let statusTimeout = null;
         let pendingJoinRoomId = null;
