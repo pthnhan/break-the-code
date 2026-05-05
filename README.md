@@ -81,25 +81,35 @@ Previous platform-specific deployment files have been removed so the repo now do
 4. Make sure the cloned repository on the VPS can `git pull`
    - For a private repo, this usually means configuring a deploy key or SSH access on the server
 
-### Required GitHub Actions secrets
+### Required GitHub Actions variables and secrets
 
 Add these in GitHub: `Settings -> Secrets and variables -> Actions`
 
+Variables:
+
 - `VPS_HOST`: server hostname or IP
 - `VPS_USER`: SSH username
-- `VPS_APP_DIR`: absolute path to the app directory on the server, for example `/srv/break-the-code`
+- `BREAK_THE_CODE_APP_DIR`: absolute path to the app directory on the server, for example `/srv/break-the-code`
+
+Secrets:
+
 - `VPS_SSH_KEY`: private SSH key used by GitHub Actions to connect to the VPS
 
-### Optional GitHub Actions secrets
+### Optional GitHub Actions variables and secrets
+
+Variables:
 
 - `VPS_PORT`: SSH port if not `22`
+
+Secrets:
+
 - `VPS_KNOWN_HOSTS`: recommended pinned host key entry for strict SSH host verification
 
 ### Deployment behavior
 
 - Push to `main`
 - GitHub Actions opens an SSH session to the VPS
-- The workflow changes into `VPS_APP_DIR`
+- The workflow changes into `BREAK_THE_CODE_APP_DIR`
 - The workflow runs `DEPLOY_BRANCH=<pushed-branch> sh deploy.sh`
 - `deploy.sh` pulls the latest code, refreshes `.venv`, installs dependencies, and restarts Gunicorn
 
