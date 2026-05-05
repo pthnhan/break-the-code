@@ -180,6 +180,17 @@
                         <span class="meta-badge">Choose one clue</span>
                     </div>
                     <div id="availableQuestions" class="questions-container"></div>
+
+                    <div class="game-log-section ask-panel-log">
+                        <div class="stage-meta">
+                            <div>
+                                <p class="stage-kicker">Log</p>
+                                <h3>Round feed</h3>
+                            </div>
+                            <span class="meta-badge">Questions and reveals</span>
+                        </div>
+                        <div id="gameLog" class="game-log"></div>
+                    </div>
                 </div>
 
                 <!-- Make Guess Interface -->
@@ -211,18 +222,6 @@
                             <button id="clearGuess" class="btn btn-secondary">Clear</button>
                         </div>
                     </div>
-                </div>
-
-                <!-- Game Log -->
-                <div class="game-log-section game-stage-card" data-game-panel="log">
-                    <div class="stage-meta">
-                        <div>
-                            <p class="stage-kicker">Log</p>
-                            <h3>Round feed</h3>
-                        </div>
-                        <span class="meta-badge">Questions and reveals</span>
-                    </div>
-                    <div id="gameLog" class="game-log"></div>
                 </div>
 
                 <!-- Scoreboard -->
@@ -266,7 +265,6 @@
                 <button type="button" class="dock-button is-active" data-game-panel-target="table">Table</button>
                 <button type="button" class="dock-button" data-game-panel-target="questions">Ask</button>
                 <button type="button" class="dock-button" data-game-panel-target="guess">Guess</button>
-                <button type="button" class="dock-button" data-game-panel-target="log">Log</button>
                 <button type="button" class="dock-button" data-game-panel-target="score">Score</button>
             </div>
         </div>

@@ -3120,8 +3120,8 @@ body.game-page::before {
     min-height: 360px;
 }
 
-.game-log-section[data-game-panel="log"] {
-    min-height: 0;
+.ask-panel-log {
+    margin-top: 18px;
 }
 
 .stage-meta {
@@ -3887,7 +3887,7 @@ body.game-page::before {
     top: 212px;
     z-index: 29;
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 10px;
     padding: 10px;
     border-radius: 22px;
@@ -4068,7 +4068,7 @@ body.game-page::before {
         top: auto;
         z-index: 55;
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(4, 1fr);
         gap: 8px;
         padding: 10px;
         border-radius: 22px;
